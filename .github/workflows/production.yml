@@ -10,3 +10,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Deploy
         run: make deploy
+        working-directory: SVS-SERVER
