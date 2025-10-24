@@ -38,3 +38,4 @@ jobs:
           bun install
       - name: Run tests
         run: bun run test
+        working-directory: SVS-CLIENT
