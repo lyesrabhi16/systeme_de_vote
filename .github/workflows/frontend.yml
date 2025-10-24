@@ -22,7 +22,7 @@ jobs:
           cd SVS-CLIENT
           bun install
       - name: Build
-        run: bun build --if-present
+        run: bun run build
   test:
     runs-on: ubuntu-latest
     steps:
@@ -36,4 +36,4 @@ jobs:
           cd SVS-CLIENT
           bun install
       - name: Run tests
-        run: bun test
+        run: bun run test
