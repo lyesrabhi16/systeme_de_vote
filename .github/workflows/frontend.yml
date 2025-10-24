@@ -23,6 +23,7 @@ jobs:
           bun install
       - name: Build
         run: bun run build
+        working-directory: SVS-CLIENT
   test:
     runs-on: ubuntu-latest
     steps:
