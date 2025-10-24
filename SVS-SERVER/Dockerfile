@@ -8,6 +8,6 @@ RUN apt-get update && apt-get upgrade -y
 
 RUN make install
 
-EXPOSE 8000
+EXPOSE 80
 
 CMD [ "make","run-dev" ]

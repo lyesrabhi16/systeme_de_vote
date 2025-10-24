@@ -1,0 +1,12 @@
+name: Production
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+jobs:
+  deploy:
+    runs-on: debian-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy
+        run: make deploy
