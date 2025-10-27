@@ -1,0 +1,21 @@
+services:
+  svs-server:
+    build: .
+    container_name: svs-server
+    networks:
+      - svs-network
+    ports:
+      - '80:80'
+    volumes:
+      - ./:/SVS-SERVER
+      - svs-data:/SVS-SERVER/data
+    command: make run-production
+    restart: unless-stopped
+
+networks:
+  svs-network:
+    driver: bridge
+
+volumes:
+  svs-data:
+    driver: local
