@@ -1,19 +1,86 @@
 services:
   svs-server:
-    build: .
     container_name: svs-server
+    build: .
     networks:
       - svs-network
     ports:
-      - '80:80'
+      - "81:443"
     volumes:
       - ./:/SVS-SERVER
       - svs-data:/SVS-SERVER/data
     command: make run-production
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.svs-server.rule=Host(`svs-server.localhost`)"
+      - "traefik.http.routers.svs-server.entrypoints=websecure"
+      - "traefik.http.routers.svs-server.tls=true"
+
+  traefik:
+    container_name: traefik
+    image: traefik:v3.5
+    networks:
+      - svs-network
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/certs:ro
+      - ./:/dynamic:ro
+
+    command:
+      # EntryPoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+
+      # Attach the static configuration tls.yml file that contains the tls configuration settings
+      - "--providers.file.filename=/dynamic/tls.yml"
+
+      # Providers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=svs-network"
+
+      # API & Dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+
+      # Observability
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--metrics.prometheus=true"
+
+    # Traefik Dynamic configuration via Docker labels
+    labels:
+      # Enable self‑routing
+      - "traefik.enable=true"
+
+      # Dashboard router
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.docker.localhost`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls=true"
+
+      # middleware to redirect http to https
+      - "traefik.http.middlewares.redirectHttpToHttpsScheme.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirectHttpToHttpsScheme.redirectscheme.permanent=true"
+
+      # Basic‑auth middleware
+      #- "traefik.http.middlewares.dashboard-auth.basicauth.users=<PASTE_HASH_HERE>"
+      #- "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
 
 networks:
   svs-network:
+    name: svs-network
     driver: bridge
 
 volumes:
