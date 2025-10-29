@@ -1,0 +1,113 @@
+#!/bin/bash
+# generate-svs-certs.sh
+# Generate CA (if missing) + signed server cert with SANs
+
+set -euo pipefail
+DIR="certs"
+mkdir -p "$DIR"
+
+CONFIG="$DIR/svs-server.conf"
+
+# ------------------------------------------------------------------
+# 1. Create CA if not exists
+# ------------------------------------------------------------------
+if [ -f "$DIR/ca.crt" ] && [ -f "$DIR/ca.key" ]; then
+    echo "CA already exists. Skipping creation."
+else
+    echo "Creating CA..."
+    openssl genrsa -out "$DIR/ca.key" 4096
+
+    openssl req -x509 -new -nodes \
+        -key "$DIR/ca.key" \
+        -sha256 \
+        -days 3650 \
+        -subj "/C=FR/ST=CRETEIL/L=CRETEIL/O=UPEC/OU=LS/CN=svs-ca" \
+        -out "$DIR/ca.crt"
+
+    echo "CA 'svs-ca' created: $DIR/ca.crt"
+fi
+
+# ------------------------------------------------------------------
+# 2. Create svs-server.conf (only if missing or outdated)
+# ------------------------------------------------------------------
+if [ -f "$CONFIG" ]; then
+    echo "Config $CONFIG already exists. Skipping creation."
+else
+    echo "Creating OpenSSL config with SANs at $CONFIG..."
+    cat > "$CONFIG" << 'EOF'
+    [ req ]
+    prompt                 = no
+    default_bits           = 2048
+    default_md             = sha256
+    distinguished_name     = dn
+    req_extensions         = v3_req
+
+    [ dn ]
+    C  = FR
+    ST = CRETEIL
+    L  = CRETEIL
+    O  = UPEC
+    OU = LS
+    CN = svs-server.localhost
+
+    [ v3_req ]
+    basicConstraints       = CA:FALSE
+    keyUsage               = digitalSignature, keyEncipherment
+    extendedKeyUsage       = serverAuth, clientAuth
+    subjectAltName         = @sans
+
+    [ sans ]
+    DNS.1 = svs-server.localhost
+EOF
+
+    echo "Config written: $CONFIG"
+fi
+# ------------------------------------------------------------------
+# 3. Generate server key + CSR (with SAN)
+# ------------------------------------------------------------------
+echo "Generating server key and CSR..."
+openssl genrsa -out "$DIR/svs-server.key" 2048
+
+openssl req -new \
+    -key "$DIR/svs-server.key" \
+    -out "$DIR/svs-server.csr" \
+    -config "$CONFIG" \
+    -extensions v3_req
+
+# ------------------------------------------------------------------
+# 4. Sign CSR → include SAN in final cert
+# ------------------------------------------------------------------
+echo "Signing certificate with CA (including SAN)..."
+openssl x509 -req \
+    -in "$DIR/svs-server.csr" \
+    -CA "$DIR/ca.crt" \
+    -CAkey "$DIR/ca.key" \
+    -CAcreateserial \
+    -out "$DIR/svs-server.crt" \
+    -days 500 \
+    -sha256 \
+    -extfile "$CONFIG" \
+    -extensions v3_req
+
+# ------------------------------------------------------------------
+# 5. Create bundle (cert + CA) for servers/clients
+# ------------------------------------------------------------------
+cat "$DIR/svs-server.crt" "$DIR/ca.crt" > "$DIR/svs-server-bundle.crt"
+
+# ------------------------------------------------------------------
+# 6. Cleanup
+# ------------------------------------------------------------------
+rm -f "$DIR/svs-server.csr" "$DIR/ca.srl"
+
+# ------------------------------------------------------------------
+# 7. Verify SAN is present
+# ------------------------------------------------------------------
+echo "Certificate generated:"
+echo "   $DIR/svs-server.key"
+echo "   $DIR/svs-server.crt"
+echo "   $DIR/svs-server-bundle.crt (with CA chain)"
+
+echo -e "\nSANs in certificate:"
+openssl x509 -in "$DIR/svs-server.crt" -text -noout | grep -A 5 "Subject Alternative Name" || echo "SAN missing!"
+
+echo -e "\nDone. Use svs-server-bundle.crt on clients or in browsers."

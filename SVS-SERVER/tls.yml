@@ -1,0 +1,4 @@
+tls:
+  certificates:
+    - certFile: /certs/svs-server.crt
+      keyFile: /certs/svs-server.key
