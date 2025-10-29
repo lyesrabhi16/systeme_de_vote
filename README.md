@@ -6,7 +6,7 @@ Un Systéme de vote (Projet Long M1 LS FI UPEC)
 
 steps:
 
-1. generate the certificats
+1. generate the certificates
 
 ```bash
 make generate-certs
