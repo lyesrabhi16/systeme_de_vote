@@ -8,6 +8,6 @@ RUN apt-get update && apt-get upgrade -y
 
 RUN make install
 
-EXPOSE 80
+EXPOSE 443
 
-CMD [ "make","run-dev" ]
+CMD [ "make","run-production" ]
