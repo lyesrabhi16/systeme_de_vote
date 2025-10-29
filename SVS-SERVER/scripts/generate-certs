@@ -1,5 +1,5 @@
 #!/bin/bash
-# generate-svs-certs.sh
+# generate-certs
 # Generate CA (if missing) + signed server cert with SANs
 
 set -euo pipefail
