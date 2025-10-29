@@ -28,7 +28,7 @@ run-dev: check-dependencies ## Run the FastAPI server in development mode.
 
 run-production: check-dependencies ## Run the FastAPI server in production mode.
 	@echo "Starting FastAPI server in production mode..."
-	fastapi run --host 0.0.0.0 --port 80
+	fastapi run --host 0.0.0.0 --port 443
 
 build-client: ## Build the SVS-CLIENT application.
 	@echo "Building SVS-CLIENT application..."
@@ -39,3 +39,9 @@ deploy: build-client ## Deploy the built SVS-CLIENT application to the server's 
 	@echo "Deploying application..."
 	@cp -r ../SVS-CLIENT/dist ./app/
 	@echo "\033[32mDeployment complete.\033[0m"
+
+generate-certs: ## Generate SSL certificates for the server.
+	@echo "Generating SSL certificates..."
+	@chmod +x ./scripts/generate-certs
+	@./scripts/generate-certs
+	@echo "\033[32mSSL certificates generated.\033[0m"
