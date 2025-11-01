@@ -3,7 +3,7 @@ from enum import Enum
 from dotenv import load_dotenv
 import os
 from app.config.globals import BASE_DIR
-from typing import List
+from typing import List, Union
 
 
 class ENV_MODES(Enum):
@@ -41,7 +41,7 @@ class _ENV(BaseModel):
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
-    def validate_allowed_origins(cls, v: str) -> List[str]:
+    def validate_allowed_origins(cls, v: Union[str, List[str]]) -> List[str]:
         """Convert comma-separated string to list"""
         if isinstance(v, str):
             return list(
