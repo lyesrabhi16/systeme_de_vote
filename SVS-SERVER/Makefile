@@ -45,3 +45,8 @@ generate-certs: ## Generate SSL certificates for the server.
 	@chmod +x ./scripts/generate-certs
 	@./scripts/generate-certs
 	@echo "\033[32mSSL certificates generated.\033[0m"
+
+update-requirements: ## Update the requirements.txt file with the latest dependencies.
+	@echo "Updating requirements.txt..."
+	@pipenv requirements > requirements.txt
+	@echo "\033[32mrequirements.txt updated.\033[0m"
