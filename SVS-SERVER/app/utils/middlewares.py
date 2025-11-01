@@ -1,10 +1,16 @@
+from typing import List
 from fastapi import FastAPI
 from loguru import logger
 
 
-def setup_middlewares(APP: FastAPI, MIDDLEWARES: list = []):
+def setup_middlewares(APP: FastAPI, MIDDLEWARES: list = []) -> List[str]:
     """
     Setup all middlewares for the FastAPI app.
+    Args:
+        APP (FastAPI): The FastAPI application instance.
+        MIDDLEWARES (list): A list of middleware classes or configurations to be added.
+    Returns:
+        List[str]: The order of middleware execution for a request (response is the reverse order).
     """
     middleware_order = ["#API"]
 
@@ -53,3 +59,5 @@ def setup_middlewares(APP: FastAPI, MIDDLEWARES: list = []):
         logger.info(f"Middleware {middleware.__name__} has been set up.")
 
     logger.debug(f"Middleware Execution Order: {middleware_order}")
+
+    return middleware_order
