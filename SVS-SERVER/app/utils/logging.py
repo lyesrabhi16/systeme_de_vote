@@ -52,7 +52,7 @@ def setup_logging():
         retention="30 days",
         compression="zip",
         level="INFO",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra.get('logger_name', 'unknown')} - {message}",
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[logger_name]} - {message}",
         filter=lambda record: record["extra"].get("logger_name") == "http",
     )
 
