@@ -16,7 +16,7 @@ install: ## Install all required dependencies.
 	@pip install -r requirements.txt
 	@echo "\033[32mInstallation complete.\033[0m"
 
-check-dependencies: ## Check if all required dependencies are installed.
+check-dependencies: install ## Check if all required dependencies are installed.
 	@echo "Checking dependencies..."
 	# check if all packages in requirements.txt are installed
 	@pip freeze | grep -F -f requirements.txt > /dev/null || (echo "Some dependencies are missing. Please run 'make install'." && exit 1)
