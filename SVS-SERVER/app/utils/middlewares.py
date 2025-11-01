@@ -41,11 +41,6 @@ def setup_middlewares(APP: FastAPI, MIDDLEWARES: list = []) -> List[str]:
 
         for func_name in all_middleware_functions:
             func = getattr(middleware, func_name)
-            if not callable(func):
-                logger.debug(
-                    f"Attribute {func_name} of middleware {middleware.__name__} is not callable. Skipping."
-                )
-                continue
 
             @APP.middleware("http")
             async def middleware_wrapper(request, call_next, func=func):
