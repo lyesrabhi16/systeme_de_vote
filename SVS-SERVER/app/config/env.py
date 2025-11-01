@@ -42,7 +42,9 @@ class _ENV(BaseModel):
     def validate_allowed_origins(cls, v: str) -> List[str]:
         """Convert comma-separated string to list"""
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
+            return list(
+                filter(lambda x: x != "", [origin.strip() for origin in v.split(",")])
+            )
         elif isinstance(v, list):
             return v
         else:
