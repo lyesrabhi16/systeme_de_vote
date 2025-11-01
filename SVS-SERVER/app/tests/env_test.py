@@ -64,6 +64,15 @@ def test_invalid_allowed_origins():
     except ValueError as e:
         assert "ALLOWED_ORIGINS must be a comma-separated string or a list" in str(e)
 
+def test_none_allowed_origins():
+    from app.config.env import env, ENV_MODES
+
+    try:
+        env.model_validate({"ALLOWED_ORIGINS": None})
+        assert False, "ValidationError expected"
+    except ValueError as e:
+        assert "ALLOWED_ORIGINS must be a comma-separated string or a list" in str(e)
+
 
 def test_default_values():
     from app.config.env import env, ENV_MODES
