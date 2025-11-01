@@ -31,6 +31,7 @@ def setup_middlewares(APP: FastAPI, MIDDLEWARES: list | None = None) -> List[str
             middleware_order.insert(0, middleware_name)
             logger.debug(f"Registered middleware: {middleware_name}")
 
+            continue
 
         logger.info(f"Setting up middleware: {middleware.__name__}")
         all_middleware_functions = list(
