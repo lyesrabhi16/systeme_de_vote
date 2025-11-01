@@ -4,7 +4,17 @@ from fastapi.responses import FileResponse
 
 from app.config.env import env
 from app.utils import get_real_path
+from app.utils.middlewares import setup_middlewares
+from app.middlewares.http_middleware import HTTP_MIDDLEWARE
+from app.middlewares.cors_middleware import CORS_MIDDLEWARE
 
+
+from app.utils.logging import setup_logging, intercept_standard_logging
+from loguru import logger
+
+# Setup logging BEFORE creating the FastAPI app
+setup_logging()
+intercept_standard_logging()
 
 APP = FastAPI()
 
@@ -25,4 +35,18 @@ async def serve_spa_fallback(path: str):
     return await serve_spa()
 
 
-print(f"ENV_MODE: {env.ENV_MODE.value}")
+@APP.post("/echo")
+async def echo(data: dict):
+    return data
+
+
+# Setup middlewares
+setup_middlewares(
+    APP=APP,
+    MIDDLEWARES=[
+        CORS_MIDDLEWARE,
+        HTTP_MIDDLEWARE,
+    ],
+)
+
+logger.info(f"ENV_MODE: {env.ENV_MODE.value}")

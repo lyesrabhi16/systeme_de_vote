@@ -3,6 +3,7 @@ from enum import Enum
 from dotenv import load_dotenv
 import os
 from app.config.globals import BASE_DIR
+from typing import List
 
 
 class ENV_MODES(Enum):
@@ -18,6 +19,12 @@ class _ENV(BaseModel):
         description=f"The environment mode the application is running in. possible values are {list(ENV_MODES)}",
     )
 
+    ALLOWED_ORIGINS: List[str] = Field(
+        default=["*"],
+        title="CORS Allowed origins",
+        description="List of allowed origins for CORS separated by commas ','",
+    )
+
     @field_validator("ENV_MODE", mode="before")
     @classmethod
     def validate_env_mode(cls, v: str) -> ENV_MODES:
@@ -29,6 +36,19 @@ class _ENV(BaseModel):
         raise ValueError(
             f"Invalid ENV_MODE: {v}. Must be one of {[m.value for m in ENV_MODES]}"
         )
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def validate_allowed_origins(cls, v: str) -> List[str]:
+        """Convert comma-separated string to list"""
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",")]
+        elif isinstance(v, list):
+            return v
+        else:
+            raise ValueError(
+                "ALLOWED_ORIGINS must be a comma-separated string or a list"
+            )
 
 
 # get env variables
