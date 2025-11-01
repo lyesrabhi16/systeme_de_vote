@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from loguru import logger
 
 
-def setup_middlewares(APP: FastAPI, MIDDLEWARES: list = []) -> List[str]:
+def setup_middlewares(APP: FastAPI, MIDDLEWARES: list | None = None) -> List[str]:
     """
     Setup all middlewares for the FastAPI app.
     Args:
@@ -12,6 +12,8 @@ def setup_middlewares(APP: FastAPI, MIDDLEWARES: list = []) -> List[str]:
     Returns:
         List[str]: The order of middleware execution for a request (response is the reverse order).
     """
+    if MIDDLEWARES is None:
+        MIDDLEWARES = []
     middleware_order = ["#API"]
 
     for middleware in MIDDLEWARES:
