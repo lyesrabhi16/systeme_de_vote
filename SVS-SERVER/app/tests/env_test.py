@@ -47,6 +47,14 @@ def test_invalid_env_mode():
         assert "Invalid ENV_MODE" in str(e)
 
 
+def test_env_mode_case_insensitive():
+    from app.config.env import env, ENV_MODES
+
+    for mode in ["DEVELOPMENT", "Development", "development"]:
+        validated = env.model_validate({"ENV_MODE": mode})
+        assert validated.ENV_MODE == ENV_MODES.DEVELOPMENT
+
+
 def test_invalid_allowed_origins():
     from app.config.env import env, ENV_MODES
 
