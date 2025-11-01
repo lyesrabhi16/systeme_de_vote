@@ -27,11 +27,13 @@ class _ENV(BaseModel):
 
     @field_validator("ENV_MODE", mode="before")
     @classmethod
-    def validate_env_mode(cls, v: str) -> ENV_MODES:
+    def validate_env_mode(cls, v) -> ENV_MODES:
         """Convert string values to ENV_MODES enum"""
+        if isinstance(v, ENV_MODES):
+            return v
         # Try to match by value
         for mode in ENV_MODES:
-            if mode.value == v.lower():
+            if isinstance(v, str) and mode.value == v.lower():
                 return mode
         raise ValueError(
             f"Invalid ENV_MODE: {v}. Must be one of {[m.value for m in ENV_MODES]}"
