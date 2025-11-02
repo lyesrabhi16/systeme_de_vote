@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -8,7 +9,7 @@ from app.utils.middlewares import setup_middlewares
 from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
 from app.routers import auth_router
-from app.db import test_db_connection
+from app.db import test_db_connection, init_db
 
 from app.utils.logging import setup_logging, intercept_standard_logging
 from loguru import logger
@@ -18,11 +19,22 @@ import asyncio
 setup_logging()
 intercept_standard_logging()
 
-# Check DB Connection
-if not asyncio.run(test_db_connection()):
-    exit(1)
 
-APP = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    # Test database connection
+    connected = await test_db_connection()
+    if not connected:
+        logger.error("Failed to connect to the database on startup.")
+    # Initialize the database if needed
+    await init_db()
+
+    yield
+    # Shutdown
+
+
+APP = FastAPI(lifespan=lifespan)
 
 APP.mount("/public", StaticFiles(directory="app/dist"), name="public")
 

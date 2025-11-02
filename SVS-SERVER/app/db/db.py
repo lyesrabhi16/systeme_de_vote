@@ -29,7 +29,7 @@ def db_session(func):
 
 
 @db_session
-async def test_db_connection(db: AsyncSession | None = None) -> bool:
+async def test_db_connection(db: AsyncSession | None = None):
     """Test database connection by executing a simple query"""
     try:
         result = await db.execute(text("SELECT 1"))
@@ -39,3 +39,22 @@ async def test_db_connection(db: AsyncSession | None = None) -> bool:
     except Exception as e:
         logger.error(f"DB Connection failed: {e}")
         return False
+
+
+async def init_db(db: AsyncSession | None = None):
+    """Initialize the database (e.g., create tables)"""
+    # Import models to register them with SQLModel metadata
+    import app.models  # noqa: F401
+    from sqlmodel import SQLModel
+
+    # check if already initialized
+    if not SQLModel.metadata.tables:
+        logger.info("No models found to create tables.")
+        return
+    else:
+        logger.debug(f"Found models: {list(SQLModel.metadata.tables.keys())}")
+
+    logger.info("Initializing database...")
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+    logger.info("Database initialized")
