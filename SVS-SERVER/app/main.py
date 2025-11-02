@@ -7,14 +7,20 @@ from app.utils import get_real_path
 from app.utils.middlewares import setup_middlewares
 from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
-
+from app.routers import auth_router
+from app.db import test_db_connection
 
 from app.utils.logging import setup_logging, intercept_standard_logging
 from loguru import logger
+import asyncio
 
 # Setup logging BEFORE creating the FastAPI app
 setup_logging()
 intercept_standard_logging()
+
+# Check DB Connection
+if not asyncio.run(test_db_connection()):
+    exit(1)
 
 APP = FastAPI()
 
@@ -29,15 +35,18 @@ async def serve_spa():
     return FileResponse(index_file_path)
 
 
+# Include API routers
+APP.include_router(
+    auth_router.router,
+    prefix="/auth",
+    tags=["auth"],
+)
+
+
 # Catch-all route to serve index.html for SPA routing
 @APP.get("*", response_class=FileResponse)
 async def serve_spa_fallback(path: str):
     return await serve_spa()
-
-
-@APP.post("/echo")
-async def echo(data: dict):
-    return data
 
 
 # Setup middlewares

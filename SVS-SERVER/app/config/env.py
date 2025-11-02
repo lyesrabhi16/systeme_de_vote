@@ -25,6 +25,42 @@ class _ENV(BaseModel):
         description="List of allowed origins for CORS separated by commas ','",
     )
 
+    DB_DRIVER: str = Field(
+        default="postgresql+asyncpg",
+        title="Database Driver",
+        description="The database driver to use for the connection",
+    )
+    DB_USER: str = Field(
+        title="Database User",
+        description="The database user for the connection",
+    )
+    DB_PASSWORD: str = Field(
+        title="Database Password",
+        description="The database password for the connection",
+    )
+    DB_HOST: str = Field(
+        default="localhost",
+        title="Database Host",
+        description="The database host for the connection",
+    )
+    DB_PORT: int = Field(
+        default=5432,
+        title="Database Port",
+        description="The database port for the connection",
+    )
+    DB_NAME: str = Field(
+        title="Database Name",
+        description="The database name for the connection",
+    )
+
+    @field_validator("DB_PORT", mode="before")
+    @classmethod
+    def validate_db_port(cls, v) -> int:
+        """Convert string to int for DB_PORT"""
+        if isinstance(v, str):
+            return int(v)
+        return v
+
     @field_validator("ENV_MODE", mode="before")
     @classmethod
     def validate_env_mode(cls, v) -> ENV_MODES:
@@ -53,6 +89,11 @@ class _ENV(BaseModel):
             raise ValueError(
                 "ALLOWED_ORIGINS must be a comma-separated string or a list"
             )
+
+    @property
+    def DEBUG(self) -> bool:
+        """Returns True if ENV_MODE is DEVELOPMENT or TESTING, False otherwise"""
+        return self.ENV_MODE in {ENV_MODES.DEVELOPMENT, ENV_MODES.TESTING}
 
 
 # get env variables
