@@ -78,6 +78,19 @@ services:
       #- "traefik.http.middlewares.dashboard-auth.basicauth.users=<PASTE_HASH_HERE>"
       #- "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
 
+  svs-db:
+    container_name: svs-db
+    image: postgres:latest
+    networks:
+      - svs-network
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - svs-db-data:/var/lib/postgresql
+    restart: unless-stopped
+
 networks:
   svs-network:
     name: svs-network
@@ -85,4 +98,6 @@ networks:
 
 volumes:
   svs-data:
+    driver: local
+  svs-db-data:
     driver: local
