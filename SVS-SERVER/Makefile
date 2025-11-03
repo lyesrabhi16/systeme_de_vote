@@ -50,3 +50,8 @@ update-requirements: ## Update the requirements.txt file with the latest depende
 	@echo "Updating requirements.txt..."
 	@pipenv requirements > requirements.txt
 	@echo "\033[32mrequirements.txt updated.\033[0m"
+
+seed-db: ## Seed the database with initial data.
+	@echo "Seeding the database..."
+	@python -m app.db.seed
+	@echo "\033[32mDatabase seeding complete.\033[0m"
