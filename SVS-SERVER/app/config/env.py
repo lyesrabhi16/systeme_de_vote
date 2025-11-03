@@ -53,6 +53,21 @@ class _ENV(BaseModel):
         description="The database name for the connection",
     )
 
+    JWT_SECRET_KEY: str = Field(
+        title="JWT Secret Key",
+        description="The secret key used to sign JWT tokens",
+    )
+    JWT_ALGORITHM: str = Field(
+        default="HS256",
+        title="JWT Algorithm",
+        description="The algorithm used to sign JWT tokens",
+    )
+    JWT_EXPIRATION: int = Field(
+        default=3600,
+        title="JWT Expiration Time",
+        description="The expiration time for JWT tokens in seconds",
+    )
+
     @field_validator("DB_PORT", mode="before")
     @classmethod
     def validate_db_port(cls, v) -> int:
@@ -97,6 +112,7 @@ class _ENV(BaseModel):
 
 
 # get env variables
-load_dotenv(BASE_DIR, override=True)
+env_file_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(env_file_path, override=True)
 # public Singleton instance of env variables
 env = _ENV(**os.environ)
