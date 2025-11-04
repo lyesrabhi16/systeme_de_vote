@@ -7,4 +7,4 @@ class JWT_DATA(BaseModel):
 
 
 class TokenDTO(BaseModel):
-    token: str
+    token: str | None = None

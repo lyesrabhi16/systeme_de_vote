@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Response, Depends
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from app.models.user_login_model import UserLoginModel
 from app.models.user import CurrentUserResponseModel, User
 from app.utils import auth_utils
@@ -33,7 +34,7 @@ async def login(data: UserLoginModel, response: Response):
         key="token",
         value=token,
         httponly=True,
-        max_age=env.JWT_EXPIRATION if data.remember_me else env.JWT_EXPIRATION // 2,
+        max_age=env.JWT_EXPIRATION if data.remember_me else None,
     )
     return {"token": token}
 
@@ -49,9 +50,11 @@ async def logout(response: Response):
     response_model=CurrentUserResponseModel,
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)],
 )
-async def get_current_user(data: TokenDTO):
+async def get_current_user(request: Request, data: Optional[TokenDTO]):
     """Get the current user information"""
-    user: User | None = await UserLoginModel.get_current_user(data.token)
+
+    token = data.token if data else request.state.token
+    user: User | None = await UserLoginModel.get_current_user(token)
     if user is None:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
     if user.is_active is False:
