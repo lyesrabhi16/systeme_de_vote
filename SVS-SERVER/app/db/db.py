@@ -44,10 +44,10 @@ async def test_db_connection(db: AsyncSession | None = None):
     try:
         result = await db.execute(text("SELECT 1"))
         result.scalar_one()
-        logger.info("DB connected")
+        logger.info(f"DB({env.DB_HOST}) connected")
         return True
     except Exception as e:
-        logger.error(f"DB Connection failed: {e}")
+        logger.error(f"DB({env.DB_HOST}) Connection failed: {e}")
         return False
 
 

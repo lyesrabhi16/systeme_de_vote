@@ -3,7 +3,7 @@ services:
     container_name: svs-server
     build: .
     env_file:
-      - .env
+      - compose.env
     networks:
       - svs-network
     ports:

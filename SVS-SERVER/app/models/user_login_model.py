@@ -21,15 +21,19 @@ class UserLoginModel(BaseModel):
     ) -> User | None:
         if db is None:
             return None
-        user = (
+        user_row = (
             await db.execute(select(User).where(User.username == username))
         ).one_or_none()
-        logger.debug(f"Authenticating user: {username}, Found: {user is not None}")
-        if user is not None:
-            user = user[0]
-        if user and auth_utils.verify_hash(password, user.password):
-            logger.debug(f"User authenticated successfully: {username}")
-            return user
+        logger.debug(f"Authenticating user: {username}, Found: {user_row is not None}")
+        if user_row is not None:
+            user: User = user_row[0]
+            if (
+                (user_row is not None)
+                and (user := user_row[0])
+                and (auth_utils.verify_hash(password, user.password))
+            ):
+                logger.debug(f"User authenticated successfully: {user.username}")
+                return user
         logger.warning(f"User authentication failed: {username}")
         return None
 

@@ -43,7 +43,7 @@ APP.mount("/public", StaticFiles(directory="app/dist"), name="public")
 @APP.get("/", response_class=FileResponse)
 async def serve_spa():
 
-    index_file_path = get_real_path("dist/index.html")
+    index_file_path = get_real_path("app/dist/index.html")
     return FileResponse(index_file_path)
 
 

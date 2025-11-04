@@ -36,8 +36,13 @@ class AUTH_MIDDLEWARE:
     @classmethod
     async def RetrieveToken(cls, request: Request):
         logger.debug(f"{cls.__name__} token retrieval started")
-        json_data = await request.json()
-        token = request.cookies.get("token", None) or json_data.get("token", None)
+        try:
+            json_data = await request.json()
+        except Exception:
+            json_data = {}
+        token: str | None = json_data.get("token", None) or request.cookies.get(
+            "token", None
+        )
         if not token:
             logger.warning("No authentication token provided")
             return None

@@ -113,6 +113,6 @@ class _ENV(BaseModel):
 
 # get env variables
 env_file_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(env_file_path, override=True)
+load_dotenv(env_file_path, override=False)
 # public Singleton instance of env variables
 env = _ENV(**os.environ)
