@@ -25,8 +25,7 @@ def generate_token(data: JWT_DATA, expires_in: int = 3600) -> str:
     to_encode = data.model_dump()
     expire = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, env.JWT_SECRET_KEY, algorithm=env.JWT_ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, env.JWT_SECRET_KEY, algorithm=env.JWT_ALGORITHM)
 
 
 def verify_token(token: str) -> JWT_DATA:
