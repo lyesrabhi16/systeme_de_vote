@@ -16,10 +16,10 @@ install: ## Install all required dependencies.
 	@pip install -r requirements.txt
 	@echo "\033[32mInstallation complete.\033[0m"
 
-check-dependencies: install ## Check if all required dependencies are installed.
+check-dependencies: ## Check if all required dependencies are installed.
 	@echo "Checking dependencies..."
-	# check if all packages in requirements.txt are installed
-	@pip freeze | grep -F -f requirements.txt > /dev/null || (echo "Some dependencies are missing. Please run 'make install'." && exit 1)
+	@# check if all packages in requirements.txt are installed
+	@pip freeze | grep -F -f requirements.txt > /dev/null || (echo "Some dependencies are missing. running 'make install'." && make install)
 	@echo "\033[32mAll dependencies are installed.\033[0m"
 
 run-dev: check-dependencies ## Run the FastAPI server in development mode.
@@ -32,7 +32,7 @@ run-production: check-dependencies ## Run the FastAPI server in production mode.
 
 build-client: ## Build the SVS-CLIENT application.
 	@echo "Building SVS-CLIENT application..."
-	cd ../SVS-CLIENT && bun install && bun run build
+	@cd ../SVS-CLIENT && bun install && bun run build
 	@echo "\033[32mSVS-CLIENT build complete.\033[0m"
 
 deploy: build-client ## Deploy the built SVS-CLIENT application to the server's app directory.
@@ -50,3 +50,8 @@ update-requirements: ## Update the requirements.txt file with the latest depende
 	@echo "Updating requirements.txt..."
 	@pipenv requirements > requirements.txt
 	@echo "\033[32mrequirements.txt updated.\033[0m"
+
+seed-db: ## Seed the database with initial data.
+	@echo "Seeding the database..."
+	@python -m app.db.seed
+	@echo "\033[32mDatabase seeding complete.\033[0m"

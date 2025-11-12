@@ -1,9 +1,15 @@
 def test_env_mode():
+    # set ENV_MODE to PRODUCTION
+    import os
+
+    os.environ["ENV_MODE"] = "production"
+
+    # re-import env to pick up the new environment variable
     from app.config.env import env, ENV_MODES
 
     assert env.ENV_MODE in ENV_MODES
     assert isinstance(env.ENV_MODE, ENV_MODES)
-    assert env.ENV_MODE == ENV_MODES.DEVELOPMENT  # Assuming default is DEVELOPMENT
+    assert env.ENV_MODE == ENV_MODES.PRODUCTION
 
 
 def test_allowed_origins():
@@ -64,6 +70,7 @@ def test_invalid_allowed_origins():
     except ValueError as e:
         assert "ALLOWED_ORIGINS must be a comma-separated string or a list" in str(e)
 
+
 def test_none_allowed_origins():
     from app.config.env import env, ENV_MODES
 
@@ -75,11 +82,20 @@ def test_none_allowed_origins():
 
 
 def test_default_values():
-    from app.config.env import env, ENV_MODES
+    # remove all set environment variables
+    import os
+    from app.config.env import env, ENV_MODES, load_env
 
-    # Assuming defaults are DEVELOPMENT and ["*"]
+    for env_var in env.__class__.model_fields.keys():
+        os.environ.pop(env_var, None)
+    env = load_env()
+
+    # Check default values
     assert env.ENV_MODE == ENV_MODES.DEVELOPMENT
     assert env.ALLOWED_ORIGINS == ["*"]
+    assert env.DB_HOST == "localhost"
+    assert env.DB_PORT == 5432
+    assert env.HOST_URL == "http://localhost:8000"
 
 
 def test_env_model_types():

@@ -38,3 +38,23 @@ jobs:
           python -m pip install pytest
           python -m pytest
         working-directory: SVS-SERVER
+        env:
+          HOST_URL: "http://localhost:8000"
+          ENV_MODE: "production"
+          ALLOWED_ORIGINS: "*"
+          JWT_SECRET_KEY: "your_jwt_secret_key"
+          JWT_ALGORITHM: "HS256"
+          JWT_EXPIRATION: "3600"
+
+          #: DB Configuration
+          POSTGRES_USER: "svs_user"
+          POSTGRES_PASSWORD: "svs_password"
+          POSTGRES_DB: "svs_db"
+
+          #: DB CONNECTION PARAMS
+          DB_DRIVER: "postgresql+asyncpg"
+          DB_HOST: "localhost"
+          DB_USER: "svs_user"
+          DB_PASSWORD: "svs_password"
+          DB_PORT: "5432"
+          DB_NAME: "svs_db"
