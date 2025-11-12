@@ -132,14 +132,14 @@
                 }
             }
         },
-        "/*": {
+        "/{path}": {
             "get": {
                 "summary": "Serve Spa Fallback",
                 "operationId": "spa_fallback",
                 "parameters": [
                     {
                         "name": "path",
-                        "in": "query",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",

@@ -57,8 +57,9 @@ APP.include_router(
 
 
 # Catch-all route to serve index.html for SPA routing
-@APP.get("/*", response_class=FileResponse, operation_id="spa_fallback")
+@APP.get("/{path:path}", response_class=FileResponse, operation_id="spa_fallback")
 async def serve_spa_fallback(path: str):
+    logger.debug(f"Fallback to spa route triggered for path: {path}, serving SPA index.html")
     return await serve_spa()
 
 
