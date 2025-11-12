@@ -25,13 +25,14 @@ def db_session(func, commit: bool = True):
 
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        async with Session() as session:
-            return await func(*args, **kwargs, db=session)
         # ------------------------------------------------------------------
         # Preserve the original signature
         # ------------------------------------------------------------------
         wrapper.__annotations__ = func.__annotations__.copy()
         wrapper.__annotations__["return"] = annotations
+
+        async with Session() as session:
+            return await func(*args, **kwargs, db=session)
 
     return wrapper
 

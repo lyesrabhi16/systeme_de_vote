@@ -11,7 +11,6 @@ Name | Type | Description | Notes
 **email** | **string** |  | [default to undefined]
 **verified_email** | **boolean** |  | [default to undefined]
 **username** | **string** |  | [default to undefined]
-**ssn** | **string** |  | [default to undefined]
 **phone_number** | **string** |  | [default to undefined]
 **verified_phone_number** | **boolean** |  | [default to undefined]
 **is_active** | **boolean** |  | [default to undefined]
@@ -29,7 +28,6 @@ const instance: CurrentUserResponseModel = {
     email,
     verified_email,
     username,
-    ssn,
     phone_number,
     verified_phone_number,
     is_active,

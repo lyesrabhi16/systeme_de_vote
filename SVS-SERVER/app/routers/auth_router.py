@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from app.models.user_login_model import UserLoginModel
 from app.models.user import CurrentUserResponseModel, User
 from app.utils import auth_utils
-from app.config.env import env
+from app.config.env import env, ENV_MODES
 from app.models.jwt_model import JWT_DATA, TokenInput, TokenResponse
 from loguru import logger
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
@@ -44,6 +44,8 @@ async def login(data: UserLoginModel, response: Response):
         key="token",
         value=token,
         httponly=True,
+        secure=True if env.ENV_MODE == ENV_MODES.PRODUCTION else False,
+        samesite="strict" if env.ENV_MODE == ENV_MODES.PRODUCTION else "lax",
         max_age=env.JWT_EXPIRATION if data.remember_me else None,
     )
     return TokenResponse(token=token)

@@ -22,7 +22,6 @@ class CurrentUserResponseModel(BaseModel):
     email: str
     verified_email: bool
     username: str
-    ssn: str
     phone_number: str
     verified_phone_number: bool
     is_active: bool
