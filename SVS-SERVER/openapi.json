@@ -193,10 +193,6 @@
                         "type": "string",
                         "title": "Username"
                     },
-                    "ssn": {
-                        "type": "string",
-                        "title": "Ssn"
-                    },
                     "phone_number": {
                         "type": "string",
                         "title": "Phone Number"
@@ -222,7 +218,6 @@
                     "email",
                     "verified_email",
                     "username",
-                    "ssn",
                     "phone_number",
                     "verified_phone_number",
                     "is_active",

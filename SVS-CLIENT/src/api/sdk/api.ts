@@ -30,7 +30,6 @@ export interface CurrentUserResponseModel {
     'email': string;
     'verified_email': boolean;
     'username': string;
-    'ssn': string;
     'phone_number': string;
     'verified_phone_number': boolean;
     'is_active': boolean;
