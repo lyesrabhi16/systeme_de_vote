@@ -78,9 +78,7 @@ class _ENV(BaseModel):
     @classmethod
     def validate_db_port(cls, v) -> int:
         """Convert string to int for DB_PORT"""
-        if isinstance(v, str):
-            return int(v)
-        return v
+        return int(v) if isinstance(v, str) else v
 
     @field_validator("ENV_MODE", mode="before")
     @classmethod
