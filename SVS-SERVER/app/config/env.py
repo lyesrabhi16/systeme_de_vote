@@ -120,8 +120,13 @@ class _ENV(BaseModel):
         return self.ENV_MODE in {ENV_MODES.DEVELOPMENT, ENV_MODES.TESTING}
 
 
-# get env variables
-env_file_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(env_file_path, override=False, verbose=True)
+def load_env() -> _ENV:
+    """load environment variables from .env file and os.environ"""
+    # get env variables
+    env_file_path = os.path.join(BASE_DIR, ".env")
+    load_dotenv(env_file_path, override=False, verbose=True)
+    return _ENV(**os.environ)
+
+
 # public Singleton instance of env variables
-env = _ENV(**os.environ)
+env = load_env()
