@@ -12,8 +12,7 @@ hasher = PasswordHash.recommended()
 
 def hash_string(s: str) -> str:
     """Hashes a string using a secure hashing algorithm."""
-    hashed = hasher.hash(s)
-    return hashed
+    return hasher.hash(s)
 
 
 def verify_hash(s: str, hashed: str) -> bool:
