@@ -1,3 +1,4 @@
+import json
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from dotenv import load_dotenv
@@ -33,10 +34,12 @@ class _ENV(BaseModel):
     DB_USER: str = Field(
         title="Database User",
         description="The database user for the connection",
+        default="",
     )
     DB_PASSWORD: str = Field(
         title="Database Password",
         description="The database password for the connection",
+        default="",
     )
     DB_HOST: str = Field(
         default="localhost",
@@ -51,11 +54,13 @@ class _ENV(BaseModel):
     DB_NAME: str = Field(
         title="Database Name",
         description="The database name for the connection",
+        default="",
     )
 
     JWT_SECRET_KEY: str = Field(
         title="JWT Secret Key",
         description="The secret key used to sign JWT tokens",
+        default="your_secret_key",
     )
     JWT_ALGORITHM: str = Field(
         default="HS256",
@@ -117,6 +122,6 @@ class _ENV(BaseModel):
 
 # get env variables
 env_file_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(env_file_path, override=False)
+load_dotenv(env_file_path, override=False, verbose=True)
 # public Singleton instance of env variables
 env = _ENV(**os.environ)
