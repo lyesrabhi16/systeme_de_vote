@@ -9,6 +9,7 @@ docs/AuthApi.md
 docs/CurrentUserResponseModel.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
+docs/IdentifierType.md
 docs/MessageResponse.md
 docs/TokenInput.md
 docs/TokenResponse.md

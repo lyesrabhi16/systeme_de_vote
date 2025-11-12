@@ -39,6 +39,17 @@ export interface CurrentUserResponseModel {
 export interface HTTPValidationError {
     'detail'?: Array<ValidationError>;
 }
+
+export const IdentifierType = {
+    Email: 'email',
+    Username: 'username',
+    PhoneNumber: 'phone_number',
+    Ssn: 'ssn'
+} as const;
+
+export type IdentifierType = typeof IdentifierType[keyof typeof IdentifierType];
+
+
 export interface MessageResponse {
     'message': string;
 }
@@ -49,10 +60,13 @@ export interface TokenResponse {
     'token': string;
 }
 export interface UserLoginModel {
-    'username': string;
+    'identifier': string;
     'password': string;
     'remember_me'?: boolean | null;
+    'identifier_type': IdentifierType;
 }
+
+
 export interface ValidationError {
     'loc': Array<ValidationErrorLocInner>;
     'msg': string;

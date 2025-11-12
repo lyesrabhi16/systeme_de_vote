@@ -288,9 +288,9 @@
             },
             "UserLoginModel": {
                 "properties": {
-                    "username": {
+                    "identifier": {
                         "type": "string",
-                        "title": "Username"
+                        "title": "Identifier"
                     },
                     "password": {
                         "type": "string",
@@ -307,12 +307,16 @@
                         ],
                         "title": "Remember Me",
                         "default": false
+                    },
+                    "identifier_type": {
+                        "$ref": "#/components/schemas/identifierType"
                     }
                 },
                 "type": "object",
                 "required": [
-                    "username",
-                    "password"
+                    "identifier",
+                    "password",
+                    "identifier_type"
                 ],
                 "title": "UserLoginModel"
             },
@@ -348,6 +352,16 @@
                     "type"
                 ],
                 "title": "ValidationError"
+            },
+            "identifierType": {
+                "type": "string",
+                "enum": [
+                    "email",
+                    "username",
+                    "phone_number",
+                    "ssn"
+                ],
+                "title": "identifierType"
             }
         }
     }
