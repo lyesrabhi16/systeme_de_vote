@@ -4,16 +4,22 @@ from app.models.user_login_model import UserLoginModel
 from app.models.user import CurrentUserResponseModel, User
 from app.utils import auth_utils
 from app.config.env import env
-from app.models.jwt_model import JWT_DATA, TokenDTO
+from app.models.jwt_model import JWT_DATA, TokenInput, TokenResponse
 from loguru import logger
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.models.error_codes import ERROR_CODES
 from app.models.messages import Messages
+from app.models import response_models
 
 router = APIRouter()
 
 
-@router.post("/login", dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)])
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
+    operation_id="login",
+)
 async def login(data: UserLoginModel, response: Response):
     # check credentials
     user = await UserLoginModel.authenticate(data.username, data.password)
@@ -36,21 +42,27 @@ async def login(data: UserLoginModel, response: Response):
         httponly=True,
         max_age=env.JWT_EXPIRATION if data.remember_me else None,
     )
-    return {"token": token}
+    return TokenResponse(token=token)
 
 
-@router.post("/logout", dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)])
+@router.post(
+    "/logout",
+    response_model=response_models.MessageResponse,
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)],
+    operation_id="logout",
+)
 async def logout(response: Response):
     response.delete_cookie("token")
-    return {"message": Messages.LOGOUT_SUCCESS}
+    return response_models.MessageResponse(message=Messages.LOGOUT_SUCCESS)
 
 
 @router.post(
     "/user/me",
     response_model=CurrentUserResponseModel,
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)],
+    operation_id="get_current_user",
 )
-async def get_current_user(request: Request, data: Optional[TokenDTO]):
+async def get_current_user(request: Request, data: Optional[TokenInput]):
     """Get the current user information"""
 
     token = data.token if data else request.state.token

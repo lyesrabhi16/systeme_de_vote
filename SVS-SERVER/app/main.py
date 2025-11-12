@@ -13,7 +13,7 @@ from app.db import test_db_connection, init_db
 
 from app.utils.logging import setup_logging, intercept_standard_logging
 from loguru import logger
-import asyncio
+from app.utils.openapi import setup_openapi
 
 # Setup logging BEFORE creating the FastAPI app
 setup_logging()
@@ -36,11 +36,12 @@ async def lifespan(app: FastAPI):
 
 APP = FastAPI(lifespan=lifespan)
 
+
 APP.mount("/public", StaticFiles(directory="app/dist"), name="public")
 
 
 # Route to serve the main SPA page
-@APP.get("/", response_class=FileResponse)
+@APP.get("/", response_class=FileResponse, operation_id="serve_spa")
 async def serve_spa():
 
     index_file_path = get_real_path("app/dist/index.html")
@@ -56,7 +57,7 @@ APP.include_router(
 
 
 # Catch-all route to serve index.html for SPA routing
-@APP.get("*", response_class=FileResponse)
+@APP.get("/*", response_class=FileResponse, operation_id="spa_fallback")
 async def serve_spa_fallback(path: str):
     return await serve_spa()
 
@@ -71,3 +72,6 @@ setup_middlewares(
 )
 
 logger.info(f"ENV_MODE: {env.ENV_MODE.value}")
+
+# setup openapi
+setup_openapi(APP)
