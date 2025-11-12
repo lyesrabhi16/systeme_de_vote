@@ -6,6 +6,10 @@ name = "pypi"
 [packages]
 fastapi = {extras = ["standard"], version = "*"}
 loguru = "*"
+pwdlib = {extras = ["argon2"], version = "*"}
+pyjwt = "*"
+sqlmodel = "*"
+asyncpg = "*"
 
 [dev-packages]
 ruff = "*"

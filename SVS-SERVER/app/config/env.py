@@ -1,3 +1,4 @@
+import json
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from dotenv import load_dotenv
@@ -24,6 +25,65 @@ class _ENV(BaseModel):
         title="CORS Allowed origins",
         description="List of allowed origins for CORS separated by commas ','",
     )
+
+    DB_DRIVER: str = Field(
+        default="postgresql+asyncpg",
+        title="Database Driver",
+        description="The database driver to use for the connection",
+    )
+    DB_USER: str = Field(
+        title="Database User",
+        description="The database user for the connection",
+        default="",
+    )
+    DB_PASSWORD: str = Field(
+        title="Database Password",
+        description="The database password for the connection",
+        default="",
+    )
+    DB_HOST: str = Field(
+        default="localhost",
+        title="Database Host",
+        description="The database host for the connection",
+    )
+    DB_PORT: int = Field(
+        default=5432,
+        title="Database Port",
+        description="The database port for the connection",
+    )
+    DB_NAME: str = Field(
+        title="Database Name",
+        description="The database name for the connection",
+        default="",
+    )
+
+    JWT_SECRET_KEY: str = Field(
+        title="JWT Secret Key",
+        description="The secret key used to sign JWT tokens",
+        default="your_secret_key",
+    )
+    JWT_ALGORITHM: str = Field(
+        default="HS256",
+        title="JWT Algorithm",
+        description="The algorithm used to sign JWT tokens",
+    )
+    JWT_EXPIRATION: int = Field(
+        default=3600,
+        title="JWT Expiration Time",
+        description="The expiration time for JWT tokens in seconds",
+    )
+
+    HOST_URL: str = Field(
+        default="http://localhost:8000",
+        title="Host URL",
+        description="The base URL of the host where the application is running",
+    )
+
+    @field_validator("DB_PORT", mode="before")
+    @classmethod
+    def validate_db_port(cls, v) -> int:
+        """Convert string to int for DB_PORT"""
+        return int(v) if isinstance(v, str) else v
 
     @field_validator("ENV_MODE", mode="before")
     @classmethod
@@ -54,8 +114,19 @@ class _ENV(BaseModel):
                 "ALLOWED_ORIGINS must be a comma-separated string or a list"
             )
 
+    @property
+    def DEBUG(self) -> bool:
+        """Returns True if ENV_MODE is DEVELOPMENT or TESTING, False otherwise"""
+        return self.ENV_MODE in {ENV_MODES.DEVELOPMENT, ENV_MODES.TESTING}
 
-# get env variables
-load_dotenv(BASE_DIR, override=True)
+
+def load_env() -> _ENV:
+    """load environment variables from .env file and os.environ"""
+    # get env variables
+    env_file_path = os.path.join(BASE_DIR, ".env")
+    load_dotenv(env_file_path, override=False, verbose=True)
+    return _ENV(**os.environ)
+
+
 # public Singleton instance of env variables
-env = _ENV(**os.environ)
+env = load_env()

@@ -2,6 +2,8 @@ services:
   svs-server:
     container_name: svs-server
     build: .
+    env_file:
+      - compose.env
     networks:
       - svs-network
     ports:
