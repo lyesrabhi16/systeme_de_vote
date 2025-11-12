@@ -22,9 +22,13 @@ router = APIRouter()
 )
 async def login(data: UserLoginModel, response: Response):
     # check credentials
-    user = await UserLoginModel.authenticate(data.username, data.password)
+    user = await UserLoginModel.authenticate(
+        identifier=data.identifier,
+        password=data.password,
+        identifier_type=data.identifier_type,
+    )
     logger.debug(
-        f"Login attempt for user: {data.username}, Success: {user is not None}"
+        f"Login attempt for user: {data.identifier} using {data.identifier_type}, Success: {user is not None}"
     )
     if not user:
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS)

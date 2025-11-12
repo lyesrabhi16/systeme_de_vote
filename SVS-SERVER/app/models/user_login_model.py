@@ -7,24 +7,54 @@ from .user import User
 from app.db import db_session
 from app.utils import auth_utils
 from loguru import logger
+from enum import Enum
+
+
+class identifierType(Enum):
+    EMAIL = "email"
+    USERNAME = "username"
+    PHONE_NUMBER = "phone_number"
+    SSN = "ssn"
+
+    def get_user_field(self) -> str:
+        match self:
+            case identifierType.EMAIL:
+                return User.email
+            case identifierType.USERNAME:
+                return User.username
+            case identifierType.PHONE_NUMBER:
+                return User.phone_number
+            case identifierType.SSN:
+                return User.ssn
+            case _:
+                raise ValueError(f"Invalid identifier type: {self}")
 
 
 class UserLoginModel(BaseModel):
-    username: str
+    identifier: str
     password: str
     remember_me: Optional[bool] = False
+    identifier_type: identifierType
 
     @classmethod
     @db_session
     async def authenticate(
-        cls, username: str, password: str, db: AsyncSession | None = None
+        cls,
+        identifier: str,
+        password: str,
+        identifier_type: identifierType,
+        db: AsyncSession | None = None,
     ) -> User | None:
         if db is None:
             return None
         user_row = (
-            await db.execute(select(User).where(User.username == username))
+            await db.execute(
+                select(User).where(identifier_type.get_user_field() == identifier)
+            )
         ).one_or_none()
-        logger.debug(f"Authenticating user: {username}, Found: {user_row is not None}")
+        logger.debug(
+            f"Authenticating user: {identifier}, Found: {user_row is not None}"
+        )
         if user_row is not None:
             user: User = user_row[0]
             if (
@@ -32,9 +62,9 @@ class UserLoginModel(BaseModel):
                 and (user := user_row[0])
                 and (auth_utils.verify_hash(password, user.password))
             ):
-                logger.debug(f"User authenticated successfully: {user.username}")
+                logger.debug(f"User authenticated successfully: {user.email}")
                 return user
-        logger.warning(f"User authentication failed: {username}")
+        logger.warning(f"User authentication failed: {identifier}")
         return None
 
     @classmethod
