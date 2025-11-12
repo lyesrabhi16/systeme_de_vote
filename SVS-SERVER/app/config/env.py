@@ -68,6 +68,12 @@ class _ENV(BaseModel):
         description="The expiration time for JWT tokens in seconds",
     )
 
+    HOST_URL: str = Field(
+        default="http://localhost:8000",
+        title="Host URL",
+        description="The base URL of the host where the application is running",
+    )
+
     @field_validator("DB_PORT", mode="before")
     @classmethod
     def validate_db_port(cls, v) -> int:

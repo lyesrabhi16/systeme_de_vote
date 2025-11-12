@@ -6,5 +6,9 @@ class JWT_DATA(BaseModel):
     exp: int | None = None
 
 
-class TokenDTO(BaseModel):
+class TokenInput(BaseModel):
     token: str | None = None
+
+
+class TokenResponse(BaseModel):
+    token: str
