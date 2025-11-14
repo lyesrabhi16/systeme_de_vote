@@ -9,7 +9,7 @@ from app.utils.middlewares import setup_middlewares
 from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
 from app.routers import auth_router
-from app.db import test_db_connection, init_db
+from app.db import test_db_connection, init_db, test_redis_cache_connection
 
 from app.utils.logging import setup_logging, intercept_standard_logging
 from loguru import logger
@@ -23,6 +23,10 @@ intercept_standard_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    # test redis connection
+    redis_connected = await test_redis_cache_connection()
+    if not redis_connected:
+        logger.error("Failed to connect to the Redis cache on startup.")
     # Test database connection
     connected = await test_db_connection()
     if not connected:
@@ -59,7 +63,9 @@ APP.include_router(
 # Catch-all route to serve index.html for SPA routing
 @APP.get("/{path:path}", response_class=FileResponse, operation_id="spa_fallback")
 async def serve_spa_fallback(path: str):
-    logger.debug(f"Fallback to spa route triggered for path: {path}, serving SPA index.html")
+    logger.debug(
+        f"Fallback to spa route triggered for path: {path}, serving SPA index.html"
+    )
     return await serve_spa()
 
 

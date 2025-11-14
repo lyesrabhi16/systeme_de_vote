@@ -1,15 +1,37 @@
-import { Route, Routes } from 'react-router';
-import LoginPage from '@/pages/LoginPage';
-import { routes } from '@/services/routing';
+import useGlobalStore from '@/services/store';
+import useAuth from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
+import LoadingPage from '@/pages/LoadingPage';
+import Router from '@/components/utils/Router';
 function App() {
+  const store = useGlobalStore();
+  const auth = useAuth();
+  const [loaded, setLoaded] = useState(false);
+
+  const loadUser = () => {
+    if (!store.user) {
+      auth
+        .loadCurrentUser()
+        .catch((e) => {
+          console.error('Failed to load user:', e);
+        })
+        .finally(() => {
+          setLoaded(true);
+        });
+    }
+  };
+
+  useEffect(() => {
+    loadUser();
+  });
+
+  if (!loaded) {
+    return <LoadingPage />;
+  }
   return (
-    <>
-      <Routes>
-        <Route path={routes.HOME} element={<>Home Page</>} />
-        <Route path={routes.LOGIN} element={<LoginPage />} />
-        <Route path={routes.NOT_FOUND} element={<>Not Found</>} />
-      </Routes>
-    </>
+    <div className='flex flex-col min-h-screen items-center justify-center p-0 m-0'>
+      <Router />
+    </div>
   );
 }
 

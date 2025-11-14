@@ -33,8 +33,23 @@ class identifierType(Enum):
 class UserLoginModel(BaseModel):
     identifier: str
     password: str
-    remember_me: Optional[bool] = False
     identifier_type: identifierType
+
+    @classmethod
+    @db_session
+    async def get_user_by_email(
+        cls, user_email: str, db: AsyncSession | None = None
+    ) -> User | None:
+        if db is None:
+            return None
+        user_row: Row[Tuple[User]] | None = (
+            await db.execute(select(User).where(User.email == user_email))
+        ).one_or_none()
+        if user_row is not None:
+            logger.debug(f"User found with Email: {user_email}")
+            return user_row[0]
+        logger.warning(f"User not found with Email: {user_email}")
+        return None
 
     @classmethod
     @db_session

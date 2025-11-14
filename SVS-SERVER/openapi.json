@@ -43,6 +43,47 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify-otp": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify Otp",
+                "operationId": "verify_otp_auth_verify_otp_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OTPVerificationModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "$ref": "#/components/schemas/TokenResponse"
                                 }
                             }
@@ -251,6 +292,29 @@
                 ],
                 "title": "MessageResponse"
             },
+            "OTPVerificationModel": {
+                "properties": {
+                    "user_email": {
+                        "type": "string",
+                        "title": "User Email"
+                    },
+                    "otp": {
+                        "type": "string",
+                        "title": "Otp"
+                    },
+                    "remember_me": {
+                        "type": "boolean",
+                        "title": "Remember Me",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_email",
+                    "otp"
+                ],
+                "title": "OTPVerificationModel"
+            },
             "TokenInput": {
                 "properties": {
                     "token": {
@@ -290,18 +354,6 @@
                     "password": {
                         "type": "string",
                         "title": "Password"
-                    },
-                    "remember_me": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Remember Me",
-                        "default": false
                     },
                     "identifier_type": {
                         "$ref": "#/components/schemas/identifierType"

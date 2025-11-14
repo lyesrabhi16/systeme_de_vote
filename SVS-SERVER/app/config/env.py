@@ -79,6 +79,37 @@ class _ENV(BaseModel):
         description="The base URL of the host where the application is running",
     )
 
+    REDIS_HOST: str = Field(
+        default="localhost",
+        title="Redis Host",
+        description="The Redis server host",
+    )
+    REDIS_PORT: int = Field(
+        default=6379,
+        title="Redis Port",
+        description="The Redis server port",
+    )
+    REDIS_DB: int = Field(
+        default=0,
+        title="Redis Database",
+        description="The Redis database number",
+    )
+    REDIS_USER: str = Field(
+        default="",
+        title="Redis User",
+        description="The Redis username if applicable",
+    )
+    REDIS_PASSWORD: str = Field(
+        default="",
+        title="Redis Password",
+        description="The Redis password if applicable",
+    )
+    OTP_EXPIRATION: int = Field(
+        default=300,
+        title="OTP Expiration Time",
+        description="The expiration time for one-time passwords (OTP) in seconds",
+    )
+
     @field_validator("DB_PORT", mode="before")
     @classmethod
     def validate_db_port(cls, v) -> int:

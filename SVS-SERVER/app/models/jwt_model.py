@@ -12,3 +12,15 @@ class TokenInput(BaseModel):
 
 class TokenResponse(BaseModel):
     token: str
+
+
+class OTPVerificationModel(BaseModel):
+    user_email: str
+    otp: str
+    remember_me: bool = False
+
+
+class StoredOTPModel(BaseModel):
+    otp_hash: str
+    tries: int = 0
+    max_tries: int = 3

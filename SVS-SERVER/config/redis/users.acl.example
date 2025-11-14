@@ -1,0 +1,1 @@
+user svs-user on >svs-pass ~* +@all -CONFIG -SHUTDOWN -FLUSHALL

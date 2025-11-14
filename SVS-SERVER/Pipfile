@@ -10,6 +10,7 @@ pwdlib = {extras = ["argon2"], version = "*"}
 pyjwt = "*"
 sqlmodel = "*"
 asyncpg = "*"
+redis = "*"
 
 [dev-packages]
 ruff = "*"

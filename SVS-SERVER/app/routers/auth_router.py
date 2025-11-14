@@ -4,7 +4,12 @@ from app.models.user_login_model import UserLoginModel
 from app.models.user import CurrentUserResponseModel, User
 from app.utils import auth_utils
 from app.config.env import env, ENV_MODES
-from app.models.jwt_model import JWT_DATA, TokenInput, TokenResponse
+from app.models.jwt_model import (
+    JWT_DATA,
+    TokenInput,
+    TokenResponse,
+    OTPVerificationModel,
+)
 from loguru import logger
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.models.error_codes import ERROR_CODES
@@ -16,7 +21,7 @@ router = APIRouter()
 
 @router.post(
     "/login",
-    response_model=TokenResponse,
+    response_model=response_models.MessageResponse,
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="login",
 )
@@ -32,6 +37,23 @@ async def login(data: UserLoginModel, response: Response):
     )
     if not user:
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS)
+    # generate OTP
+    await auth_utils.create_otp(user.id)
+
+    return response_models.MessageResponse(message=Messages.LOGIN_SUCCESS)
+
+
+@router.post(
+    "/verify-otp",
+    response_model=TokenResponse,
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
+)
+async def verify_otp(data: OTPVerificationModel, response: Response):
+    user = await UserLoginModel.get_user_by_email(data.user_email)
+    if not user:
+        raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
+    if not await auth_utils.verify_otp(user.id, data.otp):
+        raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_OTP)
 
     # generate token
     if not user.is_active or (user.id is None):
