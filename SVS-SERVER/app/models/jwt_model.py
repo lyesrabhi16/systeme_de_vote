@@ -24,3 +24,4 @@ class StoredOTPModel(BaseModel):
     otp_hash: str
     tries: int = 0
     max_tries: int = 3
+

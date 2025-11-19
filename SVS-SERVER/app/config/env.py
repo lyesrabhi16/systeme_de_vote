@@ -1,4 +1,3 @@
-import json
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from dotenv import load_dotenv
@@ -108,6 +107,48 @@ class _ENV(BaseModel):
         default=300,
         title="OTP Expiration Time",
         description="The expiration time for one-time passwords (OTP) in seconds",
+    )
+
+    SMTP_USER: str = Field(
+        title="SMTP Username",
+        description="The username for the SMTP server",
+        default="",
+    )
+    SMTP_PASSWORD: str = Field(
+        title="SMTP Password",
+        description="The password for the SMTP server",
+        default="",
+    )
+    SMTP_HOST: str = Field(
+        title="SMTP Host",
+        description="The SMTP server address",
+        default="localhost",
+    )
+    SMTP_PORT: int = Field(
+        default=587,
+        title="SMTP Port",
+        description="The SMTP server port",
+    )
+    SMTP_USE_TLS: bool = Field(
+        default=True,
+        title="SMTP Use TLS",
+        description="Whether to use TLS for the SMTP connection",
+    )
+    SMTP_STARTTLS: bool = Field(
+        default=True,
+        title="SMTP Use STARTTLS",
+        description="Whether to use STARTTLS for the SMTP connection",
+    )
+    SMTP_SENDER_EMAIL: str = Field(
+        title="SMTP Email",
+        description="The email address to use as the sender for SMTP",
+        default="",
+    )
+
+    APP_NAME: str = Field(
+        default="SVS",
+        title="Application Name",
+        description="The name of the application",
     )
 
     @field_validator("DB_PORT", mode="before")

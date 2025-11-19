@@ -1,8 +1,12 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from app.models.user_login_model import UserLoginModel
-from app.models.user import CurrentUserResponseModel, User
-from app.utils import auth_utils
+from app.models.user import (
+    CurrentUserResponseModel,
+    User,
+    SuccessfulUserLoginResponseModel,
+)
+from app.utils import auth_utils, smtp_utils
 from app.config.env import env, ENV_MODES
 from app.models.jwt_model import (
     JWT_DATA,
@@ -21,7 +25,7 @@ router = APIRouter()
 
 @router.post(
     "/login",
-    response_model=response_models.MessageResponse,
+    response_model=SuccessfulUserLoginResponseModel,
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="login",
 )
@@ -38,9 +42,13 @@ async def login(data: UserLoginModel, response: Response):
     if not user:
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS)
     # generate OTP
-    await auth_utils.create_otp(user.id)
-
-    return response_models.MessageResponse(message=Messages.LOGIN_SUCCESS)
+    otp = await auth_utils.create_otp(user.id)
+    # send OTP via email
+    await smtp_utils.send_connection_otp_email(
+        to_email=[user.email],
+        otp_code=otp,
+    )
+    return SuccessfulUserLoginResponseModel(email=user.email)
 
 
 @router.post(
@@ -74,9 +82,32 @@ async def verify_otp(data: OTPVerificationModel, response: Response):
 
 
 @router.post(
+    "/resend-otp",
+    response_model=response_models.MessageResponse,
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
+    operation_id="resend_otp",
+)
+async def resend_otp(data: SuccessfulUserLoginResponseModel):
+    """Resend OTP to user email"""
+    user: User | None = await UserLoginModel.get_user_by_email(data.email)
+    if user is None:
+        raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
+    if user.id is None:
+        raise HTTPException(status_code=500, detail=ERROR_CODES.INTERNAL_SERVER_ERROR)
+    # destroy previous OTPs
+    await auth_utils.remove_otp(user.id)
+    # create new OTP and re-send email
+    otp = await auth_utils.create_otp(user.id)
+    await smtp_utils.send_connection_otp_email(
+        to_email=[user.email],
+        otp_code=otp,
+    )
+    return response_models.MessageResponse(message=Messages.OTP_RESENT_SUCCESS)
+
+
+@router.post(
     "/logout",
     response_model=response_models.MessageResponse,
-    dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)],
     operation_id="logout",
 )
 async def logout(response: Response):
@@ -87,7 +118,7 @@ async def logout(response: Response):
 @router.post(
     "/user/me",
     response_model=CurrentUserResponseModel,
-    dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)],
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthenticated)],
     operation_id="get_current_user",
 )
 async def get_current_user(request: Request, data: Optional[TokenInput]):

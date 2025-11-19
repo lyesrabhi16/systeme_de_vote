@@ -11,6 +11,7 @@ pyjwt = "*"
 sqlmodel = "*"
 asyncpg = "*"
 redis = "*"
+fastapi-mail = "*"
 
 [dev-packages]
 ruff = "*"

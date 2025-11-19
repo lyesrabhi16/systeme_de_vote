@@ -56,3 +56,7 @@ class ERROR_CODES(dict, Enum):
         code="FAILED_OTP_VERIFICATION",
         message="Failed OTP verification",
     )
+    RATE_LIMIT_EXCEEDED = ErrorCodeModel(
+        code="RATE_LIMIT_EXCEEDED",
+        message="Rate limit exceeded",
+    )

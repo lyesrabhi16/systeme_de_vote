@@ -26,3 +26,6 @@ class CurrentUserResponseModel(BaseModel):
     verified_phone_number: bool
     is_active: bool
     is_admin: bool
+
+class SuccessfulUserLoginResponseModel(BaseModel):
+    email: str

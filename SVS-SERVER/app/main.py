@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 
 from app.config.env import env
 from app.utils import get_real_path
-from app.utils.middlewares import setup_middlewares
+from app.utils.middlewares import setup_middlewares, register_http_exception_handler
 from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
 from app.routers import auth_router
@@ -77,6 +77,8 @@ setup_middlewares(
         HTTP_MIDDLEWARE,
     ],
 )
+# register exception handlers
+register_http_exception_handler(APP=APP)
 
 logger.info(f"ENV_MODE: {env.ENV_MODE.value}")
 

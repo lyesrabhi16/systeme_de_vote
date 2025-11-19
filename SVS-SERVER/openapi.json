@@ -43,7 +43,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MessageResponse"
+                                    "$ref": "#/components/schemas/SuccessfulUserLoginResponseModel"
                                 }
                             }
                         }
@@ -85,6 +85,48 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/TokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/resend-otp": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Resend Otp",
+                "description": "Resend OTP to user email",
+                "operationId": "resend_otp",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SuccessfulUserLoginResponseModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
                                 }
                             }
                         }
@@ -314,6 +356,19 @@
                     "otp"
                 ],
                 "title": "OTPVerificationModel"
+            },
+            "SuccessfulUserLoginResponseModel": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "title": "Email"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "title": "SuccessfulUserLoginResponseModel"
             },
             "TokenInput": {
                 "properties": {

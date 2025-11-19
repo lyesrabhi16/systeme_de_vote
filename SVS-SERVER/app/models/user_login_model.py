@@ -88,6 +88,7 @@ class UserLoginModel(BaseModel):
         cls, token: str, db: AsyncSession | None = None
     ) -> User | None:
         if db is None:
+            logger.error("No database session was provided.")
             return None
         try:
             payload = auth_utils.verify_token(token)

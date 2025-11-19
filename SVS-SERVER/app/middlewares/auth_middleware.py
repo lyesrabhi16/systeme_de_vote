@@ -1,8 +1,11 @@
 from typing import Any
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 from app.models.user_login_model import UserLoginModel
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
+from app.models import response_models
+from app.utils.middlewares import HTTPExceptionWithHandler
 
 
 class AUTH_MIDDLEWARE:
@@ -17,7 +20,7 @@ class AUTH_MIDDLEWARE:
             )
 
     @classmethod
-    async def RequireAuthentication(cls, request: Request):
+    async def RequireAuthenticated(cls, request: Request):
         logger.debug(f"{cls.__name__} RequireAuthentication started")
         token = await cls.RetrieveToken(request)
         if not token or not isinstance(token, str):
@@ -28,7 +31,22 @@ class AUTH_MIDDLEWARE:
         user = await UserLoginModel.get_current_user(token)
         if not user:
             logger.warning("Invalid authentication token.")
-            raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS)
+
+            def handler(request: Request, exc: HTTPException) -> JSONResponse:
+                response: Response = JSONResponse(
+                    response_models.ErrorResponse(
+                        detail=ERROR_CODES.INVALID_CREDENTIALS
+                    ).model_dump(),
+                    status_code=401,
+                )
+                response.delete_cookie("token")
+                return response
+
+            raise HTTPExceptionWithHandler(
+                handler,
+                HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS),
+            )
+
         # Attach user to request state for downstream access
         request.state.user = user
         logger.debug(f"User {user.username} authenticated successfully.")
@@ -43,7 +61,7 @@ class AUTH_MIDDLEWARE:
         token: str | None = json_data.get("token", None) or request.cookies.get(
             "token", None
         )
-        if not token:
+        if not token or token.strip() == "":
             logger.warning("No authentication token provided")
             return None
         json_data["token"] = token
