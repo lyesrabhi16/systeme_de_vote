@@ -1,4 +1,3 @@
-import { IdentifierType } from '@/api/sdk';
 import AlreadyLoggedInCard from '@/components/auth/AlreadyLoggedInCard';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,61 +7,37 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '@/components/ui/input-group';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import useAuth from '@/hooks/useAuth';
 import { LucideLockKeyhole, LucideLogIn, LucideUser } from 'lucide-react';
-import { useState } from 'react';
+import { LoginFormSchema } from '@schemas/auth.schemas';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type z from 'zod';
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field';
+import InputWithIcons from '@/components/InputWithIcons';
+import useAuthActions from '@/components/auth/actions';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const LoginCard = () => {
   const auth = useAuth();
-  const [data, setData] = useState({
-    identifier: '',
-    password: '',
-    IdentifierType: IdentifierType.Email as IdentifierType,
+  const { loading, handleSubmitLoginForm } = useAuthActions();
+
+  const form = useForm<z.infer<typeof LoginFormSchema>>({
+    resolver: zodResolver(LoginFormSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      email: '',
+      password: '',
+      remember_me: false,
+    },
   });
-
-  const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    let type: IdentifierType = IdentifierType.Email;
-
-    // Simple check to see if the input is a phone number
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-    if (phoneRegex.test(value)) {
-      type = IdentifierType.PhoneNumber;
-    }
-
-    setData({
-      ...data,
-      identifier: value,
-      IdentifierType: type,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission logic here
-    auth
-      .login({
-        identifier: data.identifier,
-        password: data.password,
-        identifier_type: data.IdentifierType,
-      })
-      .then((response) => {
-        if (response === null) {
-          console.error('Login failed: No response data');
-          return;
-        }
-        console.log('Login successful:', response);
-      })
-      .catch((error) => {
-        console.error('Login failed:', error);
-      });
-  };
 
   if (auth.is_authenticated()) {
     return <AlreadyLoggedInCard />;
@@ -77,59 +52,120 @@ const LoginCard = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit}>
-          <div className='flex flex-col gap-6'>
-            <div className='grid gap-2'>
-              <Label htmlFor='email'>Adresse mail / numero de telephone</Label>
-              <InputGroup>
-                <InputGroupAddon>
-                  <LucideUser className='text-muted-foreground' />
-                </InputGroupAddon>
-                <InputGroupInput
-                  id='email'
-                  type='email'
-                  placeholder='m@example.com'
-                  required
-                  value={data.identifier}
-                  onChange={handleIdentifierChange}
-                />
-              </InputGroup>
-            </div>
-            <div className='grid gap-2'>
-              <div className='flex items-center'>
-                <Label htmlFor='password'>Mot de passe</Label>
-                <a
-                  href='#'
-                  className='text-muted-foreground text-sm ml-auto hover:underline'
-                >
-                  Mot de passe oublié ?
-                </a>
-              </div>
-              <InputGroup>
-                <InputGroupAddon>
-                  <LucideLockKeyhole className='text-muted-foreground' />
-                </InputGroupAddon>
-                <InputGroupInput
-                  id='password'
-                  type='password'
-                  required
-                  value={data.password}
-                  onChange={(e) =>
-                    setData({ ...data, password: e.target.value })
-                  }
-                />
-              </InputGroup>
-            </div>
-          </div>
+        <form
+          id='login-form'
+          onSubmit={form.handleSubmit(handleSubmitLoginForm)}
+        >
+          <FieldGroup>
+            <Controller
+              name='email'
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor='email'>
+                    Adresse mail / numero de telephone
+                  </FieldLabel>
+                  <InputWithIcons
+                    LeftIcon={LucideUser}
+                    icon_props={{
+                      className: fieldState.invalid
+                        ? 'text-destructive'
+                        : undefined,
+                    }}
+                    input_props={{
+                      ...field,
+                      'aria-invalid': fieldState.invalid,
+                      id: 'email',
+                      /* type:
+                          data.IdentifierType === IdentifierType.Email
+                            ? 'email'
+                            : 'tel',
+                         */ placeholder: 'Adresse email',
+                    }}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name='password'
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel
+                    htmlFor='password'
+                    className='flex flex-row flex-wrap justify-content-between items-center'
+                  >
+                    <p>Mot de passe</p>
+                    <a
+                      href='#'
+                      className='text-muted-foreground text-sm ml-auto hover:underline'
+                    >
+                      Mot de passe oublié ?
+                    </a>
+                  </FieldLabel>
+                  <InputWithIcons
+                    LeftIcon={LucideLockKeyhole}
+                    icon_props={{
+                      className: fieldState.invalid
+                        ? 'text-destructive'
+                        : undefined,
+                    }}
+                    input_props={{
+                      ...field,
+                      id: 'password',
+                      type: 'password',
+                      placeholder: 'Mot de passe',
+                      'aria-invalid': fieldState.invalid,
+                    }}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name='remember_me'
+              control={form.control}
+              render={({ field }) => (
+                <div className='flex flex-row flex-nowrap items-end justify-content-end w-full space-x-2'>
+                  <Checkbox
+                    id='remember_me'
+                    className='ms-auto w-4 h-4 rounded border bg-background focus:ring-2 focus:ring-primary'
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <Label htmlFor='remember_me' className='mb-0'>
+                    Se souvenir de moi
+                  </Label>
+                </div>
+              )}
+            />
+          </FieldGroup>
         </form>
       </CardContent>
       <CardFooter className='flex-col gap-2'>
         <Button
           type='submit'
-          onClick={handleSubmit}
           className='w-fit hover:scale-105 transition-transform'
+          disabled={loading.loginButton}
+          form='login-form'
         >
-          <LucideLogIn /> Se Connecter
+          {loading.loginButton ? (
+            <>
+              <Spinner className='mr-2' />
+              Connexion...
+            </>
+          ) : (
+            <>
+              <LucideLogIn className='mr-2' />
+              Se connecter
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

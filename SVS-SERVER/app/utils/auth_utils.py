@@ -5,18 +5,47 @@ import jwt
 from pwdlib import PasswordHash
 from redis import Redis
 from app.config.env import env
-from app.models.jwt_model import JWT_DATA
+from app.models.auth_models import JWT_DATA
 from fastapi.security import OAuth2PasswordBearer
 from app.db import cache_session
-from app.models.jwt_model import StoredOTPModel
+from app.models.auth_models import StoredOTPModel
 from fastapi import HTTPException
 from app.models.error_codes import ERROR_CODES
 from loguru import logger
+from cryptography.fernet import Fernet
 import inspect
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 hasher = PasswordHash.recommended()
+crypto = Fernet(env.ENCRYPTION_KEY)
+
+
+@cache_session
+async def encrypt_string(s: str, cache: Redis | None = None) -> str:
+    """Encrypts string and stores encrypted string in memory and returns a url safe string"""
+    encrypted = crypto.encrypt(s.encode()).decode()
+    id_token = secrets.token_urlsafe(32)
+    if cache is None:
+        logger.error("Redis Cache is None")
+        raise HTTPException(500, ERROR_CODES.INTERNAL_SERVER_ERROR)
+    cache.set(f"enc:{id_token}", encrypted, ex=env.OTP_EXPIRATION)
+    return id_token
+
+
+@cache_session
+async def decrypt_string(s: str, cache: Redis | None = None) -> str:
+    """Decrypts a url safe string by retrieving the encrypted string from memory"""
+    if cache is None:
+        logger.error("Redis Cache is None")
+        raise HTTPException(500, ERROR_CODES.INTERNAL_SERVER_ERROR)
+    encrypted = cache.get(f"enc:{s}")
+    if inspect.isawaitable(encrypted):
+        encrypted = await encrypted
+    if encrypted is None:
+        logger.error("Encrypted string not found in cache")
+        raise HTTPException(400, ERROR_CODES.INVALID_CREDENTIALS)
+    return crypto.decrypt(encrypted).decode()
 
 
 def hash_string(s: str) -> str:

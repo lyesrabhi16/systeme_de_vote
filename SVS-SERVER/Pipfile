@@ -12,6 +12,7 @@ sqlmodel = "*"
 asyncpg = "*"
 redis = "*"
 fastapi-mail = "*"
+cryptography = "*"
 
 [dev-packages]
 ruff = "*"

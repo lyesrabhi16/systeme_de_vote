@@ -14,6 +14,7 @@ export default defineConfig({
       '@utils': '/src/utils',
       '@hooks': '/src/hooks',
       '@services': '/src/services',
+      '@schemas': '/src/schemas',
     },
   },
   plugins: [react(), tailwindcss()],

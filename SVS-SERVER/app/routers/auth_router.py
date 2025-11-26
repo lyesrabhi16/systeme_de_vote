@@ -8,11 +8,12 @@ from app.models.user import (
 )
 from app.utils import auth_utils, smtp_utils
 from app.config.env import env, ENV_MODES
-from app.models.jwt_model import (
+from app.models.auth_models import (
     JWT_DATA,
     TokenInput,
     TokenResponse,
     OTPVerificationModel,
+    OTPResendRequestModel,
 )
 from loguru import logger
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
@@ -43,21 +44,25 @@ async def login(data: UserLoginModel, response: Response):
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS)
     # generate OTP
     otp = await auth_utils.create_otp(user.id)
+
     # send OTP via email
-    await smtp_utils.send_connection_otp_email(
+    smtp_utils.send_in_thread(smtp_utils.send_connection_otp_email)(
         to_email=[user.email],
         otp_code=otp,
     )
-    return SuccessfulUserLoginResponseModel(email=user.email)
+
+    return await SuccessfulUserLoginResponseModel.from_user(user)
 
 
 @router.post(
     "/verify-otp",
     response_model=TokenResponse,
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
+    operation_id="verifyOTP",
 )
 async def verify_otp(data: OTPVerificationModel, response: Response):
-    user = await UserLoginModel.get_user_by_email(data.user_email)
+    user_email = await auth_utils.decrypt_string(data.id)
+    user = await UserLoginModel.get_user_by_email(user_email)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
     if not await auth_utils.verify_otp(user.id, data.otp):
@@ -87,9 +92,10 @@ async def verify_otp(data: OTPVerificationModel, response: Response):
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="resend_otp",
 )
-async def resend_otp(data: SuccessfulUserLoginResponseModel):
+async def resend_otp(data: OTPResendRequestModel):
     """Resend OTP to user email"""
-    user: User | None = await UserLoginModel.get_user_by_email(data.email)
+    user_email = await auth_utils.decrypt_string(data.id)
+    user: User | None = await UserLoginModel.get_user_by_email(user_email)
     if user is None:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
     if user.id is None:
@@ -98,7 +104,7 @@ async def resend_otp(data: SuccessfulUserLoginResponseModel):
     await auth_utils.remove_otp(user.id)
     # create new OTP and re-send email
     otp = await auth_utils.create_otp(user.id)
-    await smtp_utils.send_connection_otp_email(
+    smtp_utils.send_in_thread(smtp_utils.send_connection_otp_email)(
         to_email=[user.email],
         otp_code=otp,
     )

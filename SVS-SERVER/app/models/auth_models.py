@@ -15,7 +15,7 @@ class TokenResponse(BaseModel):
 
 
 class OTPVerificationModel(BaseModel):
-    user_email: str
+    id: str
     otp: str
     remember_me: bool = False
 
@@ -25,3 +25,6 @@ class StoredOTPModel(BaseModel):
     tries: int = 0
     max_tries: int = 3
 
+
+class OTPResendRequestModel(BaseModel):
+    id: str

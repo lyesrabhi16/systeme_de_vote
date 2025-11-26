@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import useAuth from '@/hooks/useAuth';
 import LoginPage from '@/pages/LoginPage';
+import OTPVerificationPage from '@/pages/OTPVerificationPage';
 import { routes } from '@/services/routing';
 import useGlobalStore from '@/services/store';
 import { Route, Routes } from 'react-router';
@@ -29,7 +30,13 @@ const Router = () => {
           </>
         }
       />
-      <Route path={routes.LOGIN} element={<LoginPage />} />
+      <Route path={routes.LOGIN}>
+        <Route index element={<LoginPage />} />
+        <Route
+          path={`${routes.OTP_VERIFICATION}/:user_id`}
+          element={<OTPVerificationPage />}
+        />
+      </Route>
       <Route path={routes.NOT_FOUND} element={<>Not Found</>} />
     </Routes>
   );

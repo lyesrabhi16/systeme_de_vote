@@ -151,6 +151,12 @@ class _ENV(BaseModel):
         description="The name of the application",
     )
 
+    ENCRYPTION_KEY: str = Field(
+        title="Encryption Key",
+        description="The key used for encryption and decryption",
+        default="your_encryption_key_32_bytes!",
+    )
+
     @field_validator("DB_PORT", mode="before")
     @classmethod
     def validate_db_port(cls, v) -> int:

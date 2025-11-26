@@ -1,18 +1,24 @@
 import type { GlobalStore } from "@/services/store";
 import { apiClient } from "@/api/client";
-import type { UserLoginModel } from "@/api/sdk";
+import type { UserLoginModel, OTPVerificationModel, OTPResendRequestModel } from "@/api/sdk";
 
 
-export const login = async (store: GlobalStore, data: UserLoginModel) => {
+export const login_password_step = async (store: GlobalStore, data: UserLoginModel) => {
     const api_response = await apiClient.auth.login(data);
-    // Save token to local storage
+    return api_response.data;
+};
+export const login_otp_step = async (store: GlobalStore, data: OTPVerificationModel) => {
+    const api_response = await apiClient.auth.verifyOTP(data);
     const token = api_response.data.token;
-    localStorage.setItem("token", token);
-    store.setToken(token);
-    await loadCurrentUser(store);
+    await saveToken(store, token);
     return store.user;
 }
 
+const saveToken = async (store: GlobalStore, token: string) => {
+    localStorage.setItem("token", token);
+    store.setToken(token);
+    await loadCurrentUser(store);
+};
 export const loadCurrentUser = async (store: GlobalStore) => {
     if (store.user) {
         return store.user;
@@ -44,4 +50,8 @@ export const getToken = (store: GlobalStore): string | null => {
     }
     return null;
 
+};
+
+export const resendEmailOTP = async (data: OTPResendRequestModel) => {
+    await apiClient.auth.resendOtp(data);
 };

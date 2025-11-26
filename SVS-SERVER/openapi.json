@@ -67,7 +67,7 @@
                     "auth"
                 ],
                 "summary": "Verify Otp",
-                "operationId": "verify_otp_auth_verify_otp_post",
+                "operationId": "verifyOTP",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -114,7 +114,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/SuccessfulUserLoginResponseModel"
+                                "$ref": "#/components/schemas/OTPResendRequestModel"
                             }
                         }
                     },
@@ -334,11 +334,24 @@
                 ],
                 "title": "MessageResponse"
             },
+            "OTPResendRequestModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "OTPResendRequestModel"
+            },
             "OTPVerificationModel": {
                 "properties": {
-                    "user_email": {
+                    "id": {
                         "type": "string",
-                        "title": "User Email"
+                        "title": "Id"
                     },
                     "otp": {
                         "type": "string",
@@ -352,21 +365,26 @@
                 },
                 "type": "object",
                 "required": [
-                    "user_email",
+                    "id",
                     "otp"
                 ],
                 "title": "OTPVerificationModel"
             },
             "SuccessfulUserLoginResponseModel": {
                 "properties": {
-                    "email": {
+                    "id": {
                         "type": "string",
-                        "title": "Email"
+                        "title": "Id"
+                    },
+                    "masked_email": {
+                        "type": "string",
+                        "title": "Masked Email"
                     }
                 },
                 "type": "object",
                 "required": [
-                    "email"
+                    "id",
+                    "masked_email"
                 ],
                 "title": "SuccessfulUserLoginResponseModel"
             },

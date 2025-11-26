@@ -3,6 +3,7 @@ import useAuth from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import LoadingPage from '@/pages/LoadingPage';
 import Router from '@/components/utils/Router';
+import { Toaster } from 'sonner';
 function App() {
   const store = useGlobalStore();
   const auth = useAuth();
@@ -31,6 +32,7 @@ function App() {
   return (
     <div className='flex flex-col min-h-screen items-center justify-center p-0 m-0'>
       <Router />
+      <Toaster position='bottom-right' richColors closeButton />
     </div>
   );
 }
