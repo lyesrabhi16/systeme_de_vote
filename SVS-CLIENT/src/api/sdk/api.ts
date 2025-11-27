@@ -52,6 +52,26 @@ export type IdentifierType = typeof IdentifierType[keyof typeof IdentifierType];
 export interface MessageResponse {
     'message': string;
 }
+export interface OTPResendRequestModel {
+    'id': string;
+}
+export interface OTPVerificationModel {
+    'id': string;
+    'otp': string;
+    'remember_me'?: boolean;
+}
+export interface PasswordResetOTPModel {
+    'id': string;
+    'otp': string;
+    'password': string;
+}
+export interface PasswordResetRequestModel {
+    'email': string;
+}
+export interface SuccessfulUserLoginResponseModel {
+    'id': string;
+    'masked_email': string;
+}
 export interface TokenInput {
     'token'?: string | null;
 }
@@ -61,7 +81,6 @@ export interface TokenResponse {
 export interface UserLoginModel {
     'identifier': string;
     'password': string;
-    'remember_me'?: boolean | null;
     'identifier_type': IdentifierType;
 }
 
@@ -181,6 +200,150 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Request password reset by sending OTP to user email
+         * @summary Password Reset Request
+         * @param {PasswordResetRequestModel} passwordResetRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passwordResetRequest: async (passwordResetRequestModel: PasswordResetRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'passwordResetRequestModel' is not null or undefined
+            assertParamExists('passwordResetRequest', 'passwordResetRequestModel', passwordResetRequestModel)
+            const localVarPath = `/auth/password-reset`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(passwordResetRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Resend OTP to user email
+         * @summary Resend Otp
+         * @param {OTPResendRequestModel} oTPResendRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        resendOtp: async (oTPResendRequestModel: OTPResendRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'oTPResendRequestModel' is not null or undefined
+            assertParamExists('resendOtp', 'oTPResendRequestModel', oTPResendRequestModel)
+            const localVarPath = `/auth/resend-otp`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(oTPResendRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Validate Password Reset Otp
+         * @param {PasswordResetOTPModel} passwordResetOTPModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        validatePasswordReset: async (passwordResetOTPModel: PasswordResetOTPModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'passwordResetOTPModel' is not null or undefined
+            assertParamExists('validatePasswordReset', 'passwordResetOTPModel', passwordResetOTPModel)
+            const localVarPath = `/auth/password-reset/validate`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(passwordResetOTPModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Verify Otp
+         * @param {OTPVerificationModel} oTPVerificationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyOTP: async (oTPVerificationModel: OTPVerificationModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'oTPVerificationModel' is not null or undefined
+            assertParamExists('verifyOTP', 'oTPVerificationModel', oTPVerificationModel)
+            const localVarPath = `/auth/verify-otp`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(oTPVerificationModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -210,7 +373,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login(userLoginModel: UserLoginModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenResponse>> {
+        async login(userLoginModel: UserLoginModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SuccessfulUserLoginResponseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.login(userLoginModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.login']?.[localVarOperationServerIndex]?.url;
@@ -226,6 +389,58 @@ export const AuthApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.logout']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Request password reset by sending OTP to user email
+         * @summary Password Reset Request
+         * @param {PasswordResetRequestModel} passwordResetRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async passwordResetRequest(passwordResetRequestModel: PasswordResetRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.passwordResetRequest(passwordResetRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.passwordResetRequest']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Resend OTP to user email
+         * @summary Resend Otp
+         * @param {OTPResendRequestModel} oTPResendRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async resendOtp(oTPResendRequestModel: OTPResendRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.resendOtp(oTPResendRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.resendOtp']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Validate Password Reset Otp
+         * @param {PasswordResetOTPModel} passwordResetOTPModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async validatePasswordReset(passwordResetOTPModel: PasswordResetOTPModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.validatePasswordReset(passwordResetOTPModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.validatePasswordReset']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Verify Otp
+         * @param {OTPVerificationModel} oTPVerificationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async verifyOTP(oTPVerificationModel: OTPVerificationModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyOTP(oTPVerificationModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.verifyOTP']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -254,7 +469,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(userLoginModel: UserLoginModel, options?: RawAxiosRequestConfig): AxiosPromise<TokenResponse> {
+        login(userLoginModel: UserLoginModel, options?: RawAxiosRequestConfig): AxiosPromise<SuccessfulUserLoginResponseModel> {
             return localVarFp.login(userLoginModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -265,6 +480,46 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          */
         logout(options?: RawAxiosRequestConfig): AxiosPromise<MessageResponse> {
             return localVarFp.logout(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Request password reset by sending OTP to user email
+         * @summary Password Reset Request
+         * @param {PasswordResetRequestModel} passwordResetRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passwordResetRequest(passwordResetRequestModel: PasswordResetRequestModel, options?: RawAxiosRequestConfig): AxiosPromise<MessageResponse> {
+            return localVarFp.passwordResetRequest(passwordResetRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Resend OTP to user email
+         * @summary Resend Otp
+         * @param {OTPResendRequestModel} oTPResendRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        resendOtp(oTPResendRequestModel: OTPResendRequestModel, options?: RawAxiosRequestConfig): AxiosPromise<MessageResponse> {
+            return localVarFp.resendOtp(oTPResendRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Validate Password Reset Otp
+         * @param {PasswordResetOTPModel} passwordResetOTPModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        validatePasswordReset(passwordResetOTPModel: PasswordResetOTPModel, options?: RawAxiosRequestConfig): AxiosPromise<MessageResponse> {
+            return localVarFp.validatePasswordReset(passwordResetOTPModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Verify Otp
+         * @param {OTPVerificationModel} oTPVerificationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyOTP(oTPVerificationModel: OTPVerificationModel, options?: RawAxiosRequestConfig): AxiosPromise<TokenResponse> {
+            return localVarFp.verifyOTP(oTPVerificationModel, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -303,6 +558,50 @@ export class AuthApi extends BaseAPI {
      */
     public logout(options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Request password reset by sending OTP to user email
+     * @summary Password Reset Request
+     * @param {PasswordResetRequestModel} passwordResetRequestModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public passwordResetRequest(passwordResetRequestModel: PasswordResetRequestModel, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).passwordResetRequest(passwordResetRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Resend OTP to user email
+     * @summary Resend Otp
+     * @param {OTPResendRequestModel} oTPResendRequestModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public resendOtp(oTPResendRequestModel: OTPResendRequestModel, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).resendOtp(oTPResendRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Validate Password Reset Otp
+     * @param {PasswordResetOTPModel} passwordResetOTPModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public validatePasswordReset(passwordResetOTPModel: PasswordResetOTPModel, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).validatePasswordReset(passwordResetOTPModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Verify Otp
+     * @param {OTPVerificationModel} oTPVerificationModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public verifyOTP(oTPVerificationModel: OTPVerificationModel, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).verifyOTP(oTPVerificationModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -353,7 +652,8 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         spaFallback: async (path: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'path' is not null or undefined
             assertParamExists('spaFallback', 'path', path)
-            const localVarPath = `/*`;
+            const localVarPath = `/{path}`
+                .replace(`{${"path"}}`, encodeURIComponent(String(path)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -364,10 +664,6 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
-
-            if (path !== undefined) {
-                localVarQueryParameter['path'] = path;
-            }
 
 
     

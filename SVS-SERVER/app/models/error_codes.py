@@ -48,3 +48,15 @@ class ERROR_CODES(dict, Enum):
         code="ALREADY_AUTHENTICATED",
         message="User is already authenticated",
     )
+    INVALID_OTP = ErrorCodeModel(
+        code="INVALID_OTP",
+        message="Invalid OTP",
+    )
+    FAILED_OTP_VERIFICATION = ErrorCodeModel(
+        code="FAILED_OTP_VERIFICATION",
+        message="Failed OTP verification",
+    )
+    RATE_LIMIT_EXCEEDED = ErrorCodeModel(
+        code="RATE_LIMIT_EXCEEDED",
+        message="Rate limit exceeded",
+    )

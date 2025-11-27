@@ -7,7 +7,6 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **identifier** | **string** |  | [default to undefined]
 **password** | **string** |  | [default to undefined]
-**remember_me** | **boolean** |  | [optional] [default to undefined]
 **identifier_type** | [**IdentifierType**](IdentifierType.md) |  | [default to undefined]
 
 ## Example
@@ -18,7 +17,6 @@ import { UserLoginModel } from './api';
 const instance: UserLoginModel = {
     identifier,
     password,
-    remember_me,
     identifier_type,
 };
 ```

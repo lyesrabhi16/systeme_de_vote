@@ -3,3 +3,7 @@ from enum import Enum
 
 class Messages(str, Enum):
     LOGOUT_SUCCESS = "Logout successful"
+    LOGIN_SUCCESS = "Login successful"
+    OTP_RESENT_SUCCESS = "OTP resent successfully"
+    PASSWORD_RESET_EMAIL_SENT = "Password reset email sent successfully"
+    PASSWORD_RESET_SUCCESS = "Password has been reset successfully"

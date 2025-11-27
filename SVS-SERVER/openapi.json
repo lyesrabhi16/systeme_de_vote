@@ -43,7 +43,90 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "$ref": "#/components/schemas/SuccessfulUserLoginResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify-otp": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify Otp",
+                "operationId": "verifyOTP",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OTPVerificationModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "$ref": "#/components/schemas/TokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/resend-otp": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Resend Otp",
+                "description": "Resend OTP to user email",
+                "operationId": "resend_otp",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OTPResendRequestModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
                                 }
                             }
                         }
@@ -132,14 +215,97 @@
                 }
             }
         },
-        "/*": {
+        "/auth/password-reset": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Password Reset Request",
+                "description": "Request password reset by sending OTP to user email",
+                "operationId": "password_reset_request",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordResetRequestModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-reset/validate": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Validate Password Reset Otp",
+                "operationId": "validate_password_reset",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordResetOTPModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/{path}": {
             "get": {
                 "summary": "Serve Spa Fallback",
                 "operationId": "spa_fallback",
                 "parameters": [
                     {
                         "name": "path",
-                        "in": "query",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -251,6 +417,96 @@
                 ],
                 "title": "MessageResponse"
             },
+            "OTPResendRequestModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "OTPResendRequestModel"
+            },
+            "OTPVerificationModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "otp": {
+                        "type": "string",
+                        "title": "Otp"
+                    },
+                    "remember_me": {
+                        "type": "boolean",
+                        "title": "Remember Me",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "otp"
+                ],
+                "title": "OTPVerificationModel"
+            },
+            "PasswordResetOTPModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "otp": {
+                        "type": "string",
+                        "title": "Otp"
+                    },
+                    "password": {
+                        "type": "string",
+                        "title": "Password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "otp",
+                    "password"
+                ],
+                "title": "PasswordResetOTPModel"
+            },
+            "PasswordResetRequestModel": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "title": "Email"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "title": "PasswordResetRequestModel"
+            },
+            "SuccessfulUserLoginResponseModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "masked_email": {
+                        "type": "string",
+                        "title": "Masked Email"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "masked_email"
+                ],
+                "title": "SuccessfulUserLoginResponseModel"
+            },
             "TokenInput": {
                 "properties": {
                     "token": {
@@ -290,18 +546,6 @@
                     "password": {
                         "type": "string",
                         "title": "Password"
-                    },
-                    "remember_me": {
-                        "anyOf": [
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Remember Me",
-                        "default": false
                     },
                     "identifier_type": {
                         "$ref": "#/components/schemas/identifierType"

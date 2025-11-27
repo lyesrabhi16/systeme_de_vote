@@ -93,6 +93,20 @@ services:
       - svs-db-data:/var/lib/postgresql
     restart: unless-stopped
 
+  svs-redis:
+    container_name: svs-redis
+    image: redis:8.0
+    networks:
+      - svs-network
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - svs-redis-data:/data
+      - ./config/redis/:/usr/local/etc/redis/
+      - ./config/redis/users.acl:/etc/redis/users.acl
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
 networks:
   svs-network:
     name: svs-network
@@ -102,4 +116,6 @@ volumes:
   svs-data:
     driver: local
   svs-db-data:
+    driver: local
+  svs-redis-data:
     driver: local

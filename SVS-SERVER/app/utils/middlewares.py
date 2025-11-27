@@ -1,5 +1,6 @@
-from typing import List
-from fastapi import FastAPI
+from typing import Callable, List
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 from loguru import logger
 
 
@@ -43,13 +44,10 @@ def setup_middlewares(APP: FastAPI, MIDDLEWARES: list | None = None) -> List[str
         logger.debug(f"Middleware functions found: {all_middleware_functions}")
 
         for func_name in all_middleware_functions:
-            func = getattr(middleware, func_name)
-
-            @APP.middleware("http")
-            async def middleware_wrapper(request, call_next, func=func):
-                return await func(request, call_next)
-
             middleware_name = f"{middleware.__name__}:{func_name}"
+            func = getattr(middleware, func_name)
+            # register each func
+            register_middleware_func(APP, func, middleware_name)
             middleware_order.insert(0, middleware_name)
             logger.debug(f"Registered middleware: {middleware_name}")
 
@@ -58,3 +56,40 @@ def setup_middlewares(APP: FastAPI, MIDDLEWARES: list | None = None) -> List[str
     logger.debug(f"Middleware Execution Order: {middleware_order}")
 
     return middleware_order
+
+
+def register_middleware_func(APP: FastAPI, func, middleware_name: str):
+    """Register a single middleware function safely."""
+
+    async def middleware_wrapper(request: Request, call_next):
+        # Call the original middleware function
+        return await func(request, call_next)
+
+    APP.middleware("http")(middleware_wrapper)
+    logger.info(f"Registered middleware: {middleware_name}")
+
+
+class HTTPExceptionWithHandler(HTTPException):
+
+    def __init__(
+        self,
+        handler: Callable[[Request, "HTTPExceptionWithHandler"], JSONResponse],
+        exc: HTTPException,
+    ):
+        self.handler: Callable[[Request, HTTPExceptionWithHandler], JSONResponse] = (
+            handler
+        )
+        super().__init__(
+            status_code=exc.status_code,
+            detail=exc.detail,
+            headers=exc.headers.__dict__ if exc.headers else None,
+        )
+
+
+def register_http_exception_handler(APP: FastAPI):
+    @APP.exception_handler(HTTPExceptionWithHandler)
+    async def http_exception_handler(request: Request, exc: HTTPExceptionWithHandler):
+        return exc.handler(request, exc)
+
+    logger.info("Registered HTTPExceptionWithHandler exception handler.")
+    logger.debug("HTTPExceptionWithHandler exception handler setup complete.")

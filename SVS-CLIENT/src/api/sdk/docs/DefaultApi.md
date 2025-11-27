@@ -5,7 +5,7 @@ All URIs are relative to *http://localhost*
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
 |[**serveSpa**](#servespa) | **GET** / | Serve Spa|
-|[**spaFallback**](#spafallback) | **GET** /* | Serve Spa Fallback|
+|[**spaFallback**](#spafallback) | **GET** /{path} | Serve Spa Fallback|
 
 # **serveSpa**
 > serveSpa()

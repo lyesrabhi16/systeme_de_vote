@@ -1,10 +1,22 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from app.models.user_login_model import UserLoginModel
-from app.models.user import CurrentUserResponseModel, User
-from app.utils import auth_utils
+from app.models.user import (
+    CurrentUserResponseModel,
+    User,
+    SuccessfulUserLoginResponseModel,
+)
+from app.utils import auth_utils, smtp_utils
 from app.config.env import env, ENV_MODES
-from app.models.jwt_model import JWT_DATA, TokenInput, TokenResponse
+from app.models.auth_models import (
+    JWT_DATA,
+    PasswordResetOTPModel,
+    TokenInput,
+    TokenResponse,
+    OTPVerificationModel,
+    OTPResendRequestModel,
+    PasswordResetRequestModel,
+)
 from loguru import logger
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.models.error_codes import ERROR_CODES
@@ -16,7 +28,7 @@ router = APIRouter()
 
 @router.post(
     "/login",
-    response_model=TokenResponse,
+    response_model=SuccessfulUserLoginResponseModel,
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="login",
 )
@@ -32,6 +44,31 @@ async def login(data: UserLoginModel, response: Response):
     )
     if not user:
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS)
+    # generate OTP
+    otp = await auth_utils.create_otp(user.id)
+
+    # send OTP via email
+    smtp_utils.send_in_thread(smtp_utils.send_connection_otp_email)(
+        to_email=[user.email],
+        otp_code=otp,
+    )
+
+    return await SuccessfulUserLoginResponseModel.from_user(user)
+
+
+@router.post(
+    "/verify-otp",
+    response_model=TokenResponse,
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
+    operation_id="verifyOTP",
+)
+async def verify_otp(data: OTPVerificationModel, response: Response):
+    user_email = await auth_utils.decrypt_string(data.id)
+    user = await UserLoginModel.get_user_by_email(user_email)
+    if not user:
+        raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
+    if not await auth_utils.verify_otp(user.id, data.otp):
+        raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_OTP)
 
     # generate token
     if not user.is_active or (user.id is None):
@@ -52,9 +89,33 @@ async def login(data: UserLoginModel, response: Response):
 
 
 @router.post(
+    "/resend-otp",
+    response_model=response_models.MessageResponse,
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
+    operation_id="resend_otp",
+)
+async def resend_otp(data: OTPResendRequestModel):
+    """Resend OTP to user email"""
+    user_email = await auth_utils.decrypt_string(data.id)
+    user: User | None = await UserLoginModel.get_user_by_email(user_email)
+    if user is None:
+        raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
+    if user.id is None:
+        raise HTTPException(status_code=500, detail=ERROR_CODES.INTERNAL_SERVER_ERROR)
+    # destroy previous OTPs
+    await auth_utils.remove_otp(user.id)
+    # create new OTP and re-send email
+    otp = await auth_utils.create_otp(user.id)
+    smtp_utils.send_in_thread(smtp_utils.send_connection_otp_email)(
+        to_email=[user.email],
+        otp_code=otp,
+    )
+    return response_models.MessageResponse(message=Messages.OTP_RESENT_SUCCESS)
+
+
+@router.post(
     "/logout",
     response_model=response_models.MessageResponse,
-    dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)],
     operation_id="logout",
 )
 async def logout(response: Response):
@@ -65,7 +126,7 @@ async def logout(response: Response):
 @router.post(
     "/user/me",
     response_model=CurrentUserResponseModel,
-    dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthentication)],
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthenticated)],
     operation_id="get_current_user",
 )
 async def get_current_user(request: Request, data: Optional[TokenInput]):
@@ -78,3 +139,43 @@ async def get_current_user(request: Request, data: Optional[TokenInput]):
     if user.is_active is False:
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
     return user
+
+
+@router.post("/password-reset", operation_id="password_reset_request", response_model=response_models.MessageResponse)
+async def password_reset_request(data: PasswordResetRequestModel):
+    """Request password reset by sending OTP to user email"""
+    user_email = data.email
+    user: User | None = await UserLoginModel.get_user_by_email(user_email)
+    if user is not None:
+
+        # destroy previous OTPs
+        await auth_utils.remove_otp(user.id)
+        # create new OTP and re-send email
+        otp  = await auth_utils.create_otp(user.id)
+        url = f"{env.FRONTEND_URL}/reset-password?uid={await auth_utils.encrypt_string(user.email)}&otp={otp}"
+        smtp_utils.send_in_thread(smtp_utils.send_password_reset_email)(
+            to_email=[user.email],
+            url=url,
+        )
+    return response_models.MessageResponse(message=Messages.PASSWORD_RESET_EMAIL_SENT)
+
+@router.post(
+    "/password-reset/validate",
+    response_model=response_models.MessageResponse,
+    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
+    operation_id="validate_password_reset",
+)
+async def validate_password_reset_otp(data: PasswordResetOTPModel, response: Response):
+    user_email = await auth_utils.decrypt_string(data.id)
+    user : User | None = await UserLoginModel.get_user_by_email(user_email)
+    if not user:
+        raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
+    if not await auth_utils.verify_otp(user.id, data.otp):
+        raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_OTP)
+
+    if not user.is_active or (user.id is None):
+        raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
+
+    user.password = auth_utils.hash_string(data.password)
+    await user.save()
+    return response_models.MessageResponse(message=Messages.PASSWORD_RESET_SUCCESS)

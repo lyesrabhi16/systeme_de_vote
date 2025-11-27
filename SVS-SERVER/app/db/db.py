@@ -1,13 +1,43 @@
 from typing import Any
 from sqlmodel import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from app.utils.db_utils import get_db_url
+from app.utils.db_utils import get_db_url, get_redis_connection
 from functools import wraps
 from loguru import logger
 from app.config.env import env
+from redis import Redis
+import inspect
 
+# DB
 _db_url = get_db_url()
 engine = create_async_engine(_db_url, echo=env.DEBUG, future=True)
+
+# Redis Cache
+cache_db = get_redis_connection()
+
+
+def cache_session(func):
+    """
+    decorator to provide a redis cache session accessible via 'cache' parameter on the decorated function
+
+    Usage:
+        @cache_session
+        def my_function(..., cache: Redis):
+            ...
+    """
+    annotations = func.__annotations__.get("return", Any)
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        # ------------------------------------------------------------------
+        # Preserve the original signature
+        # ------------------------------------------------------------------
+        wrapper.__annotations__ = func.__annotations__.copy()
+        wrapper.__annotations__["return"] = annotations
+
+        return await func(*args, **kwargs, cache=cache_db)
+
+    return wrapper
 
 
 def db_session(func, commit: bool = True):
@@ -49,6 +79,25 @@ async def test_db_connection(db: AsyncSession | None = None):
         return True
     except Exception as e:
         logger.error(f"DB({env.DB_HOST}) Connection failed: {e}")
+        return False
+
+@cache_session
+async def test_redis_cache_connection(cache: Redis | None = None):
+    """Test cache connection by executing a simple command"""
+    if cache is None:
+        return False
+    try:
+        pong = cache.ping()
+        if inspect.isawaitable(pong):
+            pong = await pong
+        if pong:
+            logger.info(f"Redis Cache({env.REDIS_HOST}) connected")
+            return True
+        else:
+            logger.error(f"Redis Cache({env.REDIS_HOST}) Ping failed")
+            return False
+    except Exception as e:
+        logger.error(f"Redis Cache({env.REDIS_HOST}) Connection failed: {e}")
         return False
 
 

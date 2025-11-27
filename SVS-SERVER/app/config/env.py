@@ -1,4 +1,3 @@
-import json
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from dotenv import load_dotenv
@@ -77,6 +76,91 @@ class _ENV(BaseModel):
         default="http://localhost:8000",
         title="Host URL",
         description="The base URL of the host where the application is running",
+    )
+
+    REDIS_HOST: str = Field(
+        default="localhost",
+        title="Redis Host",
+        description="The Redis server host",
+    )
+    REDIS_PORT: int = Field(
+        default=6379,
+        title="Redis Port",
+        description="The Redis server port",
+    )
+    REDIS_DB: int = Field(
+        default=0,
+        title="Redis Database",
+        description="The Redis database number",
+    )
+    REDIS_USER: str = Field(
+        default="",
+        title="Redis User",
+        description="The Redis username if applicable",
+    )
+    REDIS_PASSWORD: str = Field(
+        default="",
+        title="Redis Password",
+        description="The Redis password if applicable",
+    )
+    OTP_EXPIRATION: int = Field(
+        default=300,
+        title="OTP Expiration Time",
+        description="The expiration time for one-time passwords (OTP) in seconds",
+    )
+
+    SMTP_USER: str = Field(
+        title="SMTP Username",
+        description="The username for the SMTP server",
+        default="",
+    )
+    SMTP_PASSWORD: str = Field(
+        title="SMTP Password",
+        description="The password for the SMTP server",
+        default="",
+    )
+    SMTP_HOST: str = Field(
+        title="SMTP Host",
+        description="The SMTP server address",
+        default="localhost",
+    )
+    SMTP_PORT: int = Field(
+        default=587,
+        title="SMTP Port",
+        description="The SMTP server port",
+    )
+    SMTP_USE_TLS: bool = Field(
+        default=True,
+        title="SMTP Use TLS",
+        description="Whether to use TLS for the SMTP connection",
+    )
+    SMTP_STARTTLS: bool = Field(
+        default=True,
+        title="SMTP Use STARTTLS",
+        description="Whether to use STARTTLS for the SMTP connection",
+    )
+    SMTP_SENDER_EMAIL: str = Field(
+        title="SMTP Email",
+        description="The email address to use as the sender for SMTP",
+        default="",
+    )
+
+    APP_NAME: str = Field(
+        default="SVS",
+        title="Application Name",
+        description="The name of the application",
+    )
+
+    ENCRYPTION_KEY: str = Field(
+        title="Encryption Key",
+        description="The key used for encryption and decryption",
+        default="your_encryption_key_32_bytes!",
+    )
+
+    FRONTEND_URL: str = Field(
+        default="http://localhost:3000",
+        title="Frontend URL",
+        description="The base URL of the frontend application",
     )
 
     @field_validator("DB_PORT", mode="before")
