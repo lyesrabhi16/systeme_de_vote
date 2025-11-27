@@ -32,7 +32,7 @@ const useGlobalStore = create<GlobalStore>((set, get) => ({
         }
         return null;
     },
-    set_temp_data: (key: string, value: object | string | number) => {
+    set_temp_data: (key: string, value: object | string | number | boolean) => {
         set((state) => ({
             temp_data: {
                 ...state.temp_data,
