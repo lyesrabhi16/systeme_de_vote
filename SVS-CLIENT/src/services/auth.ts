@@ -3,7 +3,7 @@ import { apiClient } from "@/api/client";
 import type { UserLoginModel, OTPVerificationModel, OTPResendRequestModel, PasswordResetRequestModel, PasswordResetOTPModel } from "@/api/sdk";
 
 
-export const login_password_step = async (store: GlobalStore, data: UserLoginModel) => {
+export const login_password_step = async (data: UserLoginModel) => {
     const api_response = await apiClient.auth.login(data);
     return api_response.data;
 };

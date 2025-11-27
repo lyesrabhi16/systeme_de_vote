@@ -1,5 +1,5 @@
 import useAuthActions from '@/components/auth/actions';
-import InputWithIcons from '@/components/InputWithIcons';
+import InputWithIcons from '@/components/utils/InputWithIcons';
 import { Button } from '@/components/ui/button';
 import {
   Card,

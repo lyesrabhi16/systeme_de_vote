@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import AuthRequiredRoutes from '@/components/utils/ProtectedRoute';
 import useAuth from '@/hooks/useAuth';
 import LoginPage from '@/pages/LoginPage';
 import OTPVerificationPage from '@/pages/OTPVerificationPage';
@@ -10,27 +11,23 @@ import { Route, Routes } from 'react-router';
 const Router = () => {
   const store = useGlobalStore();
   const auth = useAuth();
-
   return (
     <Routes>
-      <Route
-        middleware={[
-          (d) => {
-            console.log('Middleware check for home route', d);
-          },
-        ]}
-        path={routes.HOME}
-        element={
-          <>
-            {(store.user && (
-              <>
-                <p>Welcome back, {store.user.username}! Page: Home</p>
-                <Button onClick={() => auth.logout()}>Logout</Button>
-              </>
-            )) || <p>HomePage</p>}
-          </>
-        }
-      />
+      <Route element={<AuthRequiredRoutes />}>
+        <Route
+          path={routes.HOME}
+          element={
+            <>
+              {(store.user && (
+                <>
+                  <p>Welcome back, {store.user.username}! Page: Home</p>
+                  <Button onClick={() => auth.logout()}>Logout</Button>
+                </>
+              )) || <p>HomePage</p>}
+            </>
+          }
+        />
+      </Route>
       <Route path={routes.LOGIN}>
         <Route index element={<LoginPage />} />
         <Route
@@ -38,7 +35,7 @@ const Router = () => {
           element={<OTPVerificationPage />}
         />
       </Route>
-      <Route path='/reset-password' element={<PasswordResetPage />} />
+      <Route path={routes.RESET_PASSWORD} element={<PasswordResetPage />} />
       <Route path={routes.NOT_FOUND} element={<>Not Found</>} />
     </Routes>
   );

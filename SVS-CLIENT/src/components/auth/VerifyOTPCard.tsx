@@ -14,7 +14,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const VerifyOTPCard = (props: { id: string }) => {
   const [otp, setOtp] = useState('');

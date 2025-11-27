@@ -1,4 +1,5 @@
 import AlreadyLoggedInCard from '@/components/auth/AlreadyLoggedInCard';
+import logo from '/logo.png';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,7 +21,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field';
-import InputWithIcons from '@/components/InputWithIcons';
+import InputWithIcons from '@/components/utils/InputWithIcons';
 import useAuthActions from '@/components/auth/actions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -49,7 +50,7 @@ const LoginCard = () => {
     <Card className='w-full max-w-sm'>
       <CardHeader>
         <CardTitle className='text-3xl font-bold text-center flex flex-col flex-nowrap gap-2 items-center w-full'>
-          <img src='/logo.png' alt='Logo' />
+          <img src={logo} alt='Logo' />
           <h1>Connectez-vous Pour Voter</h1>
         </CardTitle>
       </CardHeader>

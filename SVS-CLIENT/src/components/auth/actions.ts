@@ -1,6 +1,6 @@
 import { IdentifierType, type OTPResendRequestModel, type OTPVerificationModel, type PasswordResetOTPModel } from "@/api/sdk";
 import useAuth from "@/hooks/useAuth";
-import type { EmailSchemaType, LoginFormSchemaType, PasswordResetSchemaType } from "@/schemas/auth.schemas";
+import type { EmailSchemaType, LoginFormSchemaType } from "@/schemas/auth.schemas";
 import { routes } from "@/services/routing";
 import useGlobalStore from "@/services/store";
 import type { AxiosError } from "axios";
@@ -173,7 +173,7 @@ export const useAuthActions = (init_data?: {
                 navigate(routes.LOGIN);
             }
         ).catch(
-            (err) => {
+            () => {
                 toast.error('Erreur de réinitialiser du mot de passe');
             }
         ).finally(() => setLoading({ ...loading, passwordResetButton: false }))
