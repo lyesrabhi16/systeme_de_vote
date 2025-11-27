@@ -13,6 +13,8 @@ docs/IdentifierType.md
 docs/MessageResponse.md
 docs/OTPResendRequestModel.md
 docs/OTPVerificationModel.md
+docs/PasswordResetOTPModel.md
+docs/PasswordResetRequestModel.md
 docs/SuccessfulUserLoginResponseModel.md
 docs/TokenInput.md
 docs/TokenResponse.md

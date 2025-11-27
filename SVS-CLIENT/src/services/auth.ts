@@ -1,6 +1,6 @@
 import type { GlobalStore } from "@/services/store";
 import { apiClient } from "@/api/client";
-import type { UserLoginModel, OTPVerificationModel, OTPResendRequestModel } from "@/api/sdk";
+import type { UserLoginModel, OTPVerificationModel, OTPResendRequestModel, PasswordResetRequestModel, PasswordResetOTPModel } from "@/api/sdk";
 
 
 export const login_password_step = async (store: GlobalStore, data: UserLoginModel) => {
@@ -55,3 +55,11 @@ export const getToken = (store: GlobalStore): string | null => {
 export const resendEmailOTP = async (data: OTPResendRequestModel) => {
     await apiClient.auth.resendOtp(data);
 };
+
+export const PasswordEmailReset = async (data: PasswordResetRequestModel) => {
+    await apiClient.auth.passwordResetRequest(data);
+}
+
+export const ValidatePasswordEmailReset = async (data: PasswordResetOTPModel) => {
+    await apiClient.auth.validatePasswordReset(data);
+}

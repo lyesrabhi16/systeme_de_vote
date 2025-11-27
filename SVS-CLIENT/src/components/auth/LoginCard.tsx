@@ -24,6 +24,8 @@ import InputWithIcons from '@/components/InputWithIcons';
 import useAuthActions from '@/components/auth/actions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Link } from 'react-router';
+import { routes } from '@/services/routing';
 
 const LoginCard = () => {
   const auth = useAuth();
@@ -99,12 +101,12 @@ const LoginCard = () => {
                     className='flex flex-row flex-wrap justify-content-between items-center'
                   >
                     <p>Mot de passe</p>
-                    <a
-                      href='#'
+                    <Link
+                      to={routes.RESET_PASSWORD}
                       className='text-muted-foreground text-sm ml-auto hover:underline'
                     >
                       Mot de passe oublié ?
-                    </a>
+                    </Link>
                   </FieldLabel>
                   <InputWithIcons
                     LeftIcon={LucideLockKeyhole}

@@ -1,6 +1,6 @@
-import { IdentifierType, type OTPResendRequestModel, type OTPVerificationModel } from "@/api/sdk";
+import { IdentifierType, type OTPResendRequestModel, type OTPVerificationModel, type PasswordResetOTPModel } from "@/api/sdk";
 import useAuth from "@/hooks/useAuth";
-import type { LoginFormSchemaType } from "@/schemas/auth.schemas";
+import type { EmailSchemaType, LoginFormSchemaType, PasswordResetSchemaType } from "@/schemas/auth.schemas";
 import { routes } from "@/services/routing";
 import useGlobalStore from "@/services/store";
 import type { AxiosError } from "axios";
@@ -13,6 +13,8 @@ import { toast } from "sonner";
 export const useAuthActions = (init_data?: {
     loading?: {
         loginButton: boolean;
+        resetPasswordRequestButton: boolean;
+        passwordResetButton: boolean;
     },
     resendButtonState?: {
         disabled: boolean;
@@ -26,6 +28,8 @@ export const useAuthActions = (init_data?: {
 
     const [loading, setLoading] = useState(init_data?.loading || {
         loginButton: false,
+        resetPasswordRequestButton: false,
+        passwordResetButton: false,
     });
     const [resendButtonState, setResendButtonState] = useState(init_data?.resendButtonState || {
         disabled: false,
@@ -140,6 +144,40 @@ export const useAuthActions = (init_data?: {
                 setLoading({ ...loading, loginButton: false });
             });
     };
+
+    const handleSubmitPasswordResetRequestForm = (data: EmailSchemaType) => {
+        setLoading({ ...loading, resetPasswordRequestButton: true });
+        auth
+            .send_password_reset_email({ email: data.email })
+            .then(() => {
+                toast.success(
+                    'E-mail de réinitialisation du mot de passe envoyé avec succès',
+                );
+            })
+            .catch((error: AxiosError) => {
+                console.error('Password reset request failed:', error);
+                toast.error(
+                    "Échec de l'envoi de l'e-mail de réinitialisation du mot de passe",
+                );
+            })
+            .finally(() => {
+                setLoading({ ...loading, resetPasswordRequestButton: false });
+            });
+    };
+
+    const handleSubmitPasswordResetForm = (data: PasswordResetOTPModel) => {
+        setLoading({ ...loading, passwordResetButton: true });
+        auth.validate_password_reset_email(data).then(
+            () => {
+                toast.success("Mot de passe réinitialiser avec success");
+                navigate(routes.LOGIN);
+            }
+        ).catch(
+            (err) => {
+                toast.error('Erreur de réinitialiser du mot de passe');
+            }
+        ).finally(() => setLoading({ ...loading, passwordResetButton: false }))
+    }
     return {
         handleSubmitOtpVerificationForm,
         handleResendCode,
@@ -150,6 +188,8 @@ export const useAuthActions = (init_data?: {
         resendButtonState,
         setResendButtonState,
         getMaskedEmail,
+        handleSubmitPasswordResetRequestForm,
+        handleSubmitPasswordResetForm,
     };
 
 };

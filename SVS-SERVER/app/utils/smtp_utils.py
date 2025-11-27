@@ -77,3 +77,17 @@ async def send_connection_otp_email(
         template="send_OTP.html",
         context={"OTP_CODE": otp_code},
     )
+
+
+async def send_password_reset_email(
+    to_email: List[NameEmail] | List[str],
+    url: str,
+):
+    """Send a password reset OTP email."""
+    logger.debug(f"Sending password reset email to {to_email} with URL: {url}")
+    return await send_email(
+        to_email=to_email,
+        subject="Réinitialisation de votre mot de passe",
+        template="password_reset_OTP.html",
+        context={"URL": url},
+    )

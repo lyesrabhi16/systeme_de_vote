@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import useAuth from '@/hooks/useAuth';
 import LoginPage from '@/pages/LoginPage';
 import OTPVerificationPage from '@/pages/OTPVerificationPage';
+import PasswordResetPage from '@/pages/PasswordResetPage';
 import { routes } from '@/services/routing';
 import useGlobalStore from '@/services/store';
 import { Route, Routes } from 'react-router';
@@ -37,6 +38,7 @@ const Router = () => {
           element={<OTPVerificationPage />}
         />
       </Route>
+      <Route path='/reset-password' element={<PasswordResetPage />} />
       <Route path={routes.NOT_FOUND} element={<>Not Found</>} />
     </Routes>
   );

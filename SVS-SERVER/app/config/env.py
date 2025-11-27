@@ -157,6 +157,12 @@ class _ENV(BaseModel):
         default="your_encryption_key_32_bytes!",
     )
 
+    FRONTEND_URL: str = Field(
+        default="http://localhost:3000",
+        title="Frontend URL",
+        description="The base URL of the frontend application",
+    )
+
     @field_validator("DB_PORT", mode="before")
     @classmethod
     def validate_db_port(cls, v) -> int:

@@ -12,7 +12,7 @@ function App() {
   const loadUser = () => {
     if (!store.user) {
       auth
-        .loadCurrentUser()
+        .load_current_user()
         .catch((e) => {
           console.error('Failed to load user:', e);
         })
