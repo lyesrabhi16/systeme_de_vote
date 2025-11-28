@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     if not connected:
         logger.error("Failed to connect to the database on startup.")
     # Initialize the database if needed
-    await init_db()
+    await init_db(recreate=True)
 
     yield
     # Shutdown

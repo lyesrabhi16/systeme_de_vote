@@ -1,8 +1,9 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from pydantic import BaseModel
 from app.db.db import db_session
 from app.utils import auth_utils
 from sqlalchemy.ext.asyncio import AsyncSession
+
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -18,6 +19,13 @@ class User(SQLModel, table=True):
     is_active: bool = Field(..., title="Is Active")
     is_admin: bool = Field(..., title="Is Admin")
 
+    # créer
+    created_votes: list["Vote"] = Relationship(back_populates="creator")
+    # voter
+    bulletins: list["Bulletin"] = Relationship(back_populates="user")
+    # peut_voter
+    attributed_votes: list["AttributedVote"] = Relationship(back_populates="user")
+
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:
         """Save the modified user to the database."""
@@ -26,6 +34,8 @@ class User(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+
 class CurrentUserResponseModel(BaseModel):
     id: int
     first_name: str
