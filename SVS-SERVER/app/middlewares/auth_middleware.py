@@ -49,7 +49,7 @@ class AUTH_MIDDLEWARE:
 
         # Attach user to request state for downstream access
         request.state.user = user
-        logger.debug(f"User {user.username} authenticated successfully.")
+        logger.debug(f"User {request.state.user.username} authenticated successfully.")
 
     @classmethod
     async def RetrieveToken(cls, request: Request):

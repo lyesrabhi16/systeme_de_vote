@@ -7,14 +7,23 @@ from app.models.user import User
 
 class Vote(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    titre: str = Field(..., title="Titre", max_length=200)
+    title: str = Field(..., title="Titre", max_length=200)
     description: str = Field(..., title="Description", max_length=1000)
     start_date: datetime = Field(..., title="Start Date")
     end_date: datetime = Field(..., title="End Date")
     creator_id: int = Field(..., title="Creator User ID", foreign_key="user.id")
 
     creator: User = Relationship(back_populates="created_votes")
-    candidates: list["Candidate"] = Relationship(back_populates="vote")
+
+    candidates: list["Candidate"] = Relationship(
+        back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+    )
+    bulletins: list["Bulletin"] = Relationship(
+        back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+    )
+    attributed_users: list["AttributedVote"] = Relationship(
+        back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+    )
 
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:

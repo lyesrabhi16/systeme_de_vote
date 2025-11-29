@@ -13,7 +13,10 @@ class Candidate(SQLModel, table=True):
     )
     vote_id: int = Field(..., title="Vote ID", foreign_key="vote.id")
 
-    vote: Vote = Relationship(back_populates="candidates")
+    vote: Vote = Relationship(
+        back_populates="candidates",
+        sa_relationship_kwargs={"lazy": "selectin"},  # async safe
+    )
 
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:

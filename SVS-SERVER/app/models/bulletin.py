@@ -13,8 +13,14 @@ class Bulletin(SQLModel, table=True):
     content: str = Field(..., title="Content", max_length=2000)
     date: datetime = Field(..., title="Date")
 
-    user: "User" = Relationship(back_populates="bulletins")
-    vote: "Vote" = Relationship(back_populates="bulletins")
+    user: "User" = Relationship(
+        back_populates="bulletins",
+        sa_relationship_kwargs={"lazy": "selectin"},  # async safe
+    )
+    vote: "Vote" = Relationship(
+        back_populates="bulletins",
+        sa_relationship_kwargs={"lazy": "selectin"},  # async safe
+    )
 
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:

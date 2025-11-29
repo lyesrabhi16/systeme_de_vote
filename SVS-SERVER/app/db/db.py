@@ -40,7 +40,7 @@ def cache_session(func):
     return wrapper
 
 
-def db_session(func, commit: bool = True):
+def db_session(func):
     """
     decorator to provide a database session accessible via 'db' parameter on the decorated function
 
@@ -80,6 +80,7 @@ async def test_db_connection(db: AsyncSession | None = None):
     except Exception as e:
         logger.error(f"DB({env.DB_HOST}) Connection failed: {e}")
         return False
+
 
 @cache_session
 async def test_redis_cache_connection(cache: Redis | None = None):

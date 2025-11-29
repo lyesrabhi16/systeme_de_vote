@@ -298,6 +298,106 @@
                 }
             }
         },
+        "/vote/attributed": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Attributed Votes",
+                "operationId": "get_attributed_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Attributed Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/created": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Created Votes",
+                "operationId": "get_created_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Created Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/voted": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Already Voted On Votes",
+                "operationId": "get_already_voted_on_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Already Voted On Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/available": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Available Votes",
+                "operationId": "get_available_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Available Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/{path}": {
             "get": {
                 "summary": "Serve Spa Fallback",
@@ -591,6 +691,54 @@
                     "type"
                 ],
                 "title": "ValidationError"
+            },
+            "Vote": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "title": "Titre"
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "title": "Description"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Start Date"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "End Date"
+                    },
+                    "creator_id": {
+                        "type": "integer",
+                        "title": "Creator User ID"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "title",
+                    "description",
+                    "start_date",
+                    "end_date",
+                    "creator_id"
+                ],
+                "title": "Vote"
             },
             "identifierType": {
                 "type": "string",

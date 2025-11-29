@@ -8,7 +8,7 @@ from app.utils import get_real_path
 from app.utils.middlewares import setup_middlewares, register_http_exception_handler
 from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
-from app.routers import auth_router
+from app.routers import auth_router, voting_router
 from app.db import test_db_connection, init_db, test_redis_cache_connection
 
 from app.utils.logging import setup_logging, intercept_standard_logging
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     if not connected:
         logger.error("Failed to connect to the database on startup.")
     # Initialize the database if needed
-    await init_db(recreate=True)
+    await init_db(recreate=False)
 
     yield
     # Shutdown
@@ -57,6 +57,12 @@ APP.include_router(
     auth_router.router,
     prefix="/auth",
     tags=["auth"],
+)
+
+APP.include_router(
+    voting_router.router,
+    prefix="/vote",
+    tags=["vote"],
 )
 
 
