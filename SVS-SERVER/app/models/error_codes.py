@@ -60,3 +60,7 @@ class ERROR_CODES(dict, Enum):
         code="RATE_LIMIT_EXCEEDED",
         message="Rate limit exceeded",
     )
+    NOT_FOUND = ErrorCodeModel(
+        code="NOT_FOUND",
+        message="Resource not found",
+    )

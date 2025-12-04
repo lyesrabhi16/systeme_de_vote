@@ -8,10 +8,10 @@ import useAuth from '@/hooks/useAuth';
 import { getUserInitials, getUserName } from '@/utils/user.utils';
 import { Avatar, AvatarFallback } from '@radix-ui/react-avatar';
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu';
+import { toast } from 'sonner';
 
 const UserAvatarMenu = () => {
-  const { user } = useAuth();
-
+  const { user, logout } = useAuth();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,8 +28,21 @@ const UserAvatarMenu = () => {
         <DropdownMenuLabel className='font-semibold'>
           {getUserName(user)}
         </DropdownMenuLabel>
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Logout</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            toast.error('Not Implemented yet');
+          }}
+        >
+          Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            logout();
+            toast.success('Déconnexion réussie');
+          }}
+        >
+          Logout
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

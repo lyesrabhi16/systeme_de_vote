@@ -104,6 +104,13 @@ async def seed_votes(db: AsyncSession | None = None):
     # Implement vote seeding logic here
     votes = [
         Vote(
+            title="Election 2026",
+            description="Presidential Election 2026 in France",
+            start_date=datetime.strptime("2026-11-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2026-11-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=1,
+        ),
+        Vote(
             title="Election 2024",
             description="Presidential Election 2024",
             start_date=datetime.strptime("2024-11-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
@@ -124,6 +131,37 @@ async def seed_votes(db: AsyncSession | None = None):
             end_date=datetime.strptime("2024-09-21 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=3,
         ),
+        Vote(
+            title="Community Center Elections",
+            description="Elections for the Community Center Committee",
+            start_date=datetime.strptime("2024-12-01 00:00:00",
+
+                                      "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-12-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=3,
+        ),
+        Vote(
+            title="Ongoing Election",
+            description="An election currently in progress",
+            start_date=datetime.strptime("2025-11-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2025-12-31 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=1,
+        ),
+        Vote(
+            title="Planned Election 2027",
+            description="Planned future election",
+            start_date=datetime.strptime("2027-05-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2027-05-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=1,
+        ),
+        Vote(
+            title="Past Election 2020",
+            description="A completed election in the past",
+            start_date=datetime.strptime("2020-06-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2020-06-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=1,
+        ),
+        
     ]
     db.add_all(votes)
     await db.commit()
@@ -236,6 +274,13 @@ async def seed_attributedVotes(db: AsyncSession | None = None):
             user_id=1,
             vote_id=3,
         ),
+        AttributedVote(
+            user_id=1,
+            vote_id=2,
+        ),
+        AttributedVote(user_id=1, vote_id=6,),
+        AttributedVote(user_id=1, vote_id=7,),
+        AttributedVote(user_id=1, vote_id=8,),
     ]
     db.add_all(votes)
     await db.commit()

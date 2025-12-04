@@ -398,6 +398,98 @@
                 }
             }
         },
+        "/vote/finishedVotes": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Finished Votes",
+                "operationId": "get_finished_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/FinishedVoteResponseModel"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Finished Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/{vote_id}/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Vote By Id",
+                "operationId": "get_vote_by_id",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vote"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get All Votes",
+                "operationId": "get_all_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get All Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/{path}": {
             "get": {
                 "summary": "Serve Spa Fallback",
@@ -490,6 +582,46 @@
                     "is_admin"
                 ],
                 "title": "CurrentUserResponseModel"
+            },
+            "FinishedVoteResponseModel": {
+                "properties": {
+                    "vote": {
+                        "$ref": "#/components/schemas/Vote"
+                    },
+                    "total_bulletins": {
+                        "type": "integer",
+                        "title": "Total Bulletins"
+                    },
+                    "candidate_results": {
+                        "additionalProperties": {
+                            "type": "integer"
+                        },
+                        "type": "object",
+                        "title": "Candidate Results"
+                    },
+                    "abstention_count": {
+                        "type": "integer",
+                        "title": "Abstention Count"
+                    },
+                    "voter_count": {
+                        "type": "integer",
+                        "title": "Voter Count"
+                    },
+                    "user_has_voted": {
+                        "type": "boolean",
+                        "title": "User Has Voted"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "vote",
+                    "total_bulletins",
+                    "candidate_results",
+                    "abstention_count",
+                    "voter_count",
+                    "user_has_voted"
+                ],
+                "title": "FinishedVoteResponseModel"
             },
             "HTTPValidationError": {
                 "properties": {

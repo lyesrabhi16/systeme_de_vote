@@ -16,8 +16,14 @@ const useGlobalStore = create<GlobalStore>((set, get) => ({
     user: null,
     token: null,
     setUser: (user: CurrentUserResponseModel) => set({ user }),
-    setToken: (token: string | null) => set({ token }),
-    clearUser: () => set({ user: null, token: null }),
+    setToken: (token: string | null) => {
+        localStorage.setItem("token", token || '');
+        set({ token })
+    },
+    clearUser: () => {
+        localStorage.removeItem("token");
+        set({ user: null, token: null });
+    },
     temp_data: {},
     get_temp_data: (key: string) => {
         // consume the temp data

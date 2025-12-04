@@ -3,6 +3,7 @@ import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import OTPVerificationPage from '@/pages/OTPVerificationPage';
 import PasswordResetPage from '@/pages/PasswordResetPage';
+import VotingPage from '@/pages/VotingPage';
 import { routes } from '@/services/routing';
 import { Route, Routes } from 'react-router';
 
@@ -11,6 +12,7 @@ const Router = () => {
     <Routes>
       <Route element={<AuthRequiredRoutes />}>
         <Route path={routes.HOME} element={<HomePage />} />
+        <Route path={routes.VOTE} element={<VotingPage />} />
       </Route>
       <Route path={routes.LOGIN}>
         <Route index element={<LoginPage />} />

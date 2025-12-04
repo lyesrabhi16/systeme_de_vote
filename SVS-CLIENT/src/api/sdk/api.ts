@@ -35,6 +35,14 @@ export interface CurrentUserResponseModel {
     'is_active': boolean;
     'is_admin': boolean;
 }
+export interface FinishedVoteResponseModel {
+    'vote': Vote;
+    'total_bulletins': number;
+    'candidate_results': { [key: string]: number; };
+    'abstention_count': number;
+    'voter_count': number;
+    'user_has_voted': boolean;
+}
 export interface HTTPValidationError {
     'detail'?: Array<ValidationError>;
 }
@@ -91,6 +99,14 @@ export interface ValidationError {
     'type': string;
 }
 export interface ValidationErrorLocInner {
+}
+export interface Vote {
+    'id'?: number | null;
+    'title': string;
+    'description': string;
+    'start_date': string;
+    'end_date': string;
+    'creator_id': number;
 }
 
 /**
@@ -764,6 +780,344 @@ export class DefaultApi extends BaseAPI {
      */
     public spaFallback(path: string, options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).spaFallback(path, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * VoteApi - axios parameter creator
+ */
+export const VoteApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get Already Voted On Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAlreadyVotedOnVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/vote/voted`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Attributed Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAttributedVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/vote/attributed`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Available Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAvailableVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/vote/available`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Created Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCreatedVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/vote/created`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Finished Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFinishedVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/vote/finishedVotes`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * VoteApi - functional programming interface
+ */
+export const VoteApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = VoteApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get Already Voted On Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAlreadyVotedOnVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAlreadyVotedOnVotes(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getAlreadyVotedOnVotes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Attributed Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAttributedVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAttributedVotes(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getAttributedVotes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Available Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAvailableVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAvailableVotes(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getAvailableVotes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Created Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getCreatedVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getCreatedVotes(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getCreatedVotes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Finished Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFinishedVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<FinishedVoteResponseModel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFinishedVotes(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getFinishedVotes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * VoteApi - factory interface
+ */
+export const VoteApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = VoteApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get Already Voted On Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAlreadyVotedOnVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+            return localVarFp.getAlreadyVotedOnVotes(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Attributed Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAttributedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+            return localVarFp.getAttributedVotes(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Available Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAvailableVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+            return localVarFp.getAvailableVotes(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Created Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCreatedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+            return localVarFp.getCreatedVotes(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Finished Votes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFinishedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<FinishedVoteResponseModel>> {
+            return localVarFp.getFinishedVotes(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * VoteApi - object-oriented interface
+ */
+export class VoteApi extends BaseAPI {
+    /**
+     * 
+     * @summary Get Already Voted On Votes
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAlreadyVotedOnVotes(options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getAlreadyVotedOnVotes(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Attributed Votes
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAttributedVotes(options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getAttributedVotes(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Available Votes
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAvailableVotes(options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getAvailableVotes(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Created Votes
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getCreatedVotes(options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getCreatedVotes(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Finished Votes
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getFinishedVotes(options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getFinishedVotes(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

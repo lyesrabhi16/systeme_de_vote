@@ -25,6 +25,18 @@ class Vote(SQLModel, table=True):
         back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
     )
 
+    def is_vote_finished(self) -> bool:
+        return self.end_date < datetime.utcnow()
+
+    @staticmethod
+    @db_session
+    async def get_by_id(vote_id: int, db: AsyncSession | None = None):
+        """Retrieve a vote by its ID."""
+        if db is None:
+            raise ValueError("Database session is None")
+        vote = await db.get(Vote, vote_id)
+        return vote
+
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:
         """Save the modified vote to the database."""
@@ -33,3 +45,12 @@ class Vote(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+
+class FinishedVoteResponseModel(SQLModel):
+    vote: Vote
+    total_bulletins: int
+    candidate_results: dict[int, int]  # candidate_id -> number of votes
+    abstention_count: int
+    voter_count: int
+    user_has_voted: bool
