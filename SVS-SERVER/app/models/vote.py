@@ -34,8 +34,7 @@ class Vote(SQLModel, table=True):
         """Retrieve a vote by its ID."""
         if db is None:
             raise ValueError("Database session is None")
-        vote = await db.get(Vote, vote_id)
-        return vote
+        return await db.get(Vote, vote_id)
 
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:
