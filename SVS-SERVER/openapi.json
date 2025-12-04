@@ -298,6 +298,198 @@
                 }
             }
         },
+        "/vote/attributed": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Attributed Votes",
+                "operationId": "get_attributed_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Attributed Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/created": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Created Votes",
+                "operationId": "get_created_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Created Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/voted": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Already Voted On Votes",
+                "operationId": "get_already_voted_on_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Already Voted On Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/available": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Available Votes",
+                "operationId": "get_available_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Available Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/finishedVotes": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Finished Votes",
+                "operationId": "get_finished_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/FinishedVoteResponseModel"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Finished Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/{vote_id}/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Vote By Id",
+                "operationId": "get_vote_by_id",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Vote"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get All Votes",
+                "operationId": "get_all_votes",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/Vote"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get All Votes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/{path}": {
             "get": {
                 "summary": "Serve Spa Fallback",
@@ -390,6 +582,46 @@
                     "is_admin"
                 ],
                 "title": "CurrentUserResponseModel"
+            },
+            "FinishedVoteResponseModel": {
+                "properties": {
+                    "vote": {
+                        "$ref": "#/components/schemas/Vote"
+                    },
+                    "total_bulletins": {
+                        "type": "integer",
+                        "title": "Total Bulletins"
+                    },
+                    "candidate_results": {
+                        "additionalProperties": {
+                            "type": "integer"
+                        },
+                        "type": "object",
+                        "title": "Candidate Results"
+                    },
+                    "abstention_count": {
+                        "type": "integer",
+                        "title": "Abstention Count"
+                    },
+                    "voter_count": {
+                        "type": "integer",
+                        "title": "Voter Count"
+                    },
+                    "user_has_voted": {
+                        "type": "boolean",
+                        "title": "User Has Voted"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "vote",
+                    "total_bulletins",
+                    "candidate_results",
+                    "abstention_count",
+                    "voter_count",
+                    "user_has_voted"
+                ],
+                "title": "FinishedVoteResponseModel"
             },
             "HTTPValidationError": {
                 "properties": {
@@ -591,6 +823,54 @@
                     "type"
                 ],
                 "title": "ValidationError"
+            },
+            "Vote": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "title": "Titre"
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "title": "Description"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Start Date"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "End Date"
+                    },
+                    "creator_id": {
+                        "type": "integer",
+                        "title": "Creator User ID"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "title",
+                    "description",
+                    "start_date",
+                    "end_date",
+                    "creator_id"
+                ],
+                "title": "Vote"
             },
             "identifierType": {
                 "type": "string",

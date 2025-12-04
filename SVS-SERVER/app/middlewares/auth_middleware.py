@@ -49,7 +49,7 @@ class AUTH_MIDDLEWARE:
 
         # Attach user to request state for downstream access
         request.state.user = user
-        logger.debug(f"User {user.username} authenticated successfully.")
+        logger.debug(f"User {request.state.user.username} authenticated successfully.")
 
     @classmethod
     async def RetrieveToken(cls, request: Request):
@@ -58,8 +58,21 @@ class AUTH_MIDDLEWARE:
             json_data = await request.json()
         except Exception:
             json_data = {}
-        token: str | None = json_data.get("token", None) or request.cookies.get(
-            "token", None
+        token_from_json_data = json_data.get("token", None)
+        token_from_cookies = request.cookies.get("token", None)
+        token_from_headers = (
+            request.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+        )
+        if token_from_json_data:
+            logger.debug(
+                "Token found in JSON data. token: " + str(token_from_json_data)
+            )
+        if token_from_cookies:
+            logger.debug("Token found in cookies. token: " + str(token_from_cookies))
+        if token_from_headers:
+            logger.debug("Token found in headers. token: " + str(token_from_headers))
+        token: str | None = (
+            token_from_json_data or token_from_cookies or token_from_headers
         )
         if not token or token.strip() == "":
             logger.warning("No authentication token provided")

@@ -14,7 +14,7 @@ const useAuth = () => {
         load_current_user: () => loadCurrentUser(store),
         getToken: () => getToken(store),
         is_authenticated: () => store.user !== null,
-        user: () => store.user,
+        user: store.user,
     }
 }
 

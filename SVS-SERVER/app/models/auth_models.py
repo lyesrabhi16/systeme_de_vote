@@ -29,8 +29,10 @@ class StoredOTPModel(BaseModel):
 class OTPResendRequestModel(BaseModel):
     id: str
 
+
 class PasswordResetRequestModel(BaseModel):
     email: str
+
 
 class PasswordResetOTPModel(BaseModel):
     id: str

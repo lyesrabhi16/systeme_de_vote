@@ -1,8 +1,12 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from pydantic import BaseModel
 from app.db.db import db_session
 from app.utils import auth_utils
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Request
+from typing import Tuple
+from loguru import logger
+
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -18,6 +22,28 @@ class User(SQLModel, table=True):
     is_active: bool = Field(..., title="Is Active")
     is_admin: bool = Field(..., title="Is Admin")
 
+    # créer
+    created_votes: list["Vote"] = Relationship(
+        back_populates="creator",
+        sa_relationship_kwargs={"lazy": "selectin"},  # async safe
+    )
+    # voter
+    bulletins: list["Bulletin"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+    )
+    # peut_voter
+    attributed_votes: list["AttributedVote"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+    )
+
+    @staticmethod
+    @db_session
+    async def get_authenticated_user(
+        request: Request, db: AsyncSession | None = None
+    ) -> "User":
+        """Retrieve the authenticated user from the request."""
+        return request.state.user
+
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:
         """Save the modified user to the database."""
@@ -26,6 +52,8 @@ class User(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+
 class CurrentUserResponseModel(BaseModel):
     id: int
     first_name: str

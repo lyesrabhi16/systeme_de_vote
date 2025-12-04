@@ -15,6 +15,7 @@ function App() {
         .load_current_user()
         .catch((e) => {
           console.error('Failed to load user:', e);
+          auth.logout();
         })
         .finally(() => {
           setLoaded(true);
@@ -24,7 +25,7 @@ function App() {
 
   useEffect(() => {
     loadUser();
-  });
+  }, [store.user]);
 
   if (!loaded) {
     return <LoadingPage />;

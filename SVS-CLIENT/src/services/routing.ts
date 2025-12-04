@@ -4,4 +4,5 @@ export const routes = Object.freeze({
     NOT_FOUND: '*',
     OTP_VERIFICATION: '/login/verify-otp',
     RESET_PASSWORD: '/reset-password',
+    VOTE: '/vote/:voteId',
 });

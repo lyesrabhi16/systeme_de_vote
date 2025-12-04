@@ -8,6 +8,7 @@ configuration.ts
 docs/AuthApi.md
 docs/CurrentUserResponseModel.md
 docs/DefaultApi.md
+docs/FinishedVoteResponseModel.md
 docs/HTTPValidationError.md
 docs/IdentifierType.md
 docs/MessageResponse.md
@@ -21,5 +22,7 @@ docs/TokenResponse.md
 docs/UserLoginModel.md
 docs/ValidationError.md
 docs/ValidationErrorLocInner.md
+docs/Vote.md
+docs/VoteApi.md
 git_push.sh
 index.ts
