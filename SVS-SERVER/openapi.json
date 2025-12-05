@@ -5,7 +5,7 @@
         "description": "API documentation for the SVS Server application.",
         "version": "1.0.0",
         "x-logo": {
-            "url": "http://localhost:8000/public/logo.png"
+            "url": "https://svs-server.localhost/public/logo.png"
         }
     },
     "paths": {
