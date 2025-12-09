@@ -8,14 +8,11 @@ import {
 import { useNav } from '@/hooks/useNav';
 import { Link } from 'react-router';
 import type { NavItemType } from '@/hooks/useNav';
-import { Separator } from '@radix-ui/react-dropdown-menu';
 export const useBreadCrumbs = (props?: {
   additionalLabel?: () => NavItemType;
 }) => {
-  const { navItems, currentNavItem, currentNavItemIndex } = useNav();
-  console.log('navItems:', navItems, currentNavItem);
+  const { navItems, currentNavItem } = useNav();
 
-  console.log('currentIndex:', currentNavItemIndex);
   const homeNavItem = navItems[0];
   const breadCrumbs: NavItemType[] = currentNavItem
     ? [
@@ -26,8 +23,6 @@ export const useBreadCrumbs = (props?: {
   if (props?.additionalLabel) {
     breadCrumbs.push(props.additionalLabel());
   }
-
-  console.log('breadcrumbs: ', breadCrumbs);
 
   // jsx components for breadCrumbs
   const component = () => {

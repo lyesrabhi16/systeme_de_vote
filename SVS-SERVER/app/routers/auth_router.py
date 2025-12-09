@@ -63,7 +63,9 @@ async def login(data: UserLoginModel, response: Response):
     operation_id="verifyOTP",
 )
 async def verify_otp(data: OTPVerificationModel, response: Response):
-    user_email = await auth_utils.decrypt_string(data.id)
+    user_email = auth_utils.decrypt_string(
+        await auth_utils.retrieve_string_from_temp_url_safe_string(data.id)
+    )
     user = await UserLoginModel.get_user_by_email(user_email)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
@@ -96,7 +98,9 @@ async def verify_otp(data: OTPVerificationModel, response: Response):
 )
 async def resend_otp(data: OTPResendRequestModel):
     """Resend OTP to user email"""
-    user_email = await auth_utils.decrypt_string(data.id)
+    user_email = auth_utils.decrypt_string(
+        await auth_utils.retrieve_string_from_temp_url_safe_string(data.id)
+    )
     user: User | None = await UserLoginModel.get_user_by_email(user_email)
     if user is None:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
@@ -141,7 +145,11 @@ async def get_current_user(request: Request, data: Optional[TokenInput]):
     return user
 
 
-@router.post("/password-reset", operation_id="password_reset_request", response_model=response_models.MessageResponse)
+@router.post(
+    "/password-reset",
+    operation_id="password_reset_request",
+    response_model=response_models.MessageResponse,
+)
 async def password_reset_request(data: PasswordResetRequestModel):
     """Request password reset by sending OTP to user email"""
     user_email = data.email
@@ -151,13 +159,16 @@ async def password_reset_request(data: PasswordResetRequestModel):
         # destroy previous OTPs
         await auth_utils.remove_otp(user.id)
         # create new OTP and re-send email
-        otp  = await auth_utils.create_otp(user.id)
-        url = f"{env.FRONTEND_URL}/reset-password?uid={await auth_utils.encrypt_string(user.email)}&otp={otp}"
+        otp = await auth_utils.create_otp(user.id)
+        encrypted_email = auth_utils.encrypt_string(user.email)
+
+        url = f"{env.FRONTEND_URL}/reset-password?uid={await auth_utils.generate_temp_url_safe_string(encrypted_email)}&otp={otp}"
         smtp_utils.send_in_thread(smtp_utils.send_password_reset_email)(
             to_email=[user.email],
             url=url,
         )
     return response_models.MessageResponse(message=Messages.PASSWORD_RESET_EMAIL_SENT)
+
 
 @router.post(
     "/password-reset/validate",
@@ -166,8 +177,11 @@ async def password_reset_request(data: PasswordResetRequestModel):
     operation_id="validate_password_reset",
 )
 async def validate_password_reset_otp(data: PasswordResetOTPModel, response: Response):
-    user_email = await auth_utils.decrypt_string(data.id)
-    user : User | None = await UserLoginModel.get_user_by_email(user_email)
+    url_safe_string = await auth_utils.retrieve_string_from_temp_url_safe_string(
+        data.id
+    )
+    user_email = auth_utils.decrypt_string(url_safe_string)
+    user: User | None = await UserLoginModel.get_user_by_email(user_email)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
     if not await auth_utils.verify_otp(user.id, data.otp):

@@ -134,9 +134,7 @@ async def seed_votes(db: AsyncSession | None = None):
         Vote(
             title="Community Center Elections",
             description="Elections for the Community Center Committee",
-            start_date=datetime.strptime("2024-12-01 00:00:00",
-
-                                      "%Y-%m-%d %H:%M:%S"),
+            start_date=datetime.strptime("2024-12-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
             end_date=datetime.strptime("2024-12-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=3,
         ),
@@ -161,7 +159,6 @@ async def seed_votes(db: AsyncSession | None = None):
             end_date=datetime.strptime("2020-06-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=1,
         ),
-        
     ]
     db.add_all(votes)
     await db.commit()
@@ -193,12 +190,14 @@ async def seed_candidates(db: AsyncSession | None = None):
             last_name="Brown",
             photo_url="http://example.com/photos/charlie.jpg",
             vote_id=2,
+            vote_count=5,
         ),
         Candidate(
             first_name="Diana",
             last_name="Prince",
             photo_url="http://example.com/photos/diana.jpg",
             vote_id=2,
+            vote_count=8,
         ),
         Candidate(
             first_name="Ethan",
@@ -235,6 +234,24 @@ async def seed_candidates(db: AsyncSession | None = None):
             last_name="Roberts",
             photo_url="http://example.com/photos/julia.jpg",
             vote_id=1,
+        ),
+        Candidate(
+            first_name="Kevin",
+            last_name="Spacey",
+            photo_url="http://example.com/photos/kevin.jpg",
+            vote_id=6,
+        ),
+        Candidate(
+            first_name="Laura",
+            last_name="Palmer",
+            photo_url="http://example.com/photos/laura.jpg",
+            vote_id=6,
+        ),
+        Candidate(
+            first_name="Michael",
+            last_name="Scott",
+            photo_url="http://example.com/photos/michael.jpg",
+            vote_id=6,
         ),
     ]
     db.add_all(candidates)
@@ -278,9 +295,18 @@ async def seed_attributedVotes(db: AsyncSession | None = None):
             user_id=1,
             vote_id=2,
         ),
-        AttributedVote(user_id=1, vote_id=6,),
-        AttributedVote(user_id=1, vote_id=7,),
-        AttributedVote(user_id=1, vote_id=8,),
+        AttributedVote(
+            user_id=1,
+            vote_id=6,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=7,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=8,
+        ),
     ]
     db.add_all(votes)
     await db.commit()
@@ -290,6 +316,8 @@ async def seed_attributedVotes(db: AsyncSession | None = None):
 @seed
 @db_session
 async def seed_bulletins(db: AsyncSession | None = None):
+    from app.utils.auth_utils import encrypt_string
+
     if db is None:
         logger.error("No database session provided for seeding bulletins.")
         return
@@ -298,19 +326,19 @@ async def seed_bulletins(db: AsyncSession | None = None):
         Bulletin(
             user_id=2,
             vote_id=1,
-            content="I vote for Alice Johnson.",
+            content=encrypt_string("1"),
             date=datetime.strptime("2024-11-01 10:00:00", "%Y-%m-%d %H:%M:%S"),
         ),
         Bulletin(
             user_id=3,
             vote_id=2,
-            content="I vote for Diana Prince.",
+            content=encrypt_string("2"),
             date=datetime.strptime("2024-10-15 11:30:00", "%Y-%m-%d %H:%M:%S"),
         ),
         Bulletin(
             user_id=1,
             vote_id=3,
-            content="I vote for Fiona Gallagher.",
+            content=encrypt_string("4"),
             date=datetime.strptime("2024-09-20 09:15:00", "%Y-%m-%d %H:%M:%S"),
         ),
     ]

@@ -6,9 +6,12 @@ base.ts
 common.ts
 configuration.ts
 docs/AuthApi.md
+docs/Candidate.md
+docs/CandidatesApi.md
 docs/CurrentUserResponseModel.md
 docs/DefaultApi.md
 docs/FinishedVoteResponseModel.md
+docs/FullVoteResponseModel.md
 docs/HTTPValidationError.md
 docs/IdentifierType.md
 docs/MessageResponse.md
@@ -20,9 +23,13 @@ docs/SuccessfulUserLoginResponseModel.md
 docs/TokenInput.md
 docs/TokenResponse.md
 docs/UserLoginModel.md
+docs/UserResponseModel.md
+docs/UsersApi.md
 docs/ValidationError.md
 docs/ValidationErrorLocInner.md
 docs/Vote.md
 docs/VoteApi.md
+docs/VoteInputData.md
+docs/VoteWithCreatorResponseModel.md
 git_push.sh
 index.ts

@@ -447,7 +447,57 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Vote"
+                                    "$ref": "#/components/schemas/FullVoteResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Vote",
+                "operationId": "vote",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoteInputData"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
                                 }
                             }
                         }
@@ -490,6 +540,174 @@
                 }
             }
         },
+        "/vote/result/{vote_id}/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Vote Result",
+                "operationId": "get_vote_result",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FinishedVoteResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/count/{vote_id}/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Vote Count",
+                "operationId": "get_vote_count",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoteResultsModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/:id": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get User By Id",
+                "operationId": "get_user_by_id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/candidates/id": {
+            "get": {
+                "tags": [
+                    "candidates"
+                ],
+                "summary": "Get Candidate By Id",
+                "operationId": "get_candidate_by_id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Candidate"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/{path}": {
             "get": {
                 "summary": "Serve Spa Fallback",
@@ -525,6 +743,101 @@
     },
     "components": {
         "schemas": {
+            "Bulletin": {
+                "properties": {
+                    "user_id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "User Id"
+                    },
+                    "vote_id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Vote Id"
+                    },
+                    "content": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "title": "Content"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Date"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content",
+                    "date"
+                ],
+                "title": "Bulletin"
+            },
+            "Candidate": {
+                "properties": {
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Id"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "title": "Name"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "title": "Last Name"
+                    },
+                    "photo_url": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Photo URL"
+                    },
+                    "vote_count": {
+                        "type": "integer",
+                        "title": "Vote Count",
+                        "default": 0
+                    },
+                    "vote_id": {
+                        "type": "integer",
+                        "title": "Vote ID"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "first_name",
+                    "last_name",
+                    "vote_id"
+                ],
+                "title": "Candidate"
+            },
             "CurrentUserResponseModel": {
                 "properties": {
                     "id": {
@@ -586,7 +899,7 @@
             "FinishedVoteResponseModel": {
                 "properties": {
                     "vote": {
-                        "$ref": "#/components/schemas/Vote"
+                        "$ref": "#/components/schemas/VoteWithCreatorResponseModel"
                     },
                     "total_bulletins": {
                         "type": "integer",
@@ -610,6 +923,20 @@
                     "user_has_voted": {
                         "type": "boolean",
                         "title": "User Has Voted"
+                    },
+                    "winner_candidates": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Winner Candidates"
                     }
                 },
                 "type": "object",
@@ -622,6 +949,31 @@
                     "user_has_voted"
                 ],
                 "title": "FinishedVoteResponseModel"
+            },
+            "FullVoteResponseModel": {
+                "properties": {
+                    "vote": {
+                        "$ref": "#/components/schemas/FinishedVoteResponseModel"
+                    },
+                    "candidates": {
+                        "items": {
+                            "$ref": "#/components/schemas/Candidate"
+                        },
+                        "type": "array",
+                        "title": "Candidates"
+                    },
+                    "total_bulletins": {
+                        "type": "integer",
+                        "title": "Total Bulletins"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "vote",
+                    "candidates",
+                    "total_bulletins"
+                ],
+                "title": "FullVoteResponseModel"
             },
             "HTTPValidationError": {
                 "properties": {
@@ -791,6 +1143,54 @@
                 ],
                 "title": "UserLoginModel"
             },
+            "UserResponseModel": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "title": "First Name"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "Last Name"
+                    },
+                    "email": {
+                        "type": "string",
+                        "title": "Email"
+                    },
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "title": "Phone Number"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Is Active"
+                    },
+                    "is_admin": {
+                        "type": "boolean",
+                        "title": "Is Admin"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "username",
+                    "phone_number",
+                    "is_active",
+                    "is_admin"
+                ],
+                "title": "UserResponseModel"
+            },
             "ValidationError": {
                 "properties": {
                     "loc": {
@@ -871,6 +1271,92 @@
                     "creator_id"
                 ],
                 "title": "Vote"
+            },
+            "VoteInputData": {
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "title": "Content"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "content"
+                ],
+                "title": "VoteInputData"
+            },
+            "VoteResultsModel": {
+                "properties": {
+                    "candidate_results": {
+                        "additionalProperties": {
+                            "type": "integer"
+                        },
+                        "type": "object",
+                        "title": "Candidate Results"
+                    },
+                    "count_failures": {
+                        "items": {
+                            "$ref": "#/components/schemas/Bulletin"
+                        },
+                        "type": "array",
+                        "title": "Count Failures"
+                    },
+                    "abstention_count": {
+                        "type": "integer",
+                        "title": "Abstention Count"
+                    },
+                    "voter_count": {
+                        "type": "integer",
+                        "title": "Voter Count"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "candidate_results",
+                    "count_failures",
+                    "abstention_count",
+                    "voter_count"
+                ],
+                "title": "VoteResultsModel"
+            },
+            "VoteWithCreatorResponseModel": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Start Date"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "End Date"
+                    },
+                    "creator": {
+                        "$ref": "#/components/schemas/UserResponseModel"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "start_date",
+                    "end_date",
+                    "creator"
+                ],
+                "title": "VoteWithCreatorResponseModel"
             },
             "identifierType": {
                 "type": "string",

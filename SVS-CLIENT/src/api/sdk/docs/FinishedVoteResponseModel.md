@@ -5,12 +5,13 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**vote** | [**Vote**](Vote.md) |  | [default to undefined]
+**vote** | [**VoteWithCreatorResponseModel**](VoteWithCreatorResponseModel.md) |  | [default to undefined]
 **total_bulletins** | **number** |  | [default to undefined]
 **candidate_results** | **{ [key: string]: number; }** |  | [default to undefined]
 **abstention_count** | **number** |  | [default to undefined]
 **voter_count** | **number** |  | [default to undefined]
 **user_has_voted** | **boolean** |  | [default to undefined]
+**winner_candidates** | **Array&lt;number&gt;** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -24,6 +25,7 @@ const instance: FinishedVoteResponseModel = {
     abstention_count,
     voter_count,
     user_has_voted,
+    winner_candidates,
 };
 ```
 
