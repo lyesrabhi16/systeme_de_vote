@@ -6,3 +6,11 @@ export const routes = Object.freeze({
     RESET_PASSWORD: '/reset-password',
     VOTE: '/vote/:voteId',
 });
+
+const getVoteRoute = (voteId: string | number) => {
+    return `/vote/${voteId}`;
+};
+
+export const routesBuilders = {
+    getVoteRoute,
+}

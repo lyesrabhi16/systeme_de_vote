@@ -11,6 +11,7 @@ class Candidate(SQLModel, table=True):
     photo_url: str | None = Field(
         default=None, title="Photo URL", max_length=500, nullable=True
     )
+    vote_count: int = Field(default=0, title="Vote Count")
     vote_id: int = Field(..., title="Vote ID", foreign_key="vote.id")
 
     vote: Vote = Relationship(
@@ -26,3 +27,12 @@ class Candidate(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+    @staticmethod
+    @db_session
+    async def get_by_id(candidate_id: int, db: AsyncSession | None = None):
+        """Retrieve a candidate by its ID."""
+        if db is None:
+            raise ValueError("Database session is None")
+        candidate = await db.get(Candidate, candidate_id)
+        return candidate

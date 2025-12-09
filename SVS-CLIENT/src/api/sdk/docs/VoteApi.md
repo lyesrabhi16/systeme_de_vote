@@ -4,11 +4,58 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**getAllVotes**](#getallvotes) | **GET** /vote/ | Get All Votes|
 |[**getAlreadyVotedOnVotes**](#getalreadyvotedonvotes) | **GET** /vote/voted | Get Already Voted On Votes|
 |[**getAttributedVotes**](#getattributedvotes) | **GET** /vote/attributed | Get Attributed Votes|
 |[**getAvailableVotes**](#getavailablevotes) | **GET** /vote/available | Get Available Votes|
 |[**getCreatedVotes**](#getcreatedvotes) | **GET** /vote/created | Get Created Votes|
 |[**getFinishedVotes**](#getfinishedvotes) | **GET** /vote/finishedVotes | Get Finished Votes|
+|[**getVoteById**](#getvotebyid) | **GET** /vote/{vote_id}/ | Get Vote By Id|
+|[**getVoteResult**](#getvoteresult) | **GET** /vote/result/{vote_id}/ | Get Vote Result|
+|[**vote**](#vote) | **POST** /vote/{vote_id}/ | Vote|
+
+# **getAllVotes**
+> Array<Vote> getAllVotes()
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+const { status, data } = await apiInstance.getAllVotes();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**Array<Vote>**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAlreadyVotedOnVotes**
 > Array<Vote> getAlreadyVotedOnVotes()
@@ -222,6 +269,163 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Successful Response |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getVoteById**
+> FullVoteResponseModel getVoteById()
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+
+const { status, data } = await apiInstance.getVoteById(
+    voteId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**FullVoteResponseModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getVoteResult**
+> FinishedVoteResponseModel getVoteResult()
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+
+const { status, data } = await apiInstance.getVoteResult(
+    voteId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**FinishedVoteResponseModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vote**
+> MessageResponse vote(voteInputData)
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration,
+    VoteInputData
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+let voteInputData: VoteInputData; //
+
+const { status, data } = await apiInstance.vote(
+    voteId,
+    voteInputData
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteInputData** | **VoteInputData**|  | |
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**MessageResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

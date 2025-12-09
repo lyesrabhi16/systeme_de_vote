@@ -2,8 +2,8 @@ import apiClient from '@/api/client';
 import type { FinishedVoteResponseModel } from '@/api/sdk';
 import VoteRowCard from '@/components/home/VoteRowCard';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { toast } from 'sonner';
 
 const FinishedVotes = () => {
@@ -51,13 +51,35 @@ const FinishedVotes = () => {
             </div>
 
             {votes.length > 3 && (
-              <div className='mt-2 flex items-center justify-end'>
-                <Link to='/votes' aria-label='Voir plus de votes'>
-                  <Button variant='ghost'>
-                    Voir plus ({votes.length - 3})
-                  </Button>
-                </Link>
-              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <div className='mt-2 flex items-center justify-end'>
+                    <Button variant='ghost'>
+                      Voir plus ({votes.length - 3})
+                    </Button>
+                  </div>
+                </DialogTrigger>
+                <DialogContent className='max-w-4xl px-8 py-4 m-4 overflow-y-scroll max-h-[80vh]'>
+                  <div className='flex flex-col gap-4'>
+                    <h1 className='text-2xl font-semibold mb-4'>
+                      Historique des votes
+                    </h1>
+                    {votes
+                      .sort(
+                        (a, b) =>
+                          new Date(b.vote.end_date).getTime() -
+                          new Date(a.vote.end_date).getTime(),
+                      )
+                      .map((finishedVote) => (
+                        <VoteRowCard
+                          key={finishedVote.vote.id}
+                          vote={finishedVote.vote}
+                          userHasVoted={finishedVote.user_has_voted}
+                        />
+                      ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
           </>
         )}

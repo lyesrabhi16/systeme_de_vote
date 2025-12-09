@@ -2,8 +2,8 @@ import apiClient from '@/api/client';
 import type { Vote } from '@/api/sdk';
 import VoteCard from '@/components/home/VoteCard';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { toast } from 'sonner';
 
 const AvailableVotes = () => {
@@ -15,7 +15,7 @@ const AvailableVotes = () => {
       apiClient()
         .vote.getAvailableVotes()
         .then((response) => {
-          setVotes(response.data);
+          setVotes([...response.data, ...response.data, ...response.data]);
         })
         .catch((error) => {
           console.error('Error fetching available votes:', error);
@@ -49,13 +49,31 @@ const AvailableVotes = () => {
             </div>
 
             {votes.length > 3 && (
-              <div className='mt-2 flex items-center justify-end'>
-                <Link to='/votes' aria-label='Voir plus de votes'>
-                  <Button variant='ghost'>
-                    Voir plus ({votes.length - 3})
-                  </Button>
-                </Link>
-              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <div className='mt-2 flex items-center justify-end'>
+                    <Button variant='ghost'>
+                      Voir plus ({votes.length - 3})
+                    </Button>
+                  </div>
+                </DialogTrigger>
+                <DialogContent className='max-w-4xl px-8 py-4 m-4 overflow-y-scroll max-h-[80vh]'>
+                  <div className='flex flex-col justify-center items-center gap-4'>
+                    <h1 className='text-2xl font-semibold mb-4 self-start'>
+                      Votes disponibles
+                    </h1>
+                    {votes
+                      .sort(
+                        (a, b) =>
+                          new Date(b.end_date).getTime() -
+                          new Date(a.end_date).getTime(),
+                      )
+                      .map((vote) => (
+                        <VoteCard key={vote.id} vote={vote} />
+                      ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
           </>
         )}

@@ -9,13 +9,16 @@ import {
   CardFooter,
   CardTitle,
 } from '@/components/ui/card';
+import { routesBuilders } from '@/services/routing';
 import { getBadgeType, VoteBadgeType } from '@/utils/vote.utils';
+import { useNavigate } from 'react-router';
 
 const VoteCard = (props: {
   vote: Vote;
-  index: number;
+  index?: number;
   userHasVoted?: boolean;
 }) => {
+  const navigate = useNavigate();
   const badgeType = getBadgeType(props.vote, props.userHasVoted);
   const disabledCardStyle = 'opacity-50 cursor-not-allowed';
   return (
@@ -47,7 +50,15 @@ const VoteCard = (props: {
       </CardContent>
       <CardFooter>
         <CardAction className='w-full flex justify-end'>
-          <Button disabled={badgeType !== VoteBadgeType.Ongoing}>Voter</Button>
+          <Button
+            onClick={() =>
+              props.vote.id &&
+              navigate(routesBuilders.getVoteRoute(props.vote.id))
+            }
+            disabled={badgeType !== VoteBadgeType.Ongoing}
+          >
+            Voter
+          </Button>
         </CardAction>
       </CardFooter>
       <CardAction></CardAction>

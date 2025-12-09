@@ -21,31 +21,42 @@ hasher = PasswordHash.recommended()
 crypto = Fernet(env.ENCRYPTION_KEY)
 
 
-@cache_session
-async def encrypt_string(s: str, cache: Redis | None = None) -> str:
+def encrypt_string(s: str) -> str:
     """Encrypts string and stores encrypted string in memory and returns a url safe string"""
-    encrypted = crypto.encrypt(s.encode()).decode()
+    return crypto.encrypt(s.encode()).decode()
+
+
+@cache_session
+async def generate_temp_url_safe_string(s: str, cache: Redis | None = None) -> str:
+    """Generates a temporary url safe string for the given string."""
     id_token = secrets.token_urlsafe(32)
     if cache is None:
         logger.error("Redis Cache is None")
         raise HTTPException(500, ERROR_CODES.INTERNAL_SERVER_ERROR)
-    cache.set(f"enc:{id_token}", encrypted, ex=env.OTP_EXPIRATION)
+    cache.set(f"enc:{id_token}", s, ex=env.OTP_EXPIRATION)
     return id_token
 
 
 @cache_session
-async def decrypt_string(s: str, cache: Redis | None = None) -> str:
-    """Decrypts a url safe string by retrieving the encrypted string from memory"""
+async def retrieve_string_from_temp_url_safe_string(
+    s: str, cache: Redis | None = None
+) -> str:
+    """Retrieves the original string from the temporary url safe string."""
     if cache is None:
         logger.error("Redis Cache is None")
         raise HTTPException(500, ERROR_CODES.INTERNAL_SERVER_ERROR)
-    encrypted = cache.get(f"enc:{s}")
-    if inspect.isawaitable(encrypted):
-        encrypted = await encrypted
-    if encrypted is None:
-        logger.error("Encrypted string not found in cache")
-        raise HTTPException(400, ERROR_CODES.INVALID_CREDENTIALS)
-    return crypto.decrypt(encrypted).decode()
+    original = cache.get(f"enc:{s}")
+    if inspect.isawaitable(original):
+        original = await original
+    if original is None:
+        logger.error("Original string not found in cache")
+        raise HTTPException(400, ERROR_CODES.BAD_REQUEST)
+    return original
+
+
+def decrypt_string(s: str) -> str:
+    """Decrypts a url safe string by retrieving the encrypted string from memory"""
+    return crypto.decrypt(s).decode()
 
 
 def hash_string(s: str) -> str:

@@ -64,3 +64,11 @@ class ERROR_CODES(dict, Enum):
         code="NOT_FOUND",
         message="Resource not found",
     )
+    VOTE_FINISHED = ErrorCodeModel(
+        code="VOTE_FINISHED",
+        message="Vote is already finished",
+    )
+    ALREADY_VOTED = ErrorCodeModel(
+        code="ALREADY_VOTED",
+        message="User has already voted on this vote",
+    )
