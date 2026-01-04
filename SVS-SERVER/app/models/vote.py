@@ -12,6 +12,11 @@ class Vote(SQLModel, table=True):
     description: str = Field(..., title="Description", max_length=1000)
     start_date: datetime = Field(..., title="Start Date")
     end_date: datetime = Field(..., title="End Date")
+    has_been_counted: bool = Field(
+        default=False,
+        title="Has Been Counted",
+        description="Indicates if the vote has been counted",
+    )
     creator_id: int = Field(..., title="Creator User ID", foreign_key="user.id")
 
     creator: User = Relationship(
@@ -56,6 +61,7 @@ class VoteWithCreatorResponseModel(SQLModel):
     description: str
     start_date: datetime
     end_date: datetime
+    has_been_counted: bool
     creator: UserResponseModel
 
     @staticmethod
@@ -78,6 +84,7 @@ class VoteWithCreatorResponseModel(SQLModel):
             description=vote.description,
             start_date=vote.start_date,
             end_date=vote.end_date,
+            has_been_counted=vote.has_been_counted,
             creator=UserResponseModel(
                 id=creator.id,
                 first_name=creator.first_name,
@@ -91,59 +98,3 @@ class VoteWithCreatorResponseModel(SQLModel):
         )
 
 
-class FinishedVoteResponseModel(SQLModel):
-    vote: VoteWithCreatorResponseModel
-    total_bulletins: int
-    candidate_results: dict[int, int]  # candidate_id -> number of votes
-    abstention_count: int
-    voter_count: int
-    user_has_voted: bool
-    winner_candidates: list[int] | None = None
-
-    def __hash__(self) -> int:
-        return self.vote.id
-
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-        self.winner_candidates = self.__winner_candidates()
-
-    def __winner_candidates(self) -> list[int]:
-        max_votes = max(self.candidate_results.values(), default=0)
-        return [
-            candidate_id
-            for candidate_id, votes in self.candidate_results.items()
-            if votes == max_votes and max_votes > 0
-        ]
-
-    @staticmethod
-    @db_session
-    async def from_vote_id(
-        vote_id: int,
-        user: User | None = None,
-        db: AsyncSession | None = None,
-    ):
-        if db is None:
-            raise ValueError("Database session is None")
-
-        vote = await Vote.get_by_id(vote_id)
-        if vote is None:
-            return None
-
-        vote_with_creator = await VoteWithCreatorResponseModel.from_vote_id(vote_id)
-        if vote_with_creator is None:
-            return None
-
-        return FinishedVoteResponseModel(
-            vote=vote_with_creator,
-            total_bulletins=len(vote.bulletins),
-            candidate_results={
-                candidate.id: candidate.vote_count for candidate in vote.candidates
-            },
-            abstention_count=(len(vote.attributed_users) - len(vote.bulletins)),
-            voter_count=len({bulletin.user_id for bulletin in vote.bulletins}),
-            user_has_voted=(
-                user.id in {bulletin.user_id for bulletin in vote.bulletins}
-                if user
-                else False
-            ),
-        )

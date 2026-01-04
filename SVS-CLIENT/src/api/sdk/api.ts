@@ -23,6 +23,12 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
+export interface Bulletin {
+    'user_id'?: number | null;
+    'vote_id'?: number | null;
+    'content': string;
+    'date': string;
+}
 export interface Candidate {
     'id'?: number | null;
     'first_name': string;
@@ -51,6 +57,7 @@ export interface FinishedVoteResponseModel {
     'voter_count': number;
     'user_has_voted': boolean;
     'winner_candidates'?: Array<number> | null;
+    'candidates'?: Array<Candidate> | null;
 }
 export interface FullVoteResponseModel {
     'vote': FinishedVoteResponseModel;
@@ -130,10 +137,20 @@ export interface Vote {
     'description': string;
     'start_date': string;
     'end_date': string;
+    /**
+     * Indicates if the vote has been counted
+     */
+    'has_been_counted'?: boolean;
     'creator_id': number;
 }
 export interface VoteInputData {
     'content': string;
+}
+export interface VoteResultsModel {
+    'candidate_results': { [key: string]: number; };
+    'count_failures': Array<Bulletin>;
+    'abstention_count': number;
+    'voter_count': number;
 }
 export interface VoteWithCreatorResponseModel {
     'id': number;
@@ -141,6 +158,7 @@ export interface VoteWithCreatorResponseModel {
     'description': string;
     'start_date': string;
     'end_date': string;
+    'has_been_counted': boolean;
     'creator': UserResponseModel;
 }
 
@@ -1249,6 +1267,40 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @summary Get Vote Count
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteCount: async (voteId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('getVoteCount', 'voteId', voteId)
+            const localVarPath = `/vote/count/{vote_id}/`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Get Vote Result
          * @param {number} voteId 
          * @param {*} [options] Override http request option.
@@ -1417,6 +1469,19 @@ export const VoteApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Get Vote Count
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getVoteCount(voteId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VoteResultsModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVoteCount(voteId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getVoteCount']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Get Vote Result
          * @param {number} voteId 
          * @param {*} [options] Override http request option.
@@ -1517,6 +1582,16 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
         },
         /**
          * 
+         * @summary Get Vote Count
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteCount(voteId: number, options?: RawAxiosRequestConfig): AxiosPromise<VoteResultsModel> {
+            return localVarFp.getVoteCount(voteId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Get Vote Result
          * @param {number} voteId 
          * @param {*} [options] Override http request option.
@@ -1612,6 +1687,17 @@ export class VoteApi extends BaseAPI {
      */
     public getVoteById(voteId: number, options?: RawAxiosRequestConfig) {
         return VoteApiFp(this.configuration).getVoteById(voteId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Vote Count
+     * @param {number} voteId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getVoteCount(voteId: number, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getVoteCount(voteId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

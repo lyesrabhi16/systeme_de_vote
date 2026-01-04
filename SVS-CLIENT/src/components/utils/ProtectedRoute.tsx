@@ -1,14 +1,22 @@
-import useAuth from '@/hooks/useAuth';
 import { routes } from '@/services/routing';
-import { Navigate, Outlet } from 'react-router';
+import useGlobalStore from '@/services/store';
+import { useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router';
 
 const AuthRequiredRoutes = () => {
-  const { is_authenticated } = useAuth();
+  const { user, token } = useGlobalStore();
+  const navigate = useNavigate();
 
   // Redirect to login if not authenticated
-  if (!is_authenticated()) {
-    return <Navigate to={routes.LOGIN} replace />;
-  }
+  useEffect(() => {
+    if (user === null || token === null) {
+      console.log('not authenticated redirecting to login', user, token);
+      navigate(routes.LOGIN, { replace: true });
+    } else {
+      console.log('authenticated proceeding to protected route', user, token);
+    }
+  }, [user, token]);
+
   // Render children if authenticated
   return <Outlet />;
 };

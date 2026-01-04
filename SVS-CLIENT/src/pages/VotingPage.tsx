@@ -15,17 +15,19 @@ const VotingPage = () => {
     },
   });
   const [vote, setVote] = useState<FullVoteResponseModel | null>();
-
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     // Fetch vote data based on voteId
     const fetchVote = async () => {
-      apiClient().vote.getVoteById(parseInt(voteId || '0'))
+      apiClient()
+        .vote.getVoteById(parseInt(voteId || '0'))
         .then((response) => {
           setVote(response.data);
         })
         .catch((error) => {
           console.error('Error fetching vote:', error);
           setVote(null);
+          setFailed(true);
         });
     };
 
@@ -38,6 +40,8 @@ const VotingPage = () => {
       <div className='w-full p-8 flex flex-col gap-6 items-center justify-center'>
         {vote ? (
           <VotingCard fullVote={vote} />
+        ) : failed ? (
+          <p>Echec de chargement des détails du vote.</p>
         ) : (
           <Spinner>Loading vote details...</Spinner>
         )}

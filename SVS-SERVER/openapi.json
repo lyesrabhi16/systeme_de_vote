@@ -937,6 +937,20 @@
                             }
                         ],
                         "title": "Winner Candidates"
+                    },
+                    "candidates": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/Candidate"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Candidates"
                     }
                 },
                 "type": "object",
@@ -1257,6 +1271,12 @@
                         "format": "date-time",
                         "title": "End Date"
                     },
+                    "has_been_counted": {
+                        "type": "boolean",
+                        "title": "Has Been Counted",
+                        "description": "Indicates if the vote has been counted",
+                        "default": false
+                    },
                     "creator_id": {
                         "type": "integer",
                         "title": "Creator User ID"
@@ -1343,6 +1363,10 @@
                         "format": "date-time",
                         "title": "End Date"
                     },
+                    "has_been_counted": {
+                        "type": "boolean",
+                        "title": "Has Been Counted"
+                    },
                     "creator": {
                         "$ref": "#/components/schemas/UserResponseModel"
                     }
@@ -1354,6 +1378,7 @@
                     "description",
                     "start_date",
                     "end_date",
+                    "has_been_counted",
                     "creator"
                 ],
                 "title": "VoteWithCreatorResponseModel"

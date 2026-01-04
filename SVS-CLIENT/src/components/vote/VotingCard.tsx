@@ -57,11 +57,13 @@ const VotingCard = (props: { fullVote: FullVoteResponseModel }) => {
           (1000 * 60 * 60 * 24),
       );
       const reste_heures = Math.ceil(
-        (new Date(props.fullVote.vote.vote.end_date).getTime() - now.getTime()) /
+        (new Date(props.fullVote.vote.vote.end_date).getTime() -
+          now.getTime()) /
           (1000 * 60 * 60),
       );
       const reste_minutes = Math.ceil(
-        (new Date(props.fullVote.vote.vote.end_date).getTime() - now.getTime()) /
+        (new Date(props.fullVote.vote.vote.end_date).getTime() -
+          now.getTime()) /
           (1000 * 60),
       );
 
@@ -125,11 +127,13 @@ const VotingCard = (props: { fullVote: FullVoteResponseModel }) => {
   return (
     <Card className='w-full p-4 overflow-hidden'>
       <CardTitle className='flex flex-col gap-4 justify-center items-center'>
-        <div className='w-full flex flex-row gap-4 justify-between items-center'>
+        <div className='w-full flex flex-row flex-wrap gap-4 justify-between items-center'>
           <h1 className='text-4xl'>{props.fullVote.vote.vote.title}</h1>
-          <VoteBadge type={isVotingDisabled.state} />
+          <div className='ml-auto'>
+            <VoteBadge type={isVotingDisabled.state} />
+          </div>
         </div>
-        <div className='w-full flex flex-row gap-4 justify-between items-center'>
+        <div className='w-full flex flex-row flex-wrap gap-4 justify-between items-center'>
           <UserAvatarWithUserName user={props.fullVote.vote.vote.creator} />
           <p
             className={cn(
@@ -141,7 +145,7 @@ const VotingCard = (props: { fullVote: FullVoteResponseModel }) => {
           </p>
         </div>
 
-        <div className='w-full flex flex-row gap-4 justify-between items-center'>
+        <div className='w-full flex flex-row flex-wrap gap-4 justify-between items-center'>
           <p className='text-sm text-muted-foreground'>Début: {start_date}</p>
           <p className='text-sm text-muted-foreground'>Fin: {end_date}</p>
         </div>
@@ -154,26 +158,32 @@ const VotingCard = (props: { fullVote: FullVoteResponseModel }) => {
         <div className='flex flex-col flex-nowrap justify-start items-center'>
           <h2 className='text-2xl font-semibold mt-6 mb-4 w-full'>Candidats</h2>
           {isVotingDisabled.state === VoteBadgeType.Finished ? (
-            <>
-              <p className='text-muted-foreground mb-4 w-full'>
-                Résultats du vote :
-              </p>
-              <p className='text-muted-foreground mb-4 w-full'>
-                {winnerCount === 0
-                  ? "Aucun vote n'a été enregistré."
-                  : `Le(s) gagnant(s) ont reçu ${winnerCount} vote(s).`}
-              </p>
-              <p className='text-muted-foreground mb-4 w-full'>
-                {props.fullVote.total_bulletins} bulletin(s) ont été
-                comptabilisé(s).
-              </p>
+            props.fullVote.vote.vote.has_been_counted ? (
+              <>
+                <p className='text-muted-foreground mb-4 w-full'>
+                  Résultats du vote :
+                </p>
+                <p className='text-muted-foreground mb-4 w-full'>
+                  {winnerCount === 0
+                    ? "Aucun vote n'a été enregistré."
+                    : `Le(s) gagnant(s) ont reçu ${winnerCount} vote(s).`}
+                </p>
+                <p className='text-muted-foreground mb-4 w-full'>
+                  {props.fullVote.total_bulletins} bulletin(s) ont été
+                  comptabilisé(s).
+                </p>
 
+                <p className='text-muted-foreground mb-4 w-full'>
+                  {props.fullVote.vote.abstention_count > 0
+                    ? `Il y a eu ${props.fullVote.vote.abstention_count} abstention(s).`
+                    : 'Aucune abstention.'}
+                </p>
+              </>
+            ) : (
               <p className='text-muted-foreground mb-4 w-full'>
-                {props.fullVote.vote.abstention_count > 0
-                  ? `Il y a eu ${props.fullVote.vote.abstention_count} abstention(s).`
-                  : 'Aucune abstention.'}
+                Les votes n'ont pas encore été comptabilisés.
               </p>
-            </>
+            )
           ) : props.fullVote.vote.user_has_voted ? (
             <p className='text-muted-foreground mb-4 w-full'>
               Vous avez déjà voté.

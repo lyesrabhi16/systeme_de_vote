@@ -14,11 +14,12 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const VerifyOTPCard = (props: { id: string }) => {
   const [otp, setOtp] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
+  const submitButton = useRef<HTMLButtonElement>(null);
 
   const {
     resendButtonState,
@@ -65,6 +66,12 @@ const VerifyOTPCard = (props: { id: string }) => {
     setMaskedEmail(email);
   }, []);
 
+  useEffect(() => {
+    console.log('OTP changed: ', otp, otp.length, submitButton.current);
+    if (otp.length === 6) {
+      submitButton.current?.click();
+    }
+  }, [otp]);
   return (
     <Card>
       <CardHeader>
@@ -111,7 +118,9 @@ const VerifyOTPCard = (props: { id: string }) => {
           </div>
 
           <div className='flex flex-col items-center justify-between mt-4'>
-            <Button type='submit'>Verifier</Button>
+            <Button type='submit' ref={submitButton}>
+              Verifier
+            </Button>
           </div>
         </form>
 

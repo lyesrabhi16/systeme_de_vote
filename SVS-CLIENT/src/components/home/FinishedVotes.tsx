@@ -26,6 +26,24 @@ const FinishedVotes = () => {
     fetchFinishedVotes();
   }, []);
 
+  const getWinner = (vote: FinishedVoteResponseModel) => {
+    if (!vote.vote.has_been_counted) {
+      return 'N/A';
+    }
+    const winning_candidates =
+      vote.candidates?.filter(
+        (c) =>
+          c.id !== undefined &&
+          c.id !== null &&
+          vote.winner_candidates?.includes(c.id),
+      ) || [];
+    if (winning_candidates.length === 0) {
+      return 'N/A';
+    }
+    return winning_candidates
+      .map((c) => `${c.first_name} ${c.last_name}`)
+      .join(', ');
+  };
   return (
     <div className='w-full p-2'>
       <h3 className='text-2xl font-semibold mb-2'>Historique des votes</h3>
@@ -46,6 +64,7 @@ const FinishedVotes = () => {
                     key={finishedVote.vote.id}
                     vote={finishedVote.vote}
                     userHasVoted={finishedVote.user_has_voted}
+                    winner={getWinner(finishedVote)}
                   />
                 ))}
             </div>
@@ -59,7 +78,7 @@ const FinishedVotes = () => {
                     </Button>
                   </div>
                 </DialogTrigger>
-                <DialogContent className='max-w-4xl px-8 py-4 m-4 overflow-y-scroll max-h-[80vh]'>
+                <DialogContent className='max-w-fit px-8 py-4 m-4 overflow-y-scroll max-h-[80vh]'>
                   <div className='flex flex-col gap-4'>
                     <h1 className='text-2xl font-semibold mb-4'>
                       Historique des votes
@@ -71,11 +90,13 @@ const FinishedVotes = () => {
                           new Date(a.vote.end_date).getTime(),
                       )
                       .map((finishedVote) => (
-                        <VoteRowCard
-                          key={finishedVote.vote.id}
-                          vote={finishedVote.vote}
-                          userHasVoted={finishedVote.user_has_voted}
-                        />
+                        <div className='max-w-md' key={finishedVote.vote.id}>
+                          <VoteRowCard
+                            vote={finishedVote.vote}
+                            userHasVoted={finishedVote.user_has_voted}
+                            winner={getWinner(finishedVote)}
+                          />
+                        </div>
                       ))}
                   </div>
                 </DialogContent>

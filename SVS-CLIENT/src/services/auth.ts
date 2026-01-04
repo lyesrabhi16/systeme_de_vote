@@ -23,19 +23,27 @@ export const loadCurrentUser = async (store: GlobalStore) => {
     if (store.user) {
         return store.user;
     }
+    const token = getToken(store);
+
+    if (!token) {
+        console.log("No token available to load current user");
+        return null;
+    }
     const api_response = await apiClient().auth.getCurrentUser(
         {
-            token: getToken(store),
+            token: token,
         }
     )
     const user = api_response.data;
 
     store.setUser(user);
+
     return user;
 };
 
-export const logout = (store: GlobalStore) => {
+export const logout = async (store: GlobalStore) => {
     store.clearUser();
+    await apiClient().auth.logout();
 };
 
 export const getToken = (store: GlobalStore): string | null => {
