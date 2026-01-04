@@ -11,6 +11,7 @@ All URIs are relative to *http://localhost*
 |[**getCreatedVotes**](#getcreatedvotes) | **GET** /vote/created | Get Created Votes|
 |[**getFinishedVotes**](#getfinishedvotes) | **GET** /vote/finishedVotes | Get Finished Votes|
 |[**getVoteById**](#getvotebyid) | **GET** /vote/{vote_id}/ | Get Vote By Id|
+|[**getVoteCount**](#getvotecount) | **GET** /vote/count/{vote_id}/ | Get Vote Count|
 |[**getVoteResult**](#getvoteresult) | **GET** /vote/result/{vote_id}/ | Get Vote Result|
 |[**vote**](#vote) | **POST** /vote/{vote_id}/ | Vote|
 
@@ -304,6 +305,57 @@ const { status, data } = await apiInstance.getVoteById(
 ### Return type
 
 **FullVoteResponseModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getVoteCount**
+> VoteResultsModel getVoteCount()
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+
+const { status, data } = await apiInstance.getVoteCount(
+    voteId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**VoteResultsModel**
 
 ### Authorization
 

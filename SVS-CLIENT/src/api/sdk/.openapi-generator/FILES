@@ -6,6 +6,7 @@ base.ts
 common.ts
 configuration.ts
 docs/AuthApi.md
+docs/Bulletin.md
 docs/Candidate.md
 docs/CandidatesApi.md
 docs/CurrentUserResponseModel.md
@@ -30,6 +31,7 @@ docs/ValidationErrorLocInner.md
 docs/Vote.md
 docs/VoteApi.md
 docs/VoteInputData.md
+docs/VoteResultsModel.md
 docs/VoteWithCreatorResponseModel.md
 git_push.sh
 index.ts

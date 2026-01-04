@@ -23,7 +23,7 @@ const VoteCard = (props: {
   const disabledCardStyle = 'opacity-50 cursor-not-allowed';
   return (
     <Card
-      className={`p-4 shadow-md rounded-lg transition-transform duration-200 min-w-96 max-w-sm ${
+      className={`p-4 shadow-md rounded-lg transition-transform duration-200 sm:min-w-96 max-w-sm ${
         props.index === 0 && badgeType === VoteBadgeType.Ongoing
           ? 'scale-110 group-hover:scale-100'
           : badgeType === VoteBadgeType.Ongoing
@@ -31,9 +31,11 @@ const VoteCard = (props: {
           : ''
       } ${badgeType !== VoteBadgeType.Ongoing ? disabledCardStyle : ''}`}
     >
-      <CardTitle className='font-bold text-lg mb-2 flex flex-row flex-nowrap justify-between items-center'>
+      <CardTitle className='font-bold text-lg mb-2 flex flex-row flex-wrap justify-between items-center'>
         <p>{props.vote.title}</p>
-        <VoteBadge type={badgeType} />
+        <div className='ml-auto'>
+          <VoteBadge type={badgeType} />
+        </div>
       </CardTitle>
       <CardDescription className='text-sm text-muted-foreground'>
         {props.vote.description}

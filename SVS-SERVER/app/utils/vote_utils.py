@@ -2,7 +2,7 @@ from app.models.user import User
 from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.bulletin import Bulletin
-from fastapi import Request, HTTPException
+from fastapi import HTTPException
 from app.models.error_codes import ERROR_CODES
 from sqlalchemy.future import select
 from app.utils.auth_utils import decrypt_string
@@ -13,7 +13,7 @@ from app.models.candidate import Candidate
 
 @db_session
 async def get_vote_count(
-    vote_id: int, user: User, db: AsyncSession | None = None
+    vote_id: int, db: AsyncSession | None = None
 ) -> tuple[dict[int, int], list[Bulletin]]:
     """count, set and return the total number of votes for each candidate of a given vote ID."""
     if db is None:
@@ -49,9 +49,7 @@ async def get_vote_count(
             )
             count_failures.append(bulletin.model_dump())
             continue
-    logger.error(
-        f"Vote count results: {candidate_vote_counts} failures: {count_failures}"
-    )
+
     for candidate in vote.candidates:
         db_candidate: Candidate | None = await db.get(Candidate, candidate.id)
         if db_candidate:

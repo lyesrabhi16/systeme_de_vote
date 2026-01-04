@@ -56,7 +56,6 @@ async def seed_users(db: AsyncSession | None = None):
             verified_email=True,
             password=hashed_password,
             username="lyes",
-            ssn="123-45-6789",
             phone_number="555-1234",
             verified_phone_number=True,
             is_active=True,
@@ -69,7 +68,6 @@ async def seed_users(db: AsyncSession | None = None):
             verified_email=True,
             password=hashed_password,
             username="john",
-            ssn="987-65-4321",
             phone_number="555-5678",
             verified_phone_number=True,
             is_active=True,
@@ -82,7 +80,6 @@ async def seed_users(db: AsyncSession | None = None):
             verified_email=True,
             password=hashed_password,
             username="jane",
-            ssn="123-45-4289",
             phone_number="555-8765",
             verified_phone_number=True,
             is_active=True,
@@ -190,7 +187,6 @@ async def seed_candidates(db: AsyncSession | None = None):
             last_name="Brown",
             photo_url="http://example.com/photos/charlie.jpg",
             vote_id=2,
-            vote_count=5,
         ),
         Candidate(
             first_name="Diana",
@@ -340,6 +336,12 @@ async def seed_bulletins(db: AsyncSession | None = None):
             vote_id=3,
             content=encrypt_string("4"),
             date=datetime.strptime("2024-09-20 09:15:00", "%Y-%m-%d %H:%M:%S"),
+        ),
+        Bulletin(
+            user_id=1,
+            vote_id=2,
+            content=encrypt_string("3"),
+            date=datetime.strptime("2024-11-01 14:45:00", "%Y-%m-%d %H:%M:%S"),
         ),
     ]
     db.add_all(bulletins)

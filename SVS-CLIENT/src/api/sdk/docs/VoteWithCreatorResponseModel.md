@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **description** | **string** |  | [default to undefined]
 **start_date** | **string** |  | [default to undefined]
 **end_date** | **string** |  | [default to undefined]
+**has_been_counted** | **boolean** |  | [default to undefined]
 **creator** | [**UserResponseModel**](UserResponseModel.md) |  | [default to undefined]
 
 ## Example
@@ -23,6 +24,7 @@ const instance: VoteWithCreatorResponseModel = {
     description,
     start_date,
     end_date,
+    has_been_counted,
     creator,
 };
 ```

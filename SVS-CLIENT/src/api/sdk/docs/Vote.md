@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **description** | **string** |  | [default to undefined]
 **start_date** | **string** |  | [default to undefined]
 **end_date** | **string** |  | [default to undefined]
+**has_been_counted** | **boolean** | Indicates if the vote has been counted | [optional] [default to false]
 **creator_id** | **number** |  | [default to undefined]
 
 ## Example
@@ -23,6 +24,7 @@ const instance: Vote = {
     description,
     start_date,
     end_date,
+    has_been_counted,
     creator_id,
 };
 ```

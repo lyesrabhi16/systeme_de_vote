@@ -3,7 +3,8 @@ import { Configuration, AuthApi, VoteApi, type ConfigurationParameters } from '@
 
 
 const getConfigParams: () => ConfigurationParameters = () => ({
-    basePath: 'http://localhost:8000',
+    //basePath: 'http://localhost:8000',
+    basePath: 'https://svs-server.localhost',
     accessToken: () => {
         return localStorage.getItem("token") || '';
     },
@@ -18,7 +19,7 @@ const getConfigParams: () => ConfigurationParameters = () => ({
 
 
 export const apiClient = () => {
-    console.log("Creating API client with config:", getConfigParams());
+    //console.log("Creating API client with config:", getConfigParams());
     const config = new Configuration(getConfigParams());
 
     return {

@@ -17,7 +17,6 @@ class User(SQLModel, table=True):
     verified_email: bool = Field(..., title="Verified Email")
     username: str = Field(..., title="Username", max_length=100, unique=True)
     password: str = Field(..., title="Password")
-    ssn: str = Field(..., title="SSN", max_length=100, unique=True)
     phone_number: str = Field(..., title="Phone Number", max_length=100, unique=True)
     verified_phone_number: bool = Field(..., title="Verified Phone Number")
     is_active: bool = Field(..., title="Is Active")

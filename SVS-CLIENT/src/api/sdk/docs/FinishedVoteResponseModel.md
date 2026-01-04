@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **voter_count** | **number** |  | [default to undefined]
 **user_has_voted** | **boolean** |  | [default to undefined]
 **winner_candidates** | **Array&lt;number&gt;** |  | [optional] [default to undefined]
+**candidates** | [**Array&lt;Candidate&gt;**](Candidate.md) |  | [optional] [default to undefined]
 
 ## Example
 
@@ -26,6 +27,7 @@ const instance: FinishedVoteResponseModel = {
     voter_count,
     user_has_voted,
     winner_candidates,
+    candidates,
 };
 ```
 

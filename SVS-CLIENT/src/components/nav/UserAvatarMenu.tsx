@@ -36,8 +36,9 @@ const UserAvatarMenu = () => {
           Profile
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => {
-            logout();
+          onClick={async (e) => {
+            e.preventDefault();
+            await logout();
             toast.success('Déconnexion réussie');
           }}
         >

@@ -15,7 +15,7 @@ const AvailableVotes = () => {
       apiClient()
         .vote.getAvailableVotes()
         .then((response) => {
-          setVotes([...response.data, ...response.data, ...response.data]);
+          setVotes(response.data);
         })
         .catch((error) => {
           console.error('Error fetching available votes:', error);
@@ -44,7 +44,9 @@ const AvailableVotes = () => {
                 )
                 .slice(0, 3)
                 .map((vote, index) => (
-                  <VoteCard key={vote.id} vote={vote} index={index} />
+                  <div key={vote.id} className='max-w-sm flex-1'>
+                    <VoteCard key={vote.id} vote={vote} index={index} />
+                  </div>
                 ))}
             </div>
 

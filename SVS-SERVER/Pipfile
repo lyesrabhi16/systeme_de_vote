@@ -13,10 +13,12 @@ asyncpg = "*"
 redis = "*"
 fastapi-mail = "*"
 cryptography = "*"
+fastapi-crons = "*"
 
 [dev-packages]
 ruff = "*"
 pytest = "*"
+faker = "*"
 
 [requires]
 python_version = "3.13"

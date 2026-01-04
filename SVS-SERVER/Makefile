@@ -55,3 +55,7 @@ seed-db: ## Seed the database with initial data.
 	@echo "Seeding the database..."
 	@python -m app.db.seed
 	@echo "\033[32mDatabase seeding complete.\033[0m"
+seed-more-db: seed-db ## Seed the database with additional data.
+	@echo "Seeding the database with more data..."
+	@python -m app.db.seed_more
+	@echo "\033[32mAdditional database seeding complete.\033[0m"

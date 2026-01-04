@@ -13,7 +13,15 @@ function App() {
     if (!store.user) {
       auth
         .load_current_user()
-        .catch((e) => {
+        .then((user) => {
+          if (user === null) {
+            console.log('No user loaded, logging out');
+            auth.logout();
+          } else {
+            console.log('Loaded current user:', user);
+          }
+        })
+        .catch(async (e) => {
           console.error('Failed to load user:', e);
           auth.logout();
         })

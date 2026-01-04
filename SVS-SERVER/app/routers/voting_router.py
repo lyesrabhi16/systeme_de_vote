@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.models import User, Vote, response_models
-from app.models.vote import FinishedVoteResponseModel
-from app.models.vote_util_models import FullVoteResponseModel, VoteResultsModel
+from app.models.vote_util_models import (
+    FullVoteResponseModel,
+    VoteResultsModel,
+    FinishedVoteResponseModel,
+)
 from app.models.voting_models import VoteInputData
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
@@ -227,7 +230,7 @@ async def get_vote_count(vote_id: int, request: Request):
             f"User {user.username} tried to access vote count {vote_id} without permission."
         )
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
-    count, failures = await vote_utils.get_vote_count(vote_id, user)
+    count, failures = await vote_utils.get_vote_count(vote_id)
     return VoteResultsModel(
         candidate_results=count,
         count_failures=failures,

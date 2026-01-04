@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import type { VoteBadgeType } from '@/utils/vote.utils';
 import { LucideCheck, LucideHourglass, LucideX } from 'lucide-react';
 
-
 const VoteBadge = (props: { type: VoteBadgeType }) => {
   const finishedStyle = {
     className: 'bg-green-500 text-primary-foreground px-4 py-2',
@@ -23,7 +22,7 @@ const VoteBadge = (props: { type: VoteBadgeType }) => {
   const finishedWithoutVotingStyle = {
     className: 'bg-destructive text-destructive-foreground px-4 py-2',
     icon: LucideX,
-    text: 'Terminé (Abstention)',
+    text: 'Terminé <span class="hidden sm:inline">(Abstention)</span>',
   };
   let style;
   switch (props.type) {
@@ -46,7 +45,7 @@ const VoteBadge = (props: { type: VoteBadgeType }) => {
   return (
     <Badge className={cn('flex flex-row gap-2 items-center', style.className)}>
       <style.icon />
-      {style.text}
+      <span dangerouslySetInnerHTML={{ __html: style.text }} />
     </Badge>
   );
 };
