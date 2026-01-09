@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, AsyncGenerator
 from sqlmodel import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from app.utils.db_utils import get_db_url, get_redis_connection
@@ -66,6 +66,12 @@ def db_session(func):
 
     return wrapper
 
+
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    """Get a new database session."""
+    Session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=True)
+    async with Session() as session:
+        yield session
 
 @db_session
 async def test_db_connection(db: AsyncSession | None = None):

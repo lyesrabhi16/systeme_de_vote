@@ -9,9 +9,10 @@ import { useNav } from '@/hooks/useNav';
 import { Link } from 'react-router';
 import type { NavItemType } from '@/hooks/useNav';
 export const useBreadCrumbs = (props?: {
+  admin?: boolean;
   additionalLabel?: () => NavItemType;
 }) => {
-  const { navItems, currentNavItem } = useNav();
+  const { navItems, currentNavItem } = useNav({ admin: props?.admin });
 
   const homeNavItem = navItems[0];
   const breadCrumbs: NavItemType[] = currentNavItem

@@ -3,7 +3,7 @@ import useGlobalStore from '@/services/store';
 import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 
-const AuthRequiredRoutes = () => {
+export const AuthRequiredRoutes = () => {
   const { user, token } = useGlobalStore();
   const navigate = useNavigate();
 
@@ -21,4 +21,20 @@ const AuthRequiredRoutes = () => {
   return <Outlet />;
 };
 
-export default AuthRequiredRoutes;
+export const AdminOnlyRoutes = () => {
+  const { user, token } = useGlobalStore();
+  const navigate = useNavigate();
+
+  // Redirect to Not Allowed Page if not admin
+  useEffect(() => {
+    if (user === null || token === null || !user.is_admin) {
+      console.log('not authorized redirecting to not allowed page', user, token);
+      navigate(routes.NOT_ALLOWED, { replace: true });
+    } else {
+      console.log('authorized proceeding to admin route', user, token);
+    }
+  }, [user, token]);
+
+  // Render children if authorized
+  return <Outlet />;
+};

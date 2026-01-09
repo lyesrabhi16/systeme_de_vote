@@ -5,6 +5,7 @@ api.ts
 base.ts
 common.ts
 configuration.ts
+docs/AdminApi.md
 docs/AuthApi.md
 docs/Bulletin.md
 docs/Candidate.md
@@ -23,8 +24,11 @@ docs/PasswordResetRequestModel.md
 docs/SuccessfulUserLoginResponseModel.md
 docs/TokenInput.md
 docs/TokenResponse.md
+docs/User.md
+docs/UserCreationModel.md
 docs/UserLoginModel.md
 docs/UserResponseModel.md
+docs/UserUpdateModel.md
 docs/UsersApi.md
 docs/ValidationError.md
 docs/ValidationErrorLocInner.md

@@ -3,8 +3,8 @@ import { Configuration, AuthApi, VoteApi, type ConfigurationParameters } from '@
 
 
 const getConfigParams: () => ConfigurationParameters = () => ({
-    //basePath: 'http://localhost:8000',
-    basePath: 'https://svs-server.localhost',
+    basePath: 'http://localhost:8000',
+    //basePath: 'https://svs-server.localhost',
     accessToken: () => {
         return localStorage.getItem("token") || '';
     },

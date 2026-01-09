@@ -1,8 +1,17 @@
-import AuthRequiredRoutes from '@/components/utils/ProtectedRoute';
+import {
+  AuthRequiredRoutes,
+  AdminOnlyRoutes,
+} from '@/components/utils/ProtectedRoutes';
+import AboutPage from '@/pages/AboutPage';
+import AdminPage from '@/pages/AdminPage';
+import ContactPage from '@/pages/ContactPage';
+import ForbiddenPage from '@/pages/ForbiddenPage';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
+import NotFoundPage from '@/pages/NotFoundPage';
 import OTPVerificationPage from '@/pages/OTPVerificationPage';
 import PasswordResetPage from '@/pages/PasswordResetPage';
+import UsersAdministration from '@/pages/UsersAdministration';
 import VotingPage from '@/pages/VotingPage';
 import { routes } from '@/services/routing';
 import { Route, Routes } from 'react-router';
@@ -21,8 +30,26 @@ const Router = () => {
           element={<OTPVerificationPage />}
         />
       </Route>
+      <Route element={<AdminOnlyRoutes />}>
+        <Route path={routes.ADMIN} element={<AdminPage />} />
+        <Route
+          path={routes.PICK_USERS_ADMINISTRATION}
+          element={<UsersAdministration />}
+        />
+        <Route
+          path={routes.USERS_ADMINISTRATION}
+          element={<UsersAdministration />}
+        />
+        <Route
+          path={routes.ADMIN_ADMINISTRATION}
+          element={<UsersAdministration />}
+        />
+      </Route>
       <Route path={routes.RESET_PASSWORD} element={<PasswordResetPage />} />
-      <Route path={routes.NOT_FOUND} element={<>Not Found</>} />
+      <Route path={routes.ABOUT} element={<AboutPage />} />
+      <Route path={routes.CONTACT} element={<ContactPage />} />
+      <Route path={routes.NOT_ALLOWED} element={<ForbiddenPage />} />
+      <Route path={routes.NOT_FOUND} element={<NotFoundPage />} />
     </Routes>
   );
 };

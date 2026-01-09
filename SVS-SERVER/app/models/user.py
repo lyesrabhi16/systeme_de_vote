@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, select
 from pydantic import BaseModel
 from app.db.db import db_session
 from app.models.voting_models import VoteInputData
@@ -14,12 +14,12 @@ class User(SQLModel, table=True):
     first_name: str = Field(..., title="First Name", max_length=100)
     last_name: str = Field(..., title="Last Name", max_length=100)
     email: str = Field(..., title="Email", max_length=256, unique=True)
-    verified_email: bool = Field(..., title="Verified Email")
+    verified_email: bool = Field(default=False, title="Verified Email")
     username: str = Field(..., title="Username", max_length=100, unique=True)
-    password: str = Field(..., title="Password")
+    password: str | None = Field(default=None, title="Password")
     phone_number: str = Field(..., title="Phone Number", max_length=100, unique=True)
-    verified_phone_number: bool = Field(..., title="Verified Phone Number")
-    is_active: bool = Field(..., title="Is Active")
+    verified_phone_number: bool = Field(default=False, title="Verified Phone Number")
+    is_active: bool = Field(default=True, title="Is Active")
     is_admin: bool = Field(..., title="Is Admin")
 
     # créer
@@ -35,6 +35,32 @@ class User(SQLModel, table=True):
     attributed_votes: list["AttributedVote"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
     )
+
+    @db_session
+    @staticmethod
+    async def get_all_users(db: AsyncSession | None = None) -> list["User"]:
+        """Retrieve all users from the database."""
+        if db is None:
+            raise ValueError("Database session is None")
+        result = await db.execute(select(User))
+        users = result.scalars().all()
+        return users
+
+    @staticmethod
+    @db_session
+    async def get_authenticated_user(
+        request: Request, db: AsyncSession | None = None
+    ) -> "User":
+        """Retrieve the authenticated user from the request."""
+        return request.state.user
+
+    @staticmethod
+    @db_session
+    async def get_user_by_id(user_id: int, db: AsyncSession | None = None):
+        if db is None:
+            raise ValueError("Database session is None")
+        user = await db.get(User, user_id)
+        return user
 
     @db_session
     async def has_voted_on(self, vote: "Vote", db: AsyncSession | None = None) -> bool:
@@ -85,22 +111,6 @@ class User(SQLModel, table=True):
 
         logger.info(f"User {self.id} voted on vote {vote.id}")
 
-    @staticmethod
-    @db_session
-    async def get_authenticated_user(
-        request: Request, db: AsyncSession | None = None
-    ) -> "User":
-        """Retrieve the authenticated user from the request."""
-        return request.state.user
-
-    @staticmethod
-    @db_session
-    async def get_user_by_id(user_id: int, db: AsyncSession | None = None):
-        if db is None:
-            raise ValueError("Database session is None")
-        user = await db.get(User, user_id)
-        return user
-
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:
         """Save the modified user to the database."""
@@ -109,6 +119,42 @@ class User(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+    @db_session
+    async def delete(self, db: AsyncSession | None = None) -> None:
+        """Delete the user from the database."""
+        if db is None:
+            raise ValueError("Database session is None")
+        await db.delete(self)
+        await db.commit()
+
+    def set_password(self, new_password: str) -> None:
+        """Set a new password for the user."""
+        self.password = auth_utils.hash_string(new_password)
+
+
+class UserUpdateModel(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    username: str
+    phone_number: str
+    is_admin: bool
+    is_active: bool
+    verified_email: bool
+    verified_phone_number: bool
+    password: str | None = None
+    request_reset_password: bool = False
+
+
+class UserCreationModel(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    username: str
+    phone_number: str
+    password: str | None = None
+    is_admin: bool
 
 
 class UserResponseModel(BaseModel):

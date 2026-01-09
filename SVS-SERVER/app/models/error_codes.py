@@ -72,3 +72,7 @@ class ERROR_CODES(dict, Enum):
         code="ALREADY_VOTED",
         message="User has already voted on this vote",
     )
+    ADMIN_PRIVILEGES_REQUIRED = ErrorCodeModel(
+        code="ADMIN_PRIVILEGES_REQUIRED",
+        message="Admin privileges are required to access this resource",
+    )

@@ -11,8 +11,10 @@ import logo from '/logo.png';
 import { Button } from '@/components/ui/button';
 import { useNav } from '@/hooks/useNav';
 
-const NavMenu = () => {
-  const { navItems: menuItems, currentNavItem } = useNav();
+const NavMenu = (props: { admin?: boolean }) => {
+  const { navItems: menuItems, currentNavItem } = useNav({
+    admin: props.admin,
+  });
 
   return (
     <div>
@@ -41,6 +43,7 @@ const NavMenu = () => {
                   key={item.link}
                   to={item.link}
                   className='text-sm font-medium hover:underline'
+                  hidden={item.hidden}
                 >
                   <Button
                     variant='ghost'
@@ -63,6 +66,7 @@ const NavMenu = () => {
           <Link
             key={item.link}
             to={item.link}
+            hidden={item.hidden}
             className={`text-sm font-medium hover:underline ${
               currentNavItem?.link === item.link ? 'text-primary' : ''
             }`}

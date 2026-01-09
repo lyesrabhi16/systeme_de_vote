@@ -7,7 +7,13 @@ from app.utils import get_real_path
 from app.utils.middlewares import setup_middlewares, register_http_exception_handler
 from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
-from app.routers import auth_router, voting_router, users_router, candidates_router
+from app.routers import (
+    auth_router,
+    voting_router,
+    users_router,
+    candidates_router,
+    admin_router,
+)
 from app.db import test_db_connection, init_db, test_redis_cache_connection
 
 from app.utils.logging import setup_logging, intercept_standard_logging
@@ -77,6 +83,12 @@ APP.include_router(
     candidates_router.router,
     prefix="/candidates",
     tags=["candidates"],
+)
+
+APP.include_router(
+    admin_router.router,
+    prefix="/admin",
+    tags=["admin"],
 )
 
 

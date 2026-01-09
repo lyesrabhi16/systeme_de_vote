@@ -1,14 +1,24 @@
-export const useNav: () => {
+import { routes } from '@/services/routing';
+
+export const useNav: (props?: { admin?: boolean }) => {
   navItems: NavItemType[];
   currentNavItem: NavItemType | undefined;
   currentNavItemIndex: number;
-} = () => {
-  const navItems = [
-    { label: 'Home', link: '/' },
-    { label: 'About', link: '/about' },
-    { label: 'Contact', link: '/contact' },
-    { label: 'Vote', link: '/vote' },
+} = (props?: { admin?: boolean }) => {
+  const _navItems = [
+    { label: 'Home', link: routes.HOME },
+    { label: 'About', link: routes.ABOUT },
+    { label: 'Contact', link: routes.CONTACT },
+    { label: 'Vote', link: routes.VOTE, hidden: true },
   ];
+
+  const AdminNavItems = [
+    { label: 'Dashboard', link: routes.ADMIN },
+    { label: 'Users', link: routes.PICK_USERS_ADMINISTRATION },
+  ];
+
+  const navItems = props?.admin ? AdminNavItems : _navItems;
+
   const path = window.location.pathname;
   let currentNavItem: NavItemType | undefined = undefined;
   let currentNavItemIndex: number = -1;
@@ -52,4 +62,5 @@ export const useNav: () => {
 export type NavItemType = {
   label: string;
   link: string;
+  hidden?: boolean;
 };
