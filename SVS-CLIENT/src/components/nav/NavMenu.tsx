@@ -40,15 +40,15 @@ const NavMenu = (props: { admin?: boolean }) => {
             <div className='flex flex-col gap-4 p-4'>
               {menuItems.map((item) => (
                 <Link
-                  key={item.link}
-                  to={item.link}
+                  key={item.links[0]}
+                  to={item.links[0]}
                   className='text-sm font-medium hover:underline'
                   hidden={item.hidden}
                 >
                   <Button
                     variant='ghost'
                     className={`w-full justify-start ${
-                      currentNavItem?.link === item.link
+                      currentNavItem?.links[0] === item.links[0]
                         ? 'bg-primary text-primary-foreground'
                         : ''
                     }`}
@@ -64,11 +64,11 @@ const NavMenu = (props: { admin?: boolean }) => {
       <div className='hidden sm:flex flex-row gap-6'>
         {menuItems.map((item) => (
           <Link
-            key={item.link}
-            to={item.link}
+            key={item.links[0]}
+            to={item.links[0]}
             hidden={item.hidden}
             className={`text-sm font-medium hover:underline ${
-              currentNavItem?.link === item.link ? 'text-primary' : ''
+              currentNavItem?.links[0] === item.links[0] ? 'text-primary' : ''
             }`}
           >
             <Button variant='ghost'>{item.label}</Button>

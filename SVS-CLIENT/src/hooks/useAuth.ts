@@ -5,7 +5,7 @@ import useGlobalStore from "@/services/store"
 const useAuth = () => {
     const store = useGlobalStore();
     const getResponse = () => {
-        console.log("calculating useAuth:", store);
+        //console.log("calculating useAuth:", store);
         return {
             login_password_step: (data: UserLoginModel) => login_password_step(data),
             login_otp_step: (data: OTPVerificationModel) => login_otp_step(store, data),

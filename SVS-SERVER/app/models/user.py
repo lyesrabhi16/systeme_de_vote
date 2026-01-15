@@ -21,6 +21,9 @@ class User(SQLModel, table=True):
     verified_phone_number: bool = Field(default=False, title="Verified Phone Number")
     is_active: bool = Field(default=True, title="Is Active")
     is_admin: bool = Field(..., title="Is Admin")
+    requested_password_reset: bool = Field(
+        default=False, title="Requested Password Reset"
+    )
 
     # créer
     created_votes: list["Vote"] = Relationship(
@@ -134,17 +137,17 @@ class User(SQLModel, table=True):
 
 
 class UserUpdateModel(BaseModel):
-    first_name: str
-    last_name: str
-    email: str
-    username: str
-    phone_number: str
-    is_admin: bool
-    is_active: bool
-    verified_email: bool
-    verified_phone_number: bool
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    username: str | None = None
+    phone_number: str | None = None
+    is_admin: bool | None = None
+    is_active: bool | None = None
+    verified_email: bool | None = None
+    verified_phone_number: bool | None = None
     password: str | None = None
-    request_reset_password: bool = False
+    request_password_reset: bool = False
 
 
 class UserCreationModel(BaseModel):
@@ -197,6 +200,7 @@ class CurrentUserResponseModel(BaseModel):
     verified_phone_number: bool
     is_active: bool
     is_admin: bool
+    requested_password_reset: bool
 
 
 class SuccessfulUserLoginResponseModel(BaseModel):

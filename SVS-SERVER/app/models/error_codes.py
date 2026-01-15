@@ -76,3 +76,7 @@ class ERROR_CODES(dict, Enum):
         code="ADMIN_PRIVILEGES_REQUIRED",
         message="Admin privileges are required to access this resource",
     )
+    EMAIL_ALREADY_EXISTS = ErrorCodeModel(
+        code="EMAIL_ALREADY_EXISTS",
+        message="Email already exists",
+    )

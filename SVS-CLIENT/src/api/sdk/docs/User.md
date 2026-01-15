@@ -16,6 +16,7 @@ Name | Type | Description | Notes
 **verified_phone_number** | **boolean** |  | [optional] [default to false]
 **is_active** | **boolean** |  | [optional] [default to true]
 **is_admin** | **boolean** |  | [default to undefined]
+**requested_password_reset** | **boolean** |  | [optional] [default to false]
 
 ## Example
 
@@ -34,6 +35,7 @@ const instance: User = {
     verified_phone_number,
     is_active,
     is_admin,
+    requested_password_reset,
 };
 ```
 

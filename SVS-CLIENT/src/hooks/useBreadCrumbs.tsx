@@ -31,14 +31,14 @@ export const useBreadCrumbs = (props?: {
       <Breadcrumb className='w-full px-4 py-2 text-muted-foreground rounded-md'>
         <BreadcrumbList>
           {breadCrumbs.map((item, index) => (
-            <>
+            <div key={item.label} className='flex flex-row items-center gap-2'>
               <BreadcrumbItem key={item.label}>
                 <BreadcrumbLink asChild>
-                  <Link to={item.link}>{item.label}</Link>
+                  <Link to={item.links[0]}>{item.label}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               {index < breadCrumbs.length - 1 && <BreadcrumbSeparator />}
-            </>
+            </div>
           ))}
         </BreadcrumbList>
       </Breadcrumb>

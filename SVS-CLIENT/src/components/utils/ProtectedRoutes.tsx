@@ -10,10 +10,10 @@ export const AuthRequiredRoutes = () => {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (user === null || token === null) {
-      console.log('not authenticated redirecting to login', user, token);
+      //console.log('not authenticated redirecting to login', user, token);
       navigate(routes.LOGIN, { replace: true });
     } else {
-      console.log('authenticated proceeding to protected route', user, token);
+      //console.log('authenticated proceeding to protected route', user, token);
     }
   }, [user, token]);
 
@@ -28,10 +28,10 @@ export const AdminOnlyRoutes = () => {
   // Redirect to Not Allowed Page if not admin
   useEffect(() => {
     if (user === null || token === null || !user.is_admin) {
-      console.log('not authorized redirecting to not allowed page', user, token);
+      //console.log('not authorized redirecting to not allowed page', user, token);
       navigate(routes.NOT_ALLOWED, { replace: true });
     } else {
-      console.log('authorized proceeding to admin route', user, token);
+      //console.log('authorized proceeding to admin route', user, token);
     }
   }, [user, token]);
 

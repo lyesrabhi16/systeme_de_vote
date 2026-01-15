@@ -7,7 +7,8 @@ from loguru import logger
 from app.models.error_codes import ERROR_CODES
 from fastcrud import FastCRUD, PaginatedListResponse
 from app.utils import transformers
-from app.utils.utils import paginate
+from app.utils.response_utils import paginate
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter()
 crud = FastCRUD(model=User)
@@ -22,9 +23,7 @@ crud = FastCRUD(model=User)
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
     ],
 )
-async def create_user(
-    request: Request, user_data: UserCreationModel
-) -> UserResponseModel:
+async def create_user(request: Request, user_data: UserCreationModel):
     logger.debug(
         f"Admin {request.state.user.username} is attempting to create a new user."
     )
@@ -35,12 +34,28 @@ async def create_user(
         email=user_data.email,
         phone_number=user_data.phone_number,
         is_admin=user_data.is_admin,
+        requested_password_reset=False if user_data.password else True,
     )
-    await user.save()
-    logger.debug(
-        f"User {user.username} created successfully by admin {request.state.user.username}."
-    )
-    return await UserResponseModel.from_user(user)
+    if user_data.password:
+        user.set_password(user_data.password)
+
+    try:
+        await user.save()
+        logger.debug(
+            f"User {user.username} created successfully by admin {request.state.user.username}."
+        )
+        return await UserResponseModel.from_user(user)
+    except IntegrityError as e:
+        logger.error(f"IntegrityError while creating user: {e}")
+        if (
+            ("email" in str(e.orig))
+            or ("phone_number" in str(e.orig))
+            or ("username" in str(e.orig))
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=ERROR_CODES.EMAIL_ALREADY_EXISTS,
+            )
 
 
 @router.get(
@@ -56,6 +71,7 @@ async def admin_get_users(
     request: Request,
     page: int = 1,
     per_page: int = Query(default=10, min=1, max=100),
+    search: str | None = Query(default=None),
 ):
 
     return await paginate(
@@ -64,6 +80,10 @@ async def admin_get_users(
         per_page=per_page,
         transformer=transformers.User_to_UserResponseModel,
         is_admin=False,
+        search=search,
+        search_columns=["username", "email", "first_name", "last_name"],
+        sort_columns=["id"],
+        sort_orders=["asc"],
     )
 
 
@@ -132,21 +152,25 @@ async def admin_update_user(
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
 
-    user.first_name = user_data.first_name
-    user.last_name = user_data.last_name
-    user.username = user_data.username
-    user.email = user_data.email
-    user.phone_number = user_data.phone_number
-    user.is_admin = user_data.is_admin
-    user.is_active = user_data.is_active
-    user.verified_email = user_data.verified_email
-    user.verified_phone_number = user_data.verified_phone_number
+    for attr in [
+        "first_name",
+        "last_name",
+        "username",
+        "email",
+        "phone_number",
+        "is_admin",
+        "is_active",
+        "verified_email",
+        "verified_phone_number",
+    ]:
+        if getattr(user_data, attr) is not None:
+            setattr(user, attr, getattr(user_data, attr))
 
-    if user_data.request_reset_password:
+    if user_data.request_password_reset:
         logger.info(
             f"Admin {request.state.user.username} requested password reset for user {user.username} (ID: {user.id})"
         )
-        user.password = None  # This will force the user to reset their password
+        user.requested_password_reset = True
     elif user_data.password:
         user.set_password(user_data.password)
 

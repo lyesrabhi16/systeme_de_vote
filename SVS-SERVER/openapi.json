@@ -692,6 +692,22 @@
                             "default": 10,
                             "title": "Per Page"
                         }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Search"
+                        }
                     }
                 ],
                 "responses": {
@@ -1010,6 +1026,46 @@
                 }
             }
         },
+        "/admin/send-verification-email": {
+            "post": {
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Send Verification Email",
+                "operationId": "send_verification_email",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/{path}": {
             "get": {
                 "summary": "Serve Spa Fallback",
@@ -1181,6 +1237,10 @@
                     "is_admin": {
                         "type": "boolean",
                         "title": "Is Admin"
+                    },
+                    "requested_password_reset": {
+                        "type": "boolean",
+                        "title": "Requested Password Reset"
                     }
                 },
                 "type": "object",
@@ -1194,7 +1254,8 @@
                     "phone_number",
                     "verified_phone_number",
                     "is_active",
-                    "is_admin"
+                    "is_admin",
+                    "requested_password_reset"
                 ],
                 "title": "CurrentUserResponseModel"
             },
@@ -1552,6 +1613,11 @@
                     "is_admin": {
                         "type": "boolean",
                         "title": "Is Admin"
+                    },
+                    "requested_password_reset": {
+                        "type": "boolean",
+                        "title": "Requested Password Reset",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -1687,39 +1753,102 @@
             "UserUpdateModel": {
                 "properties": {
                     "first_name": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "First Name"
                     },
                     "last_name": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Last Name"
                     },
                     "email": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Email"
                     },
                     "username": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Username"
                     },
                     "phone_number": {
-                        "type": "string",
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Phone Number"
                     },
                     "is_admin": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Is Admin"
                     },
                     "is_active": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Is Active"
                     },
                     "verified_email": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Verified Email"
                     },
                     "verified_phone_number": {
-                        "type": "boolean",
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Verified Phone Number"
                     },
                     "password": {
@@ -1733,24 +1862,13 @@
                         ],
                         "title": "Password"
                     },
-                    "request_reset_password": {
+                    "request_password_reset": {
                         "type": "boolean",
-                        "title": "Request Reset Password",
+                        "title": "Request Password Reset",
                         "default": false
                     }
                 },
                 "type": "object",
-                "required": [
-                    "first_name",
-                    "last_name",
-                    "email",
-                    "username",
-                    "phone_number",
-                    "is_admin",
-                    "is_active",
-                    "verified_email",
-                    "verified_phone_number"
-                ],
                 "title": "UserUpdateModel"
             },
             "ValidationError": {

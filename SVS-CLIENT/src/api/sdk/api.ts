@@ -48,6 +48,7 @@ export interface CurrentUserResponseModel {
     'verified_phone_number': boolean;
     'is_active': boolean;
     'is_admin': boolean;
+    'requested_password_reset': boolean;
 }
 export interface FinishedVoteResponseModel {
     'vote': VoteWithCreatorResponseModel;
@@ -89,6 +90,13 @@ export interface OTPVerificationModel {
     'otp': string;
     'remember_me'?: boolean;
 }
+export interface PaginatedListResponseUserResponseModel {
+    'data': Array<UserResponseModel>;
+    'total_count': number;
+    'has_more': boolean;
+    'page'?: number | null;
+    'items_per_page'?: number | null;
+}
 export interface PasswordResetOTPModel {
     'id': string;
     'otp': string;
@@ -119,6 +127,7 @@ export interface User {
     'verified_phone_number'?: boolean;
     'is_active'?: boolean;
     'is_admin': boolean;
+    'requested_password_reset'?: boolean;
 }
 export interface UserCreationModel {
     'first_name': string;
@@ -147,17 +156,17 @@ export interface UserResponseModel {
     'is_admin': boolean;
 }
 export interface UserUpdateModel {
-    'first_name': string;
-    'last_name': string;
-    'email': string;
-    'username': string;
-    'phone_number': string;
-    'is_admin': boolean;
-    'is_active': boolean;
-    'verified_email': boolean;
-    'verified_phone_number': boolean;
+    'first_name'?: string | null;
+    'last_name'?: string | null;
+    'email'?: string | null;
+    'username'?: string | null;
+    'phone_number'?: string | null;
+    'is_admin'?: boolean | null;
+    'is_active'?: boolean | null;
+    'verified_email'?: boolean | null;
+    'verified_phone_number'?: boolean | null;
     'password'?: string | null;
-    'request_reset_password'?: boolean;
+    'request_password_reset'?: boolean;
 }
 export interface ValidationError {
     'loc': Array<ValidationErrorLocInner>;
@@ -232,6 +241,83 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Get Admins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAdmins: async (page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/admin/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Send Verification Email
+         * @param {number} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sendVerificationEmail: async (userId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('sendVerificationEmail', 'userId', userId)
+            const localVarPath = `/admin/send-verification-email`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (userId !== undefined) {
+                localVarQueryParameter['user_id'] = userId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -253,6 +339,33 @@ export const AdminApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOnlyEndpoint']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * 
+         * @summary Get Admins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAdmins(page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAdmins(page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.getAdmins']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Send Verification Email
+         * @param {number} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async sendVerificationEmail(userId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.sendVerificationEmail(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.sendVerificationEmail']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -271,6 +384,27 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
         adminOnlyEndpoint(options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.adminOnlyEndpoint(options).then((request) => request(axios, basePath));
         },
+        /**
+         * 
+         * @summary Get Admins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAdmins(page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.getAdmins(page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Send Verification Email
+         * @param {number} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sendVerificationEmail(userId: number, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.sendVerificationEmail(userId, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -286,6 +420,29 @@ export class AdminApi extends BaseAPI {
      */
     public adminOnlyEndpoint(options?: RawAxiosRequestConfig) {
         return AdminApiFp(this.configuration).adminOnlyEndpoint(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Admins
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAdmins(page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).getAdmins(page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Send Verification Email
+     * @param {number} userId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public sendVerificationEmail(userId: number, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).sendVerificationEmail(userId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -1115,36 +1272,6 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
-         * @summary Admin Get All Users
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        adminGetAllUsers: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/users/admin/all`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @summary Admin Get User By Id
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -1296,6 +1423,51 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Admin Get Users
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUsers: async (page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/users/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -1316,18 +1488,6 @@ export const UsersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.adminDeleteUser(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.adminDeleteUser']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Admin Get All Users
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async adminGetAllUsers(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<UserResponseModel>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.adminGetAllUsers(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.adminGetAllUsers']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1383,6 +1543,21 @@ export const UsersApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['UsersApi.getUserById']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * 
+         * @summary Admin Get Users
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getUsers(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getUsers(page, perPage, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.getUsers']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -1401,15 +1576,6 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          */
         adminDeleteUser(id: number, options?: RawAxiosRequestConfig): AxiosPromise<{ [key: string]: any; }> {
             return localVarFp.adminDeleteUser(id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Admin Get All Users
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        adminGetAllUsers(options?: RawAxiosRequestConfig): AxiosPromise<Array<UserResponseModel>> {
-            return localVarFp.adminGetAllUsers(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1452,6 +1618,18 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
         getUserById(id: number, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseModel> {
             return localVarFp.getUserById(id, options).then((request) => request(axios, basePath));
         },
+        /**
+         * 
+         * @summary Admin Get Users
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUsers(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.getUsers(page, perPage, search, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -1468,16 +1646,6 @@ export class UsersApi extends BaseAPI {
      */
     public adminDeleteUser(id: number, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).adminDeleteUser(id, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @summary Admin Get All Users
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public adminGetAllUsers(options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).adminGetAllUsers(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1523,6 +1691,19 @@ export class UsersApi extends BaseAPI {
      */
     public getUserById(id: number, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).getUserById(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Admin Get Users
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getUsers(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).getUsers(page, perPage, search, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

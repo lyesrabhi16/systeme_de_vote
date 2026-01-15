@@ -19,6 +19,7 @@ docs/IdentifierType.md
 docs/MessageResponse.md
 docs/OTPResendRequestModel.md
 docs/OTPVerificationModel.md
+docs/PaginatedListResponseUserResponseModel.md
 docs/PasswordResetOTPModel.md
 docs/PasswordResetRequestModel.md
 docs/SuccessfulUserLoginResponseModel.md

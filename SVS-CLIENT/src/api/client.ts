@@ -1,6 +1,13 @@
 
-import { Configuration, AuthApi, VoteApi, type ConfigurationParameters } from '@api/sdk';
+import { Configuration, AuthApi, VoteApi, UsersApi, AdminApi, CandidatesApi, type ConfigurationParameters } from '@api/sdk';
 
+export type PaginatedListResponse = {
+    data: any[];
+    total_count: number;
+    has_more: boolean;
+    page?: number | null | undefined;
+    items_per_page?: number | null | undefined;
+}
 
 const getConfigParams: () => ConfigurationParameters = () => ({
     basePath: 'http://localhost:8000',
@@ -25,6 +32,9 @@ export const apiClient = () => {
     return {
         auth: new AuthApi(config),
         vote: new VoteApi(config),
+        users: new UsersApi(config),
+        admin: new AdminApi(config),
+        candidates: new CandidatesApi(config),
     };
 }
 

@@ -4,6 +4,8 @@ import {
 } from '@/components/utils/ProtectedRoutes';
 import AboutPage from '@/pages/AboutPage';
 import AdminPage from '@/pages/AdminPage';
+import AdminsAdministrationPage from '@/pages/AdminUsersAdministrationPage';
+import AdminUsersAdministration from '@/pages/AdminUsersAdministrationPage';
 import ContactPage from '@/pages/ContactPage';
 import ForbiddenPage from '@/pages/ForbiddenPage';
 import HomePage from '@/pages/HomePage';
@@ -11,6 +13,7 @@ import LoginPage from '@/pages/LoginPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import OTPVerificationPage from '@/pages/OTPVerificationPage';
 import PasswordResetPage from '@/pages/PasswordResetPage';
+import RegularUsersAdministrationPage from '@/pages/RegularUsersAdministrationPage';
 import UsersAdministration from '@/pages/UsersAdministration';
 import VotingPage from '@/pages/VotingPage';
 import { routes } from '@/services/routing';
@@ -38,11 +41,11 @@ const Router = () => {
         />
         <Route
           path={routes.USERS_ADMINISTRATION}
-          element={<UsersAdministration />}
+          element={<RegularUsersAdministrationPage />}
         />
         <Route
           path={routes.ADMIN_ADMINISTRATION}
-          element={<UsersAdministration />}
+          element={<AdminsAdministrationPage />}
         />
       </Route>
       <Route path={routes.RESET_PASSWORD} element={<PasswordResetPage />} />

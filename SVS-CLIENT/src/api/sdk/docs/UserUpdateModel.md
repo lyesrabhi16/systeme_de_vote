@@ -5,17 +5,17 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**first_name** | **string** |  | [default to undefined]
-**last_name** | **string** |  | [default to undefined]
-**email** | **string** |  | [default to undefined]
-**username** | **string** |  | [default to undefined]
-**phone_number** | **string** |  | [default to undefined]
-**is_admin** | **boolean** |  | [default to undefined]
-**is_active** | **boolean** |  | [default to undefined]
-**verified_email** | **boolean** |  | [default to undefined]
-**verified_phone_number** | **boolean** |  | [default to undefined]
+**first_name** | **string** |  | [optional] [default to undefined]
+**last_name** | **string** |  | [optional] [default to undefined]
+**email** | **string** |  | [optional] [default to undefined]
+**username** | **string** |  | [optional] [default to undefined]
+**phone_number** | **string** |  | [optional] [default to undefined]
+**is_admin** | **boolean** |  | [optional] [default to undefined]
+**is_active** | **boolean** |  | [optional] [default to undefined]
+**verified_email** | **boolean** |  | [optional] [default to undefined]
+**verified_phone_number** | **boolean** |  | [optional] [default to undefined]
 **password** | **string** |  | [optional] [default to undefined]
-**request_reset_password** | **boolean** |  | [optional] [default to false]
+**request_password_reset** | **boolean** |  | [optional] [default to false]
 
 ## Example
 
@@ -33,7 +33,7 @@ const instance: UserUpdateModel = {
     verified_email,
     verified_phone_number,
     password,
-    request_reset_password,
+    request_password_reset,
 };
 ```
 
