@@ -5,7 +5,6 @@ import {
 import AboutPage from '@/pages/AboutPage';
 import AdminPage from '@/pages/AdminPage';
 import AdminsAdministrationPage from '@/pages/AdminUsersAdministrationPage';
-import AdminUsersAdministration from '@/pages/AdminUsersAdministrationPage';
 import ContactPage from '@/pages/ContactPage';
 import ForbiddenPage from '@/pages/ForbiddenPage';
 import HomePage from '@/pages/HomePage';
@@ -15,6 +14,8 @@ import OTPVerificationPage from '@/pages/OTPVerificationPage';
 import PasswordResetPage from '@/pages/PasswordResetPage';
 import RegularUsersAdministrationPage from '@/pages/RegularUsersAdministrationPage';
 import UsersAdministration from '@/pages/UsersAdministration';
+import VoteAdmininstrationPage from '@/pages/VoteAdmininstrationPage';
+import VotesAdministrationPage from '@/pages/VotesAdministrationPage';
 import VotingPage from '@/pages/VotingPage';
 import { routes } from '@/services/routing';
 import { Route, Routes } from 'react-router';
@@ -46,6 +47,14 @@ const Router = () => {
         <Route
           path={routes.ADMIN_ADMINISTRATION}
           element={<AdminsAdministrationPage />}
+        />
+        <Route
+          path={routes.VOTES_ADMINISTRATION}
+          element={<VotesAdministrationPage />}
+        />
+        <Route
+          path={routes.VOTE_ADMINISTRATION}
+          element={<VoteAdmininstrationPage />}
         />
       </Route>
       <Route path={routes.RESET_PASSWORD} element={<PasswordResetPage />} />

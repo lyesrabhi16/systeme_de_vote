@@ -1,4 +1,4 @@
-import apiClient from '@/api/client';
+import apiClient, { ERROR_CODES } from '@/api/client';
 import type { User, UserResponseModel, UserUpdateModel } from '@/api/sdk';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,6 +51,7 @@ const UserFormModal = (props: {
   content_only?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  admin?: boolean;
 }) => {
   const { toasts } = useSonner();
 
@@ -58,6 +59,7 @@ const UserFormModal = (props: {
     old: props.user,
     ...props.user,
   });
+  const [manualPassword, setManualPassword] = useState(false);
   const [loading, setLoading] = useState({
     form: false,
     resetPassword: false,
@@ -93,6 +95,7 @@ const UserFormModal = (props: {
       is_admin: user.is_admin || false,
       verified_email: user.verified_email || false,
       verified_phone_number: user.verified_phone_number || false,
+      password: user.password || '',
     },
   });
 
@@ -126,7 +129,6 @@ const UserFormModal = (props: {
       is_admin: user.is_admin,
     };
     setUser((s) => ({ ...s, ...new_data }));
-
     if (formType === 'add') {
       apiClient()
         .users.createUser({
@@ -135,16 +137,45 @@ const UserFormModal = (props: {
           last_name: new_data.last_name as string,
           username: new_data.username as string,
           phone_number: new_data.phone_number,
-          is_admin: false,
-          password: undefined,
+          is_admin: props.admin || false,
+          password: manualPassword ? (new_data.password as string) : undefined,
         })
         .then((r) => {
           toast.success('Utilisateur créé avec succès');
           setUser({ old: r.data, ...r.data });
           setFormtype('readonly');
-          refreshUserData();
         })
-        .catch(() => {
+        .catch((e) => {
+          console.log('error: ', e);
+
+          if (e.response?.data?.detail?.code) {
+            const code = e.response.data.detail.code;
+            console.log(
+              'error code: ',
+              code,
+              ERROR_CODES.EMAIL_ALREADY_EXISTS,
+              ERROR_CODES.USERNAME_ALREADY_EXISTS === code,
+            );
+
+            if (code == ERROR_CODES.EMAIL_ALREADY_EXISTS) {
+              toast.error(
+                'Un utilisateur avec cette adresse e-mail existe déjà',
+              );
+              return;
+            }
+            if (code == ERROR_CODES.USERNAME_ALREADY_EXISTS) {
+              toast.error(
+                "Un utilisateur avec ce nom d'utilisateur existe déjà",
+              );
+              return;
+            }
+            if (code == ERROR_CODES.PHONE_NUMBER_ALREADY_EXISTS) {
+              toast.error(
+                'Un utilisateur avec ce numéro de téléphone existe déjà',
+              );
+              return;
+            }
+          }
           toast.error("Échec de la création de l'utilisateur");
         })
         .finally(() => {
@@ -248,7 +279,7 @@ const UserFormModal = (props: {
             (errors) => {
               console.log(errors);
 
-              toast.error('Corriger les erreurs dans le formulaire: ' + errors);
+              toast.error('Corriger les erreurs dans le formulaire');
             },
           )}
         >
@@ -410,12 +441,49 @@ const UserFormModal = (props: {
             />
             <div className='space-y-2 bg-muted/30 rounded-lg p-4'>
               {formType === 'add' ? (
-                <p className='text-sm text-muted-foreground mt-2'>
-                  Mot de passe: sera demander à la prochaine connexion
-                  <Button variant='link' className='p-0 m-0'>
-                    Sinon créer l'utilisateur avec un mot de passe défini
+                <>
+                  {manualPassword ? (
+                    <Controller
+                      name='password'
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field
+                          data-invalid={fieldState.invalid}
+                          className='mt-2'
+                        >
+                          <FieldLabel htmlFor='password'>
+                            <p>Mot de passe</p>
+                          </FieldLabel>
+                          <Input
+                            id='password'
+                            type='password'
+                            placeholder='Entrez le mot de passe'
+                            {...field}
+                          />
+                          {fieldState.error && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
+                        </Field>
+                      )}
+                    />
+                  ) : (
+                    <p className='text-sm text-muted-foreground mt-2'>
+                      Mot de passe: sera demander à la prochaine connexion
+                    </p>
+                  )}
+                  <Button
+                    variant='link'
+                    className='p-0 m-0'
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setManualPassword(!manualPassword);
+                    }}
+                  >
+                    {manualPassword
+                      ? "Sinon laisser l'utilisateur de définir un mot de passe"
+                      : "Sinon créer l'utilisateur avec un mot de passe défini"}
                   </Button>
-                </p>
+                </>
               ) : (
                 <>
                   <Button

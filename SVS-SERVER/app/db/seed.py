@@ -1,5 +1,5 @@
-from datetime import datetime
-import app.config.env  # Ensure env is loaded
+from datetime import datetime, timedelta
+import app.config.env
 from app.models import Candidate, Vote, User, AttributedVote, Bulletin
 from app.utils.auth_utils import hash_string
 from app.db import db_session, init_db, test_db_connection
@@ -60,6 +60,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=True,
+            created_at=datetime.strptime("2024-01-15 08:00:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="john",
@@ -72,6 +73,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-02-10 09:30:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="jane",
@@ -84,6 +86,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-03-05 10:15:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="alice",
@@ -96,6 +99,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-04-20 11:45:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="bob",
@@ -108,6 +112,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-05-12 14:20:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="carol",
@@ -120,6 +125,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=False,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-06-08 07:50:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="david",
@@ -132,6 +138,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=False,
             is_admin=False,
+            created_at=datetime.strptime("2024-07-03 16:30:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="emma",
@@ -144,6 +151,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-08-17 12:00:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="frank",
@@ -156,6 +164,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-09-22 13:45:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="grace",
@@ -168,6 +177,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=False,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-10-11 15:20:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="henry",
@@ -180,6 +190,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-11-06 09:10:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="iris",
@@ -192,6 +203,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=False,
             is_admin=False,
+            created_at=datetime.strptime("2024-12-01 10:40:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="jack",
@@ -204,6 +216,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-01-25 11:55:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="kate",
@@ -216,18 +229,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=False,
             is_active=True,
             is_admin=False,
-        ),
-        User(
-            first_name="liam",
-            last_name="harris",
-            email="liam.harris@example.com",
-            verified_email=False,
-            password=hashed_password,
-            username="liam_h",
-            phone_number="555-0003",
-            verified_phone_number=True,
-            is_active=True,
-            is_admin=False,
+            created_at=datetime.strptime("2024-02-28 14:25:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="mia",
@@ -240,6 +242,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-03-19 08:35:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="noah",
@@ -252,6 +255,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=False,
             is_admin=False,
+            created_at=datetime.strptime("2024-04-30 17:05:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="olivia",
@@ -264,6 +268,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-05-18 13:15:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="paul",
@@ -276,6 +281,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=False,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-06-25 10:50:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
             first_name="quinn",
@@ -288,6 +294,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            created_at=datetime.strptime("2024-07-14 15:35:00", "%Y-%m-%d %H:%M:%S"),
         ),
     ]
 
@@ -305,62 +312,115 @@ async def seed_votes(db: AsyncSession | None = None):
     # Implement vote seeding logic here
     votes = [
         Vote(
-            title="Election 2026",
-            description="Presidential Election 2026 in France",
-            start_date=datetime.strptime("2026-11-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2026-11-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            title="Presidential 2024",
+            description="Election for 2024",
+            start_date=datetime.strptime("2024-07-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=1,
         ),
         Vote(
-            title="Election 2024",
-            description="Presidential Election 2024",
-            start_date=datetime.strptime("2024-11-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2024-11-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
-            creator_id=1,
-        ),
-        Vote(
-            title="Local Elections",
-            description="City Council Elections",
-            start_date=datetime.strptime("2024-10-15 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2024-10-16 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            title="Local Election July 2",
+            description="City Council July",
+            start_date=datetime.strptime("2024-07-05 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-05 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=2,
         ),
         Vote(
-            title="School Board Elections",
-            description="Elections for the School Board Members",
-            start_date=datetime.strptime("2024-09-20 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2024-09-21 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            title="School Board July 2",
+            description="School Board Election",
+            start_date=datetime.strptime("2024-07-10 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-10 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=3,
         ),
         Vote(
-            title="Community Center Elections",
-            description="Elections for the Community Center Committee",
-            start_date=datetime.strptime("2024-12-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2024-12-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            title="Community Center July 2",
+            description="Community Center Committee",
+            start_date=datetime.strptime("2024-07-15 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-15 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=1,
+        ),
+        Vote(
+            title="Special Referendum July 2",
+            description="Referendum Vote",
+            start_date=datetime.strptime("2024-07-20 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-20 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=2,
+        ),
+        Vote(
+            title="Local Election August 1",
+            description="City Council August",
+            start_date=datetime.strptime("2024-08-03 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-08-03 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=3,
         ),
         Vote(
-            title="Ongoing Election",
-            description="An election currently in progress",
-            start_date=datetime.strptime("2025-11-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2025-12-31 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            title="School Board August 2",
+            description="School Board Election",
+            start_date=datetime.strptime("2024-08-10 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-08-10 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=2,
+        ),
+        Vote(
+            title="Community Center August 3",
+            description="Community Center Committee",
+            start_date=datetime.strptime("2024-08-15 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-08-15 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=1,
         ),
         Vote(
-            title="Planned Election 2027",
-            description="Planned future election",
-            start_date=datetime.strptime("2027-05-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2027-05-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            title="Special Referendum August 4",
+            description="Referendum Vote",
+            start_date=datetime.strptime("2024-08-20 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-08-20 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=3,
+        ),
+        Vote(
+            title="Extra Election August 5",
+            description="Extra Local Vote",
+            start_date=datetime.strptime("2024-08-25 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-08-25 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=1,
+        ),
+        # Finished votes in July 2024
+        Vote(
+            title="Presidential 2024",
+            description="Election finished",
+            start_date=datetime.strptime("2024-07-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=1,
         ),
         Vote(
-            title="Past Election 2020",
-            description="A completed election in the past",
-            start_date=datetime.strptime("2020-06-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
-            end_date=datetime.strptime("2020-06-02 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            title="Local Election July",
+            description="Finished",
+            start_date=datetime.strptime("2024-07-03 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-04 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=2,
+        ),
+        # Ongoing votes in July 2024
+        Vote(
+            title="Ongoing City Vote July",
+            description="Vote that is still running",
+            start_date=datetime.strptime("2024-07-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2026-12-31 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=3,
+        ),
+        # Upcoming votes in July 2024
+        Vote(
+            title="Planned Referendum July",
+            description="Vote will start in the future",
+            start_date=datetime.strptime("2024-07-25 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-26 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=1,
+        ),
+        Vote(
+            title="Extra Local Vote July",
+            description="Another planned vote",
+            start_date=datetime.strptime("2024-07-28 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2024-07-29 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=2,
         ),
     ]
+
     db.add_all(votes)
     await db.commit()
     logger.info(f"Seeded {len(votes)} votes into the database.")

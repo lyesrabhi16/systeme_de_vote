@@ -46,6 +46,23 @@ class AUTH_MIDDLEWARE:
                 handler,
                 HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS),
             )
+        if user.is_active is False:
+            logger.warning(f"Inactive user attempted to authenticate: {user.username}")
+
+            def handler(request: Request, exc: HTTPException) -> JSONResponse:
+                response: Response = JSONResponse(
+                    response_models.ErrorResponse(
+                        detail=ERROR_CODES.FORBIDDEN
+                    ).model_dump(),
+                    status_code=403,
+                )
+                response.delete_cookie("token")
+                return response
+
+            raise HTTPExceptionWithHandler(
+                handler,
+                HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN),
+            )
 
         # Attach user to request state for downstream access
         request.state.user = user

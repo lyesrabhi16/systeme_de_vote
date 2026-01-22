@@ -6,7 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **identifier** | **string** |  | [default to undefined]
-**password** | **string** |  | [default to undefined]
+**password** | **string** |  | [optional] [default to undefined]
 **identifier_type** | [**IdentifierType**](IdentifierType.md) |  | [default to undefined]
 
 ## Example

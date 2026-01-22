@@ -32,7 +32,7 @@ class identifierType(Enum):
 
 class UserLoginModel(BaseModel):
     identifier: str
-    password: str
+    password: str | None = None
     identifier_type: identifierType
 
     @classmethod
@@ -56,7 +56,7 @@ class UserLoginModel(BaseModel):
     async def authenticate(
         cls,
         identifier: str,
-        password: str,
+        password: str | None,
         identifier_type: identifierType,
         db: AsyncSession | None = None,
     ) -> User | None:
@@ -72,6 +72,12 @@ class UserLoginModel(BaseModel):
         )
         if user_row is not None:
             user: User = user_row[0]
+            if user.is_active is False:
+                logger.warning(f"Inactive user attempted to authenticate: {identifier}")
+                return None
+            if user.password is None and password is None:
+                logger.debug(f"User authenticated for the first time: {user.email}")
+                return user
             if (
                 (user_row is not None)
                 and (user := user_row[0])

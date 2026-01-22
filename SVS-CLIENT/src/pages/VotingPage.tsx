@@ -11,7 +11,7 @@ const VotingPage = () => {
   const { voteId } = useParams();
   const Breadcrumbs = useBreadCrumbs({
     additionalLabel: () => {
-      return { label: `${voteId}`, link: `/vote/${voteId}` };
+      return { label: `${voteId}`, links: [`/vote/${voteId}`] };
     },
   });
   const [vote, setVote] = useState<FullVoteResponseModel | null>();

@@ -8,3 +8,4 @@ class Messages(str, Enum):
     PASSWORD_RESET_EMAIL_SENT = "Password reset email sent successfully"
     PASSWORD_RESET_SUCCESS = "Password has been reset successfully"
     VERIFICATION_EMAIL_SENT = "Verification email sent successfully"
+    CANDIDATE_DELETED_SUCCESS = "Candidate deleted successfully"

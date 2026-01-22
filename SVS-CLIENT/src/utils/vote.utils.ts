@@ -1,4 +1,4 @@
-import type { Vote } from "@/api/sdk";
+import type { Vote, VoteWithCreatorResponseModel } from "@/api/sdk";
 
 export enum VoteBadgeType {
     Finished = 'finished',
@@ -7,7 +7,7 @@ export enum VoteBadgeType {
     FinishedWithoutVoting = 'finished_without_voting',
 }
 
-export const getBadgeType = (vote: Vote, userHasVoted?: boolean) => {
+export const getBadgeType = (vote: Vote | VoteWithCreatorResponseModel, userHasVoted?: boolean) => {
     const ongoing =
         new Date(vote.start_date) <= new Date() &&
         new Date(vote.end_date) >= new Date();

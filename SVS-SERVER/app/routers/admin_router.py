@@ -1,17 +1,28 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
+from sqlmodel import SQLModel, select
+from app.db import db
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.models.messages import Messages
 from app.models.user import UserResponseModel
 from fastcrud import FastCRUD, PaginatedListResponse
-from app.models import User, response_models
+from app.models import User, response_models, Bulletin, Vote, AttributedVote
+from app.models.vote_util_models import VoteWithCreatorResponseModel
 from app.utils.response_utils import paginate
 from app.utils import transformers
 from app.models.error_codes import ERROR_CODES
 from app.utils import auth_utils, smtp_utils
+from app.db.db import get_db_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, case, and_, text, select
+import threading
+from datetime import datetime
+from app.models.vote_util_models import FullVoteResponseModel
+
 
 router = APIRouter()
 crud = FastCRUD(model=User)
+votes_crud = FastCRUD(model=Vote)
 
 
 @router.get(
@@ -38,6 +49,7 @@ async def admin_only_endpoint():
 async def get_admins(
     page: int = 1,
     per_page: int = Query(default=10, min=1, max=100),
+    search: str | None = Query(default=None),
 ):
 
     return await paginate(
@@ -45,6 +57,10 @@ async def get_admins(
         page=page,
         per_page=per_page,
         transformer=transformers.User_to_UserResponseModel,
+        search=search,
+        search_columns=["username", "email", "first_name", "last_name"],
+        sort_columns=["id"],
+        sort_orders=["asc"],
         is_admin=True,
     )
 
@@ -78,3 +94,255 @@ async def send_verification_email(user_id: int):
         otp_code=otp,
     )
     return response_models.MessageResponse(message=Messages.VERIFICATION_EMAIL_SENT)
+
+
+class ParticipationDataResponseModel(SQLModel):
+    total_votes: int
+    total_abstain: int
+    no_participation: int
+
+
+class VoteStatusPerMonthResponseModel(SQLModel):
+    month: str
+    upcoming: int
+    ongoing: int
+    finished: int
+
+
+class UserGrowthPerMonthResponseModel(SQLModel):
+    month: str
+    new_users_count: int
+    total_users: int
+
+
+class VotesPerMonthResponseModel(SQLModel):
+    month: str
+    vote_count: int
+
+
+class DashboardResponseModel(SQLModel):
+    lastFinishedVote: FullVoteResponseModel | None
+    upcomingVotes: list[VoteWithCreatorResponseModel]
+    ongoingVotes: list[VoteWithCreatorResponseModel]
+    participationData: ParticipationDataResponseModel
+    votesPerMonth: list[VotesPerMonthResponseModel]
+    userGrowthPerMonth: list[UserGrowthPerMonthResponseModel]
+    votesStatusPerMonth: list[VoteStatusPerMonthResponseModel]
+
+
+@router.get(
+    "/dashboard",
+    operation_id="admin_dashboard",
+    response_model=DashboardResponseModel,
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+    ],
+)
+async def admin_dashboard(db: AsyncSession = Depends(get_db_session)):
+    votesPerMonth = await getVotesPerMonth(db)
+    userGrowthPerMonth = await getUserGrowth(db)
+    votesStatusPerMonth = await getVotesStatusPerMonth(db)
+    participationData = await getParticipationData(db)
+
+    # Upcoming votes
+    upcoming_votes_stmt = (
+        select(Vote)
+        .where(Vote.start_date > datetime.utcnow())
+        .order_by(Vote.start_date.asc())
+        .limit(3)
+    )
+    upcomingVotes = (await db.execute(upcoming_votes_stmt)).scalars().all()
+    upcomingVotes = [
+        await VoteWithCreatorResponseModel.from_vote_id(vote.id)
+        for vote in upcomingVotes
+    ]
+
+    # Ongoing votes
+    ongoing_votes_stmt = (
+        select(Vote)
+        .where(
+            and_(
+                Vote.start_date <= datetime.utcnow(),
+                Vote.end_date >= datetime.utcnow(),
+            )
+        )
+        .order_by(Vote.start_date.asc())
+        .limit(3)
+    )
+    ongoingVotes = (await db.execute(ongoing_votes_stmt)).scalars().all()
+    ongoingVotes = [
+        await VoteWithCreatorResponseModel.from_vote_id(vote.id)
+        for vote in ongoingVotes
+    ]
+
+    last_finished_vote = (
+        select(Vote)
+        .where(Vote.end_date < datetime.utcnow())
+        .order_by(Vote.end_date.desc())
+        .limit(1)
+    )
+    last_finished_vote_result = (await db.execute(last_finished_vote)).scalars().first()
+    last_vote = None
+    if last_finished_vote_result is not None:
+        last_vote = await FullVoteResponseModel.from_vote_id(
+            last_finished_vote_result.id
+        )
+    return {
+        "lastFinishedVote": last_vote,
+        "upcomingVotes": upcomingVotes,
+        "ongoingVotes": ongoingVotes,
+        "participationData": participationData,
+        "votesPerMonth": votesPerMonth,
+        "userGrowthPerMonth": userGrowthPerMonth,
+        "votesStatusPerMonth": votesStatusPerMonth,
+    }
+
+
+async def getParticipationData(db: AsyncSession):
+    """
+    Returns the total number of votes cast, total abstentions,
+    and number of users who never participated.
+    """
+
+    # 1️⃣ Total votes cast (bulletins)
+    total_votes_stmt = select(func.count()).select_from(Bulletin)
+    result = await db.execute(total_votes_stmt)
+    total_votes = result.scalar() or 0
+
+    # 2️⃣ Total abstentions
+    # User has an attributed vote, vote is finished, but no bulletin
+    finished_votes_subq = select(Vote.id).where(Vote.end_date < func.now()).subquery()
+
+    abstain_stmt = (
+        select(func.count())
+        .select_from(AttributedVote)
+        .join(Vote, AttributedVote.vote_id == Vote.id)
+        .outerjoin(
+            Bulletin,
+            (Bulletin.vote_id == AttributedVote.vote_id)
+            & (Bulletin.user_id == AttributedVote.user_id),
+        )
+        .where(Vote.end_date < func.now())
+        .where(Bulletin.vote_id.is_(None))  # no bulletin => abstained
+    )
+    result = await db.execute(abstain_stmt)
+    total_abstain = result.scalar() or 0
+
+    # 3️⃣ Users who never participated (no bulletins at all)
+    no_participation_stmt = select(func.count(User.id)).where(
+        ~User.id.in_(select(Bulletin.user_id))
+    )
+    result = await db.execute(no_participation_stmt)
+    no_participation = result.scalar() or 0
+    return {
+        "total_votes": total_votes,
+        "total_abstain": total_abstain,
+        "no_participation": no_participation,
+    }
+
+
+async def getVotesStatusPerMonth(db: AsyncSession):
+    """
+    Returns a list of months with counts of upcoming, ongoing, and finished votes.
+    Upcoming: votes starting in the month
+    Ongoing: votes active during the month
+    Finished: votes ending in the month
+    """
+
+    # We'll group by the month of the vote start date
+    month_expr = func.to_char(func.date_trunc("month", Vote.start_date), "YYYY-MM")
+
+    # Votes starting in that month
+    upcoming_count = func.count(
+        case(
+            (
+                func.date_trunc("month", Vote.start_date)
+                == func.date_trunc("month", Vote.start_date),
+                1,
+            )
+        )
+    )
+
+    # Votes ending in that month
+    finished_count = func.count(
+        case(
+            (
+                func.date_trunc("month", Vote.end_date)
+                == func.date_trunc("month", Vote.end_date),
+                1,
+            )
+        )
+    )
+
+    # Ongoing votes: votes where month overlaps with vote period
+    # We'll check: vote.start_date <= month_end AND vote.end_date >= month_start
+    ongoing_count = func.count(
+        case(
+            (
+                and_(
+                    Vote.start_date
+                    <= func.date_trunc("month", Vote.start_date)
+                    + text("interval '1 month' - interval '1 second'"),
+                    Vote.end_date >= func.date_trunc("month", Vote.start_date),
+                ),
+                1,
+            )
+        )
+    )
+
+    statement = (
+        select(
+            month_expr.label("month"),
+            upcoming_count.label("upcoming"),
+            ongoing_count.label("ongoing"),
+            finished_count.label("finished"),
+        )
+        .select_from(Vote)
+        .group_by(month_expr)
+        .order_by(month_expr)
+    )
+
+    result = await db.execute(statement)
+    votesStatusPerMonth = [dict(row) for row in result.mappings()]
+    return votesStatusPerMonth
+
+
+async def getUserGrowth(db: AsyncSession):
+    """
+    Returns number of users registered during the month and the total number of users up to that month.
+    """
+    # Expression for month in YYYY-MM format
+    month_expr = func.to_char(func.date_trunc("month", User.created_at), "YYYY-MM")
+
+    # Step 1: get monthly user counts
+    statement = (
+        select(month_expr.label("month"), func.count().label("new_users_count"))
+        .group_by(month_expr)
+        .order_by(month_expr)
+    )
+    result = await db.execute(statement)
+    monthly_counts = [dict(row) for row in result.mappings()]
+
+    # Step 2: compute cumulative totals
+    total = 0
+    for row in monthly_counts:
+        total += row["new_users_count"]
+        row["total_users"] = total
+
+    return monthly_counts
+
+
+async def getVotesPerMonth(db: AsyncSession):
+    month_expr = func.to_char(func.date_trunc("month", Vote.start_date), "YYYY-MM")
+
+    statement = (
+        select(month_expr.label("month"), func.count().label("vote_count"))
+        .select_from(Vote)
+        .group_by(month_expr)
+        .order_by(month_expr)
+    )
+    result = await db.execute(statement)
+    votesPerMonth = [dict(row) for row in result.mappings()]
+
+    return votesPerMonth

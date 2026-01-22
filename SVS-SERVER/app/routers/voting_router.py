@@ -1,17 +1,21 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Query, Request, Depends, HTTPException
+from fastcrud import FastCRUD, PaginatedListResponse, paginated_response
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
+from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
 from app.models import User, Vote, response_models
 from app.models.vote_util_models import (
     FullVoteResponseModel,
     VoteResultsModel,
     FinishedVoteResponseModel,
+    VoteCreationModel,
 )
 from app.models.voting_models import VoteInputData
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
-from app.utils import vote_utils
+from app.utils import vote_utils, response_utils
 
 router = APIRouter()
+crud = FastCRUD(model=Vote)
 
 
 @router.get(
@@ -126,9 +130,12 @@ async def get_vote_by_id(vote_id: int, request: Request):
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
 
-    finishedVote = fullVote.vote
-    if finishedVote.vote not in user.created_votes and finishedVote.vote.id not in map(
-        lambda av: av.vote.id, user.attributed_votes
+    finishedVote: FinishedVoteResponseModel = fullVote.vote
+    if (
+        user.is_admin is False
+        and finishedVote.vote not in user.created_votes
+        and finishedVote.vote.id
+        not in map(lambda av: av.vote.id, user.attributed_votes)
     ):
         logger.warning(
             f"User {user.username} tried to access vote {vote_id} without permission."
@@ -140,17 +147,37 @@ async def get_vote_by_id(vote_id: int, request: Request):
 @router.get(
     "/",
     operation_id="get_all_votes",
-    response_model=list[Vote],
+    response_model=PaginatedListResponse[Vote] | list[Vote],
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
 )
-async def get_all_votes(request: Request):
+async def get_all_votes(
+    request: Request,
+    page: int = Query(default=1),
+    per_page: int = Query(default=10),
+    search: str | None = Query(default=None),
+):
+    if request.state.user.is_admin:
+        return await response_utils.paginate(
+            crud=crud,
+            page=page,
+            per_page=per_page,
+            transformer=None,
+            search=search,
+            search_columns=["title", "description"],
+            sort_columns=["id"],
+            sort_orders=["asc"],
+        )
     user = await User.get_authenticated_user(request)
     votes = []
     votes.extend(user.created_votes)
     votes.extend(map(lambda av: av.vote, user.attributed_votes))
-    return votes
+    return paginated_response(
+        crud_data=({"data": votes, "total_count": len(votes)}),
+        page=page,
+        items_per_page=per_page,
+    )
 
 
 @router.post(
@@ -237,3 +264,21 @@ async def get_vote_count(vote_id: int, request: Request):
         abstention_count=len(vote.attributed_users) - sum(count.values()),
         voter_count=len(vote.bulletins),
     )
+
+
+@router.post(
+    "/",
+    operation_id="create_vote",
+    response_model=FullVoteResponseModel,
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+    ],
+)
+async def create_vote(
+    request: Request,
+    data: VoteCreationModel,
+):
+    user = await User.get_authenticated_user(request)
+    vote = await data.save(creator_id=user.id)
+    return vote

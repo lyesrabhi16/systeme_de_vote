@@ -17,6 +17,7 @@ Name | Type | Description | Notes
 **is_active** | **boolean** |  | [optional] [default to true]
 **is_admin** | **boolean** |  | [default to undefined]
 **requested_password_reset** | **boolean** |  | [optional] [default to false]
+**created_at** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -36,6 +37,7 @@ const instance: User = {
     is_active,
     is_admin,
     requested_password_reset,
+    created_at,
 };
 ```
 

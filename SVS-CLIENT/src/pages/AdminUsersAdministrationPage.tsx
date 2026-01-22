@@ -13,6 +13,11 @@ import { toast } from 'sonner';
 import UserActivationStateBadge from '@/components/users/UserActivationStateBadge';
 import UserTableActions from '@/components/users/UserTableActions';
 import UserInfoRow from '@/components/users/UserInfoRow';
+import UserFormModal from '@/components/users/UserFormModal';
+import InputWithIcons from '@/components/utils/InputWithIcons';
+import { LucideSearch, LucideUserPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import type { UserFormModalTypes } from '@/utils/user.utils';
 
 type UsersTableData = Pick<
   UserResponseModel,
@@ -22,9 +27,17 @@ type UsersTableData = Pick<
 const AdminsAdministrationPage = () => {
   const [usersMeta, setUsersMeta] =
     useState<PaginatedListResponseUserResponseModel>();
-  const fetchUsers = async (page: number, perPage: number) => {
+  const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
+  const [selectedUser, setSelectedUser] = useState<UserResponseModel | null>(
+    null,
+  );
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [userFormModalType, setUserFormModalType] =
+    useState<keyof typeof UserFormModalTypes>('readonly');
+
+  const fetchUsers = async (page: number, perPage: number, search?: string) => {
     try {
-      const res = await apiClient().admin.getAdmins(page, perPage);
+      const res = await apiClient().admin.getAdmins(page, perPage, search);
       setUsersMeta({
         ...res.data,
         data: res.data.data,
@@ -76,8 +89,22 @@ const AdminsAdministrationPage = () => {
       cell: ({ row }) => (
         <UserTableActions
           user={row.original as UserResponseModel}
-          successCallback={() =>
-            fetchUsers(usersMeta?.page ?? 1, usersMeta?.items_per_page ?? 10)
+          onView={(user) => {
+            setUserFormModalType('readonly');
+            setSelectedUser(user);
+            setIsUserModalOpen(true);
+          }}
+          onEdit={(user) => {
+            setUserFormModalType('default');
+            setSelectedUser(user);
+            setIsUserModalOpen(true);
+          }}
+          onUserUpdated={() =>
+            fetchUsers(
+              usersMeta?.page ?? 1,
+              usersMeta?.items_per_page ?? 10,
+              searchValue,
+            )
           }
         />
       ),
@@ -87,16 +114,52 @@ const AdminsAdministrationPage = () => {
   return (
     <AppContainer admin noBreadcrumbs>
       <Breadcrumbs />
+      <UserFormModal
+        type={userFormModalType}
+        user={selectedUser as UserResponseModel}
+        open={isUserModalOpen}
+        onOpenChange={(open) => {
+          setIsUserModalOpen(open);
+          if (!open) {
+            setSelectedUser(null);
+          }
+        }}
+      />
       <div className='w-full p-8'>
-        <div className='mb-6'>
-          <h2 className='text-2xl font-bold'>Administrateurs</h2>
-          <p className='text-sm text-muted-foreground'>
-            Gérer les comptes administrateurs
-          </p>
+        <div className='mb-6 flex flex-row flex-wrap items-center justify-between gap-4'>
+          <div>
+            <h2 className='text-2xl font-bold'>Administrateurs</h2>
+            <p className='text-sm text-muted-foreground'>
+              Gérer les comptes administrateurs
+            </p>
+          </div>
+        </div>
+        <div className='flex flex-row items-center justify-between mb-4'>
+          <InputWithIcons
+            LeftIcon={LucideSearch}
+            input_props={{
+              placeholder: 'Search...',
+              value: searchValue,
+              onChange: (e) => setSearchValue(e.target.value),
+            }}
+            input_group_props={{
+              className: 'max-w-[300px]',
+            }}
+          />
+          <UserFormModal
+            type='add'
+            admin={true}
+            trigger={
+              <Button>
+                <LucideUserPlus /> Ajouter un administrateur
+              </Button>
+            }
+          />
         </div>
         <DataTable
           columns={cols}
           data={usersMeta?.data ?? []}
+          search={searchValue}
           metadata={{
             data: usersMeta?.data ?? [],
             page: usersMeta?.page ?? 1,
@@ -111,6 +174,13 @@ const AdminsAdministrationPage = () => {
               desc: false,
             },
           ]}
+          onRowDoubleClick={(user_row) => {
+            const user = usersMeta?.data.find((u) => u.id === user_row.id);
+            if (user) {
+              setSelectedUser(user);
+              setIsUserModalOpen(true);
+            }
+          }}
         />
       </div>
     </AppContainer>

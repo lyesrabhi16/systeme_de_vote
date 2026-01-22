@@ -37,7 +37,7 @@ const LoginCard = () => {
     mode: 'onBlur',
     defaultValues: {
       email: '',
-      password: '',
+      password: undefined,
       remember_me: false,
     },
   });

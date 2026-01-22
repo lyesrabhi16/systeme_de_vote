@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **string** |  | [default to undefined]
 **masked_email** | **string** |  | [default to undefined]
+**first_login** | **boolean** |  | [default to undefined]
 
 ## Example
 
@@ -16,6 +17,7 @@ import { SuccessfulUserLoginResponseModel } from './api';
 const instance: SuccessfulUserLoginResponseModel = {
     id,
     masked_email,
+    first_login,
 };
 ```
 

@@ -22,24 +22,34 @@ export const useBreadCrumbs = (props?: {
       ].filter((i) => i !== undefined)
     : [];
   if (props?.additionalLabel) {
+    console.log('pushing additional Label: ', props.additionalLabel);
+
     breadCrumbs.push(props.additionalLabel());
   }
 
   // jsx components for breadCrumbs
   const component = () => {
+    console.log('breadCrumbs:', breadCrumbs);
     return (
       <Breadcrumb className='w-full px-4 py-2 text-muted-foreground rounded-md'>
         <BreadcrumbList>
-          {breadCrumbs.map((item, index) => (
-            <div key={item.label} className='flex flex-row items-center gap-2'>
-              <BreadcrumbItem key={item.label}>
-                <BreadcrumbLink asChild>
-                  <Link to={item.links[0]}>{item.label}</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              {index < breadCrumbs.length - 1 && <BreadcrumbSeparator />}
-            </div>
-          ))}
+          {breadCrumbs.map((item, index) => {
+            console.log(item);
+
+            return (
+              <div
+                key={item.label}
+                className='flex flex-row items-center gap-2'
+              >
+                <BreadcrumbItem key={item.label}>
+                  <BreadcrumbLink asChild>
+                    <Link to={item.links[0]}>{item.label}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                {index < breadCrumbs.length - 1 && <BreadcrumbSeparator />}
+              </div>
+            );
+          })}
         </BreadcrumbList>
       </Breadcrumb>
     );

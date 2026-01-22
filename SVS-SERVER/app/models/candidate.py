@@ -2,6 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from .vote import Vote
+from pydantic import BaseModel
 
 
 class Candidate(SQLModel, table=True):
@@ -28,6 +29,14 @@ class Candidate(SQLModel, table=True):
         await db.commit()
         await db.refresh(self)
 
+    @db_session
+    async def delete(self, db: AsyncSession | None = None) -> None:
+        """Delete the candidate from the database."""
+        if db is None:
+            raise ValueError("Database session is None")
+        await db.delete(self)
+        await db.commit()
+
     @staticmethod
     @db_session
     async def get_by_id(candidate_id: int, db: AsyncSession | None = None):
@@ -36,3 +45,16 @@ class Candidate(SQLModel, table=True):
             raise ValueError("Database session is None")
         candidate = await db.get(Candidate, candidate_id)
         return candidate
+
+
+class CandidateCreateModel(BaseModel):
+    first_name: str
+    last_name: str
+    photo_url: str | None = None
+    vote_id: int | None = None
+
+
+class CandidateUpdateModel(BaseModel):
+    first_name: str
+    last_name: str
+    photo_url: str | None = None

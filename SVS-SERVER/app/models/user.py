@@ -24,6 +24,9 @@ class User(SQLModel, table=True):
     requested_password_reset: bool = Field(
         default=False, title="Requested Password Reset"
     )
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.utcnow(), title="Created At"
+    )
 
     # créer
     created_votes: list["Vote"] = Relationship(
@@ -206,6 +209,7 @@ class CurrentUserResponseModel(BaseModel):
 class SuccessfulUserLoginResponseModel(BaseModel):
     id: str
     masked_email: str
+    first_login: bool
 
     @staticmethod
     async def from_user(user: User) -> "SuccessfulUserLoginResponseModel":
@@ -213,7 +217,9 @@ class SuccessfulUserLoginResponseModel(BaseModel):
         encrypted_email = auth_utils.encrypt_string(user.email)
         encrypted_id = await auth_utils.generate_temp_url_safe_string(encrypted_email)
         return SuccessfulUserLoginResponseModel(
-            id=encrypted_id, masked_email=masked_email
+            id=encrypted_id,
+            masked_email=masked_email,
+            first_login=user.password is None,
         )
 
     @staticmethod

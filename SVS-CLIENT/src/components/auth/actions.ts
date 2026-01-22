@@ -56,6 +56,14 @@ export const useAuthActions = (init_data?: {
             .login_otp_step({ otp: data.otp, id: data.id, remember_me: store.get_temp_data('remember_me') as boolean || false })
             .then(() => {
                 console.log('Login OTP verification step successful');
+                const first_login = store.get_temp_data('first_login') as boolean || false;
+                if (first_login) {
+                    navigate(routes.RESET_PASSWORD);
+                    toast.success(
+                        'Authentification réussie, veuillez changer votre mot de passe',
+                    );
+                    return;
+                }
                 navigate(routes.HOME);
                 toast.success(
                     'Authentification réussie, vous êtes maintenant connecté',
@@ -121,6 +129,7 @@ export const useAuthActions = (init_data?: {
                 navigate(`${routes.OTP_VERIFICATION}/${d.id}`);
                 store.set_temp_data('login_data', d);
                 store.set_temp_data('remember_me', data.remember_me || false);
+                store.set_temp_data('first_login', d.first_login || false);
                 console.log('Login password step successful:', d.id);
                 toast.success('Connexion réussie, veuillez vérifier votre OTP');
             })

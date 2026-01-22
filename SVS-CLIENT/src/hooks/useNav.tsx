@@ -10,21 +10,26 @@ const linkMatch = (links: string[], path: string): boolean => {
     // dynamic route match (e.g., /vote/:voteId)
     const linkParts = link.split('/').filter((part) => part.length > 0);
     const pathParts = path.split('/').filter((part) => part.length > 0);
-    if (linkParts.length === pathParts.length) {
-      let isMatch = true;
-      for (let i = 0; i < linkParts.length; i++) {
-        if (linkParts[i].startsWith(':')) {
-          continue; // dynamic part
-        }
-        if (linkParts[i] !== pathParts[i]) {
-          isMatch = false;
-          break;
-        }
+    //console.log('linkParts:', linkParts, 'pathParts:', pathParts);
+    let isMatch = true;
+    for (let i = 0; i < linkParts.length; i++) {
+      if (i >= pathParts.length && linkParts[i].endsWith('?')) {
+        //console.log('link_match: dynamic optional part missing but ok:', link, path);
+        continue;
       }
-      if (isMatch) {
-        //console.log('link_match: dynamic match:', link, path);
-        return true;
+      if (linkParts[i].startsWith(':')) {
+        //console.log('link_match: dynamic part match:', link, path);
+        continue; // dynamic part
       }
+      if (linkParts[i] !== pathParts[i]) {
+        //console.log('link_match: dynamic no match:', link, path);
+        isMatch = false;
+        break;
+      }
+    }
+    if (isMatch) {
+      //console.log('link_match: dynamic match:', link, path);
+      return true;
     }
   }
   return false;
@@ -35,14 +40,14 @@ export const useNav: (props?: { admin?: boolean }) => {
   currentNavItemIndex: number;
 } = (props?: { admin?: boolean }) => {
   const _navItems = [
-    { label: 'Home', links: [routes.HOME] },
-    { label: 'About', links: [routes.ABOUT] },
-    { label: 'Contact', links: [routes.CONTACT] },
+    { label: 'Home', links: [routes.HOME], hidden: false },
+    { label: 'About', links: [routes.ABOUT], hidden: false },
+    { label: 'Contact', links: [routes.CONTACT], hidden: false },
     { label: 'Vote', links: [routes.VOTE], hidden: true },
   ];
 
   const AdminNavItems = [
-    { label: 'Dashboard', links: [routes.ADMIN] },
+    { label: 'Dashboard', links: [routes.ADMIN], hidden: false },
     {
       label: 'Users',
       links: [
@@ -50,10 +55,16 @@ export const useNav: (props?: { admin?: boolean }) => {
         routes.USERS_ADMINISTRATION,
         routes.ADMIN_ADMINISTRATION,
       ],
+      hidden: false,
+    },
+    {
+      label: 'Votes',
+      links: [routes.VOTES_ADMINISTRATION, routes.VOTE_ADMINISTRATION],
+      hidden: false,
     },
   ];
 
-  const navItems = props?.admin ? AdminNavItems : _navItems;
+  const navItems: NavItemType[] = props?.admin ? AdminNavItems : _navItems;
 
   const path = window.location.pathname;
   let currentNavItem: NavItemType | undefined = undefined;

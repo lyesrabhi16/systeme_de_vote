@@ -80,3 +80,11 @@ class ERROR_CODES(dict, Enum):
         code="EMAIL_ALREADY_EXISTS",
         message="Email already exists",
     )
+    PHONE_NUMBER_ALREADY_EXISTS = ErrorCodeModel(
+        code="PHONE_NUMBER_ALREADY_EXISTS",
+        message="Phone number already exists",
+    )
+    USERNAME_ALREADY_EXISTS = ErrorCodeModel(
+        code="USERNAME_ALREADY_EXISTS",
+        message="Username already exists",
+    )

@@ -87,6 +87,9 @@ async def verify_otp(data: OTPVerificationModel, response: Response):
         samesite="strict" if env.ENV_MODE == ENV_MODES.PRODUCTION else "lax",
         max_age=env.JWT_EXPIRATION if data.remember_me else None,
     )
+    if not user.verified_email:
+        user.verified_email = True
+        await user.save()
     return TokenResponse(token=token)
 
 
@@ -173,7 +176,6 @@ async def password_reset_request(data: PasswordResetRequestModel):
 @router.post(
     "/password-reset/validate",
     response_model=response_models.MessageResponse,
-    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="validate_password_reset",
 )
 async def validate_password_reset_otp(data: PasswordResetOTPModel, response: Response):

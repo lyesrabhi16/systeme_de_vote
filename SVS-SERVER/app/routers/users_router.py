@@ -28,10 +28,10 @@ async def create_user(request: Request, user_data: UserCreationModel):
         f"Admin {request.state.user.username} is attempting to create a new user."
     )
     user = User(
-        first_name=user_data.first_name,
-        last_name=user_data.last_name,
-        username=user_data.username,
-        email=user_data.email,
+        first_name=user_data.first_name.capitalize().strip(),
+        last_name=user_data.last_name.upper().strip(),
+        username=user_data.username.lower().strip(),
+        email=user_data.email.lower().strip(),
         phone_number=user_data.phone_number,
         is_admin=user_data.is_admin,
         requested_password_reset=False if user_data.password else True,
@@ -47,14 +47,25 @@ async def create_user(request: Request, user_data: UserCreationModel):
         return await UserResponseModel.from_user(user)
     except IntegrityError as e:
         logger.error(f"IntegrityError while creating user: {e}")
-        if (
-            ("email" in str(e.orig))
-            or ("phone_number" in str(e.orig))
-            or ("username" in str(e.orig))
-        ):
+        if "user_email_key" in str(e.orig):
             raise HTTPException(
                 status_code=409,
                 detail=ERROR_CODES.EMAIL_ALREADY_EXISTS,
+            )
+        elif "user_phone_number_key" in str(e.orig):
+            raise HTTPException(
+                status_code=409,
+                detail=ERROR_CODES.PHONE_NUMBER_ALREADY_EXISTS,
+            )
+        elif "user_username_key" in str(e.orig):
+            raise HTTPException(
+                status_code=409,
+                detail=ERROR_CODES.USERNAME_ALREADY_EXISTS,
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=ERROR_CODES.INTERNAL_SERVER_ERROR,
             )
 
 

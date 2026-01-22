@@ -16,4 +16,5 @@ export const UserFormSchema = z.object({
     phone_number: z.string().min(10, { message: "Le numéro de téléphone doit contenir au moins 10 chiffres" }),
     verified_phone_number: z.boolean().optional(),
     is_admin: z.boolean().optional(),
+    password: passwordSchema.optional(),
 });

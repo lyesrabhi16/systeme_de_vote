@@ -4,6 +4,7 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**createVote**](#createvote) | **POST** /vote/ | Create Vote|
 |[**getAllVotes**](#getallvotes) | **GET** /vote/ | Get All Votes|
 |[**getAlreadyVotedOnVotes**](#getalreadyvotedonvotes) | **GET** /vote/voted | Get Already Voted On Votes|
 |[**getAttributedVotes**](#getattributedvotes) | **GET** /vote/attributed | Get Attributed Votes|
@@ -15,8 +16,60 @@ All URIs are relative to *http://localhost*
 |[**getVoteResult**](#getvoteresult) | **GET** /vote/result/{vote_id}/ | Get Vote Result|
 |[**vote**](#vote) | **POST** /vote/{vote_id}/ | Vote|
 
+# **createVote**
+> FullVoteResponseModel createVote(voteCreationModel)
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration,
+    VoteCreationModel
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteCreationModel: VoteCreationModel; //
+
+const { status, data } = await apiInstance.createVote(
+    voteCreationModel
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteCreationModel** | **VoteCreationModel**|  | |
+
+
+### Return type
+
+**FullVoteResponseModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getAllVotes**
-> Array<Vote> getAllVotes()
+> ResponseGetAllVotes getAllVotes()
 
 
 ### Example
@@ -30,16 +83,29 @@ import {
 const configuration = new Configuration();
 const apiInstance = new VoteApi(configuration);
 
-const { status, data } = await apiInstance.getAllVotes();
+let page: number; // (optional) (default to 1)
+let perPage: number; // (optional) (default to 10)
+let search: string; // (optional) (default to undefined)
+
+const { status, data } = await apiInstance.getAllVotes(
+    page,
+    perPage,
+    search
+);
 ```
 
 ### Parameters
-This endpoint does not have any parameters.
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **page** | [**number**] |  | (optional) defaults to 1|
+| **perPage** | [**number**] |  | (optional) defaults to 10|
+| **search** | [**string**] |  | (optional) defaults to undefined|
 
 
 ### Return type
 
-**Array<Vote>**
+**ResponseGetAllVotes**
 
 ### Authorization
 
@@ -55,6 +121,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

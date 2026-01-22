@@ -71,6 +71,7 @@ const PasswordResetCard = (props: { uid: string; otp: string }) => {
                     input_props={{
                       ...field,
                       'aria-invalid': fieldState.invalid,
+                      type: 'password',
                       id: 'password1',
                       /* type:
                           data.IdentifierType === IdentifierType.Email

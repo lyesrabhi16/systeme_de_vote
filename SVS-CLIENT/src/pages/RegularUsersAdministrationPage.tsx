@@ -19,7 +19,7 @@ import { LucideSearch, LucideUserPlus } from 'lucide-react';
 import InputWithIcons from '@/components/utils/InputWithIcons';
 import type { UserFormModalTypes } from '@/utils/user.utils';
 
-type UsersTableData = Pick<
+export type UsersTableData = Pick<
   UserResponseModel,
   'id' | 'first_name' | 'last_name' | 'email' | 'is_active'
 >;
@@ -167,6 +167,7 @@ const RegularUsersAdministrationPage = () => {
         <DataTable
           columns={cols}
           data={usersMeta?.data ?? []}
+          search={searchValue}
           metadata={{
             data: usersMeta?.data ?? [],
             page: usersMeta?.page ?? 1,
@@ -182,9 +183,7 @@ const RegularUsersAdministrationPage = () => {
             },
           ]}
           onRowDoubleClick={(user_row) => {
-            console.log('clicked', user_row);
             const user = usersMeta?.data.find((u) => u.id === user_row.id);
-            console.log('double clicked user row: ', user);
             if (user) {
               setSelectedUser(user);
               setIsUserModalOpen(true);
