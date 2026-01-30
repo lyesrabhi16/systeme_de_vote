@@ -7,6 +7,9 @@ common.ts
 configuration.ts
 docs/AdminApi.md
 docs/AuthApi.md
+docs/BlindSignatureRequestModel.md
+docs/BlindSignatureResponseModel.md
+docs/BooleanResponse.md
 docs/Bulletin.md
 docs/Candidate.md
 docs/CandidateCreateModel.md
@@ -22,11 +25,13 @@ docs/IdentifierType.md
 docs/MessageResponse.md
 docs/OTPResendRequestModel.md
 docs/OTPVerificationModel.md
+docs/PaginatedListResponseBulletin.md
 docs/PaginatedListResponseUserResponseModel.md
 docs/PaginatedListResponseVote.md
 docs/ParticipationDataResponseModel.md
 docs/PasswordResetOTPModel.md
 docs/PasswordResetRequestModel.md
+docs/RequiredTokenInput.md
 docs/ResponseGetAllVotes.md
 docs/SuccessfulUserLoginResponseModel.md
 docs/TokenInput.md
@@ -42,8 +47,8 @@ docs/ValidationError.md
 docs/ValidationErrorLocInner.md
 docs/Vote.md
 docs/VoteApi.md
+docs/VoteCastData.md
 docs/VoteCreationModel.md
-docs/VoteInputData.md
 docs/VoteResultsModel.md
 docs/VoteStatusPerMonthResponseModel.md
 docs/VoteWithCreatorResponseModel.md

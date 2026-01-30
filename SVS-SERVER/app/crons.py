@@ -40,23 +40,28 @@ class CronsInstance:
                     )
                     continue
                 self.votes_in_progress.add(vote.id)
-                if vote.id is None:
-                    logger.error(f"Vote ID is None for vote: {vote}")
-                    continue
-                logger.info(f"Counting votes for vote ID {vote.id}")
-                vote_count, failures = await get_vote_count(vote.id)
-                vote.has_been_counted = True
-                for candidate_id, count in vote_count.items():
-                    logger.info(f"Candidate ID {candidate_id} received {count} votes")
-                    candidate = await db.get(Candidate, candidate_id)
-                    if candidate:
-                        candidate.vote_count += count
-                    else:
-                        logger.error(f"Candidate ID {candidate_id} not found")
-                if failures:
-                    logger.warning(
-                        f"Failed to count votes for vote ID {vote.id}: {failures}"
-                    )
+                try:
+                    if vote.id is None:
+                        logger.error(f"Vote ID is None for vote: {vote}")
+                        continue
+                    logger.info(f"Counting votes for vote ID {vote.id}")
+                    vote_count, failures = await get_vote_count(vote.id)
+                    vote.has_been_counted = True
+                    for candidate_id, count in vote_count.items():
+                        logger.info(
+                            f"Candidate ID {candidate_id} received {count} votes"
+                        )
+                        candidate = await db.get(Candidate, candidate_id)
+                        if candidate:
+                            candidate.vote_count += count
+                        else:
+                            logger.error(f"Candidate ID {candidate_id} not found")
+                    if failures:
+                        logger.warning(
+                            f"Failed to count votes for vote ID {vote.id}: {failures}"
+                        )
+                except Exception as e:
+                    logger.error(f"Error counting votes for vote ID {vote.id}: {e}")
                 self.votes_in_progress.remove(vote.id)
             await db.commit()
 

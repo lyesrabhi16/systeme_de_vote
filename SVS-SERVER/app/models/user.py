@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship, select
 from pydantic import BaseModel
 from app.db.db import db_session
-from app.models.voting_models import VoteInputData
+from app.models.voting_models import VoteCastData
 from app.utils import auth_utils
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, Request
@@ -32,10 +32,6 @@ class User(SQLModel, table=True):
     created_votes: list["Vote"] = Relationship(
         back_populates="creator",
         sa_relationship_kwargs={"lazy": "selectin"},  # async safe
-    )
-    # voter
-    bulletins: list["Bulletin"] = Relationship(
-        back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
     )
     # peut_voter
     attributed_votes: list["AttributedVote"] = Relationship(
@@ -69,53 +65,36 @@ class User(SQLModel, table=True):
         return user
 
     @db_session
-    async def has_voted_on(self, vote: "Vote", db: AsyncSession | None = None) -> bool:
+    async def has_voted_on(
+        self, vote: "Vote", token: str, db: AsyncSession | None = None
+    ) -> bool:
         """Check if the user has voted on a specific vote."""
+        from app.models import Bulletin, AttributedVote
+
         if db is None:
             raise ValueError("Database session is None")
-        if not self.is_active:
-            raise HTTPException(
-                status_code=403,
-                detail="User is not active and cannot vote",
+        # check attributed vote
+        attributed_vote = await db.get(AttributedVote, (self.id, vote.id))
+        if attributed_vote is None:
+            logger.warning(
+                f"AttributedVote not found for user_id={self.id} and vote_id={vote.id} and check for user_has_voted_on has been initiated."
             )
-        logger.debug(f"user votes: {[b.vote.id for b in self.bulletins]}")
-        has_voted = any(b.vote == vote for b in self.bulletins)
-        logger.info(
-            f"User {self.id} has {'not ' if not has_voted else ''}voted on vote {vote.id}"
+            return False
+        if not attributed_vote.user_has_voted:
+            return False
+        # check bulletin with token
+        result = await db.execute(
+            select(Bulletin).where(
+                Bulletin.vote_id == vote.id,
+                Bulletin.voting_token == token,
+            )
         )
+        bulletin = result.scalars().first()
+        has_voted = bulletin is not None
+        if has_voted:
+            attributed_vote.user_has_voted = True
+            await attributed_vote.save()
         return has_voted
-
-    @db_session
-    async def vote_on(
-        self, vote: "Vote", data: VoteInputData, db: AsyncSession | None = None
-    ):
-        """Vote on a vote."""
-        from app.models.bulletin import Bulletin
-
-        if db is None:
-            raise ValueError("Database session is None")
-        if not self.is_active:
-            raise HTTPException(
-                status_code=403,
-                detail="User is not active and cannot vote",
-            )
-        can_vote = self in vote.attributed_users and not self.has_voted_on(vote)
-        if not self.is_admin and not can_vote:
-            raise HTTPException(
-                status_code=403,
-                detail="User is not allowed to vote on this vote",
-            )
-
-        bulletin = Bulletin(
-            user_id=self.id,
-            vote_id=vote.id,
-            content=auth_utils.encrypt_string(data.content),
-            date=datetime.now(),
-        )
-        db.add(bulletin)
-        await db.commit()
-
-        logger.info(f"User {self.id} voted on vote {vote.id}")
 
     @db_session
     async def save(self, db: AsyncSession | None = None) -> None:
@@ -203,7 +182,33 @@ class CurrentUserResponseModel(BaseModel):
     verified_phone_number: bool
     is_active: bool
     is_admin: bool
+    unique_hash: str
     requested_password_reset: bool
+
+    @staticmethod
+    def from_user(user: User) -> "CurrentUserResponseModel":
+        if user.id is None:
+            raise ValueError("User ID is None")
+        unique_hash = auth_utils.generate_unique_hash(
+            user_id=str(user.id),
+            email=user.email,
+            created_at=user.created_at,
+            password=user.password,
+        )
+        return CurrentUserResponseModel(
+            id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            email=user.email,
+            verified_email=user.verified_email,
+            username=user.username,
+            phone_number=user.phone_number,
+            verified_phone_number=user.verified_phone_number,
+            is_active=user.is_active,
+            is_admin=user.is_admin,
+            unique_hash=unique_hash,
+            requested_password_reset=user.requested_password_reset,
+        )
 
 
 class SuccessfulUserLoginResponseModel(BaseModel):

@@ -145,7 +145,7 @@ async def get_current_user(request: Request, data: Optional[TokenInput]):
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
     if user.is_active is False:
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
-    return user
+    return CurrentUserResponseModel.from_user(user)
 
 
 @router.post(

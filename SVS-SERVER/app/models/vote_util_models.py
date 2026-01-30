@@ -9,10 +9,13 @@ from app.models.attributed_votes import AttributedVote
 from .vote import Vote, VoteWithCreatorResponseModel
 from .candidate import Candidate, CandidateCreateModel
 from datetime import datetime
+from loguru import logger
 
 
 class FinishedVoteResponseModel(SQLModel):
     vote: VoteWithCreatorResponseModel
+    tally_proof: str | None = None
+    encrypted_tally: str | None = None
     total_bulletins: int
     candidate_results: dict[int, int]  # candidate_id -> number of votes
     abstention_count: int
@@ -57,18 +60,19 @@ class FinishedVoteResponseModel(SQLModel):
         return FinishedVoteResponseModel(
             vote=vote_with_creator,
             total_bulletins=len(vote.bulletins),
+            encrypted_tally=vote.encrypted_tally,
+            tally_proof=vote.tally_proof,
             candidate_results={
                 candidate.id: candidate.vote_count for candidate in vote.candidates
             },
             abstention_count=(
-                len({u.user_id for u in vote.attributed_users})
+                len({av.user_id for av in vote.attributed_users})
                 - len({bulletin.user_id for bulletin in vote.bulletins})
             ),
             voter_count=len({bulletin.user_id for bulletin in vote.bulletins}),
             user_has_voted=(
-                user.id in {bulletin.user_id for bulletin in vote.bulletins}
-                if user
-                else False
+                #! fix the user_has_voted check
+                False
             ),
             candidates=vote.candidates,
         )
@@ -93,7 +97,8 @@ class FullVoteResponseModel(SQLModel):
         if finishedVote is None or vote is None:
             return None
         finishedVote.user_has_voted = (
-            any(b.vote_id == vote.id for b in user.bulletins) if user else False
+            #! fix the user_has_voted check
+            False
         )
         return FullVoteResponseModel(
             vote=finishedVote,
@@ -156,10 +161,12 @@ class VoteCreationModel(SQLModel):
 
         excluded_ids = set(self.excluded_user_ids or [])
         final_user_ids = attributed_ids - excluded_ids
-
+        logger.info(
+            f"Vote {vote.id} attributed to users: {final_user_ids} (excluded: {excluded_ids})"
+        )
         if final_user_ids:
             db.add_all(
-                [AttributedVote(user_id=id, vote_id=vote.id) for id in final_user_ids]
+                [AttributedVote(user_id=_id, vote_id=vote.id) for _id in final_user_ids]
             )
         await db.commit()
         await db.refresh(vote)

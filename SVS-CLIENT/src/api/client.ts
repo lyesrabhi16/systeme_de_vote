@@ -83,8 +83,8 @@ AxiosInstance.interceptors.response.use(
 
 const getConfigParams = (): ConfigurationParameters => {
     return {
-        //basePath: 'http://localhost:8000',
-        basePath: 'https://svs-server.localhost',
+        basePath: 'http://localhost:8000',
+        //basePath: 'https://svs-server.localhost',
         baseOptions: {
             headers: {
                 'Content-Type': 'application/json',

@@ -2,20 +2,28 @@ from fastapi import APIRouter, Query, Request, Depends, HTTPException
 from fastcrud import FastCRUD, PaginatedListResponse, paginated_response
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
-from app.models import User, Vote, response_models
+from app.models import User, Vote, Bulletin, response_models
+from app.models.attributed_votes import AttributedVote
+from app.models import auth_models
 from app.models.vote_util_models import (
     FullVoteResponseModel,
     VoteResultsModel,
     FinishedVoteResponseModel,
     VoteCreationModel,
 )
-from app.models.voting_models import VoteInputData
+from app.models.voting_models import (
+    BlindSignatureRequestModel,
+    BlindSignatureResponseModel,
+    VoteCastData,
+)
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
-from app.utils import vote_utils, response_utils
+from app.utils import auth_utils, vote_utils, response_utils
+from app.utils.response_utils import paginate
 
 router = APIRouter()
 crud = FastCRUD(model=Vote)
+bulletins_crud = FastCRUD(model=Bulletin)
 
 
 @router.get(
@@ -181,19 +189,82 @@ async def get_all_votes(
 
 
 @router.post(
-    "/{vote_id}/",
-    operation_id="vote",
-    response_model=response_models.MessageResponse,
+    "/{vote_id}/blind-signature/",
+    operation_id="request_blind_signature",
+    response_model=BlindSignatureResponseModel,
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
 )
-async def vote(
+async def request_blind_signature(
     request: Request,
     vote_id: int,
-    data: VoteInputData,
+    data: BlindSignatureRequestModel,
 ):
     user = await User.get_authenticated_user(request)
+    vote = await Vote.get_by_id(vote_id)
+
+    if not vote:
+        logger.warning(f"Vote with id {vote_id} not found.")
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+
+    if vote.is_vote_finished():
+        logger.warning(f"Vote with id {vote_id} is already finished.")
+        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED)
+
+    if user.id not in map(lambda av: av.user_id, vote.attributed_users):
+        logger.warning(f"User {user.username} is not attributed to vote {vote_id}.")
+        raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
+
+    attributed_vote = await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id)
+
+    if not attributed_vote:
+        logger.error(
+            f"AttributedVote not found for user {user.username} and vote {vote_id}."
+        )
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+    if attributed_vote.signature_issued:
+        logger.warning(
+            f"User {user.username} has already requested a blind signature for vote {vote_id}."
+        )
+        raise HTTPException(
+            status_code=400, detail=ERROR_CODES.BLIND_SIGNATURE_ALREADY_ISSUED
+        )
+
+    blind_signature = await vote_utils.generate_blind_signature(
+        auth_utils.decrypt_string(vote.encrypted_private_key),
+        int(data.blinded_message),
+    )
+    logger.debug(
+        f"Generated blind signature for user {user.username} on vote {vote_id}. Blind signature: {blind_signature}"
+    )
+
+    attributed_vote.signature_issued = True
+    attributed_vote.blind_signature = str(blind_signature)
+    attributed_vote.blinded_token_hash = auth_utils.hash_string(
+        str(data.blinded_message)
+    )
+    await attributed_vote.save()
+    b = BlindSignatureResponseModel(
+        blind_signature=str(blind_signature),
+        blinded_message=str(data.blinded_message),
+    )
+    logger.debug(
+        f"Returning blind signature response for user {user.username} on vote {vote_id}: {b}"
+    )
+    return b
+
+
+@router.post(
+    "/cast/{vote_id}",
+    operation_id="cast_vote",
+    response_model=response_models.MessageResponse,
+)
+async def cast_vote(
+    request: Request,
+    vote_id: int,
+    data: VoteCastData,
+):
     vote = await Vote.get_by_id(vote_id)
     if not vote:
         logger.warning(f"Vote with id {vote_id} not found.")
@@ -203,12 +274,46 @@ async def vote(
         logger.warning(f"Vote with id {vote_id} is already finished.")
         raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED)
 
-    if await user.has_voted_on(vote):
-        logger.warning(f"User {user.username} has already voted on vote {vote_id}.")
-        raise HTTPException(status_code=400, detail=ERROR_CODES.ALREADY_VOTED)
+    # Verify the blind signature and token
+    is_valid = await vote_utils.verify_blind_signature(
+        vote_id=vote_id,
+        blinded_token=int(data.token),
+        blind_signature=int(data.signature),
+        public_key=vote.public_key,
+    )
+    if not is_valid:
+        logger.warning(f"Invalid blind signature or token for vote {vote_id} by user.")
+        raise HTTPException(status_code=400, detail=ERROR_CODES.BAD_REQUEST)
 
-    await user.vote_on(vote, data)
+    #
+    await vote.register_vote(data)
     return response_models.MessageResponse(message="Vote recorded successfully.")
+
+
+@router.get(
+    "/bulletins/{vote_id}/",
+    operation_id="get_vote_bulletins",
+    response_model=PaginatedListResponse[Bulletin],
+    dependencies=[],
+)
+async def get_public_vote_bulletins(
+    vote_id: int,
+    page: int = Query(1, ge=1),
+    items_per_page: int = Query(10, ge=1),
+):
+    vote = await Vote.get_by_id(vote_id)
+    if not vote:
+        logger.warning(f"Vote with id {vote_id} not found.")
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+
+    return await paginate(
+        crud=bulletins_crud,
+        page=page,
+        per_page=items_per_page,
+        sort_columns=["id"],
+        sort_orders=["asc"],
+        vote_id=vote_id,
+    )
 
 
 @router.get(
@@ -282,3 +387,25 @@ async def create_vote(
     user = await User.get_authenticated_user(request)
     vote = await data.save(creator_id=user.id)
     return vote
+
+
+@router.post(
+    "/check/{vote_id}/user-voted",
+    operation_id="check_if_user_voted_on_vote",
+    response_model=response_models.BooleanResponse,
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+    ],
+)
+async def check_if_user_voted_on_vote(
+    vote_id: int, data: auth_models.RequiredTokenInput, request: Request
+):
+    user = await User.get_authenticated_user(request)
+    vote = await Vote.get_by_id(vote_id)
+
+    if not vote:
+        logger.warning(f"Vote with id {vote_id} not found.")
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+
+    has_voted = await user.has_voted_on(vote, token=data.token)
+    return response_models.BooleanResponse(result=has_voted)

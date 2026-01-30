@@ -1,18 +1,22 @@
-# VoteInputData
+# VoteCastData
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**token** | **string** |  | [default to undefined]
+**signature** | **string** |  | [default to undefined]
 **content** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { VoteInputData } from './api';
+import { VoteCastData } from './api';
 
-const instance: VoteInputData = {
+const instance: VoteCastData = {
+    token,
+    signature,
     content,
 };
 ```

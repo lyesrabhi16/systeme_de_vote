@@ -463,56 +463,6 @@
                         }
                     }
                 }
-            },
-            "post": {
-                "tags": [
-                    "vote"
-                ],
-                "summary": "Vote",
-                "operationId": "vote",
-                "parameters": [
-                    {
-                        "name": "vote_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "title": "Vote Id"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/VoteInputData"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/MessageResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
             }
         },
         "/vote/": {
@@ -634,6 +584,174 @@
                 }
             }
         },
+        "/vote/{vote_id}/blind-signature/": {
+            "post": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Request Blind Signature",
+                "operationId": "request_blind_signature",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BlindSignatureRequestModel"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlindSignatureResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/cast/{vote_id}": {
+            "post": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Cast Vote",
+                "operationId": "cast_vote",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoteCastData"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/bulletins/{vote_id}/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Public Vote Bulletins",
+                "operationId": "get_vote_bulletins",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "title": "Page"
+                        }
+                    },
+                    {
+                        "name": "items_per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 10,
+                            "title": "Items Per Page"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedListResponse_Bulletin_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/vote/result/{vote_id}/": {
             "get": {
                 "tags": [
@@ -701,6 +819,58 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/VoteResultsModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vote/check/{vote_id}/user-voted": {
+            "post": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Check If User Voted On Vote",
+                "operationId": "check_if_user_voted_on_vote",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RequiredTokenInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BooleanResponse"
                                 }
                             }
                         }
@@ -1359,9 +1529,53 @@
     },
     "components": {
         "schemas": {
+            "BlindSignatureRequestModel": {
+                "properties": {
+                    "blinded_message": {
+                        "type": "string",
+                        "title": "Blinded Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "blinded_message"
+                ],
+                "title": "BlindSignatureRequestModel"
+            },
+            "BlindSignatureResponseModel": {
+                "properties": {
+                    "blinded_message": {
+                        "type": "string",
+                        "title": "Blinded Message"
+                    },
+                    "blind_signature": {
+                        "type": "string",
+                        "title": "Blind Signature"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "blinded_message",
+                    "blind_signature"
+                ],
+                "title": "BlindSignatureResponseModel"
+            },
+            "BooleanResponse": {
+                "properties": {
+                    "result": {
+                        "type": "boolean",
+                        "title": "Result"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "result"
+                ],
+                "title": "BooleanResponse"
+            },
             "Bulletin": {
                 "properties": {
-                    "user_id": {
+                    "id": {
                         "anyOf": [
                             {
                                 "type": "integer"
@@ -1370,7 +1584,7 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "User Id"
+                        "title": "Id"
                     },
                     "vote_id": {
                         "anyOf": [
@@ -1385,19 +1599,34 @@
                     },
                     "content": {
                         "type": "string",
-                        "maxLength": 2000,
-                        "title": "Content"
+                        "maxLength": 4000,
+                        "title": "Content",
+                        "description": "Homomorphically encrypted ballot"
                     },
                     "date": {
                         "type": "string",
                         "format": "date-time",
                         "title": "Date"
+                    },
+                    "voting_token": {
+                        "type": "string",
+                        "maxLength": 512,
+                        "title": "Voting Token",
+                        "description": "Unblinded anonymous voting token"
+                    },
+                    "token_signature": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Token Signature",
+                        "description": "Authority signature over voting token"
                     }
                 },
                 "type": "object",
                 "required": [
                     "content",
-                    "date"
+                    "date",
+                    "voting_token",
+                    "token_signature"
                 ],
                 "title": "Bulletin"
             },
@@ -1437,8 +1666,16 @@
                         "title": "Photo URL"
                     },
                     "vote_count": {
-                        "type": "integer",
-                        "title": "Vote Count",
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Final vote count",
+                        "description": "Decrypted final count after tally",
                         "default": 0
                     },
                     "vote_id": {
@@ -1565,6 +1802,10 @@
                         "type": "boolean",
                         "title": "Is Admin"
                     },
+                    "unique_hash": {
+                        "type": "string",
+                        "title": "Unique Hash"
+                    },
                     "requested_password_reset": {
                         "type": "boolean",
                         "title": "Requested Password Reset"
@@ -1582,6 +1823,7 @@
                     "verified_phone_number",
                     "is_active",
                     "is_admin",
+                    "unique_hash",
                     "requested_password_reset"
                 ],
                 "title": "CurrentUserResponseModel"
@@ -1653,6 +1895,28 @@
                 "properties": {
                     "vote": {
                         "$ref": "#/components/schemas/VoteWithCreatorResponseModel"
+                    },
+                    "tally_proof": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tally Proof"
+                    },
+                    "encrypted_tally": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Encrypted Tally"
                     },
                     "total_bulletins": {
                         "type": "integer",
@@ -1803,6 +2067,54 @@
                     "otp"
                 ],
                 "title": "OTPVerificationModel"
+            },
+            "PaginatedListResponse_Bulletin_": {
+                "properties": {
+                    "data": {
+                        "items": {
+                            "$ref": "#/components/schemas/Bulletin"
+                        },
+                        "type": "array",
+                        "title": "Data"
+                    },
+                    "total_count": {
+                        "type": "integer",
+                        "title": "Total Count"
+                    },
+                    "has_more": {
+                        "type": "boolean",
+                        "title": "Has More"
+                    },
+                    "page": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Page"
+                    },
+                    "items_per_page": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Items Per Page"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "data",
+                    "total_count",
+                    "has_more"
+                ],
+                "title": "PaginatedListResponse[Bulletin]"
             },
             "PaginatedListResponse_UserResponseModel_": {
                 "properties": {
@@ -1958,6 +2270,19 @@
                     "email"
                 ],
                 "title": "PasswordResetRequestModel"
+            },
+            "RequiredTokenInput": {
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "title": "Token"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "token"
+                ],
+                "title": "RequiredTokenInput"
             },
             "SuccessfulUserLoginResponseModel": {
                 "properties": {
@@ -2437,11 +2762,49 @@
                         "format": "date-time",
                         "title": "End Date"
                     },
+                    "public_key": {
+                        "type": "string",
+                        "maxLength": 10000,
+                        "title": "Public Key",
+                        "description": "The public key used for vote encryption generated automatically when the vote is created"
+                    },
+                    "encrypted_private_key": {
+                        "type": "string",
+                        "maxLength": 20000,
+                        "title": "Encrypted Private Key",
+                        "description": "The private key encrypted with the system's master key"
+                    },
                     "has_been_counted": {
                         "type": "boolean",
                         "title": "Has Been Counted",
                         "description": "Indicates if the vote has been counted",
                         "default": false
+                    },
+                    "encrypted_tally": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 20000
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Encrypted Tally",
+                        "description": "Homomorphically encrypted tally of the votes"
+                    },
+                    "tally_proof": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 20000
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Tally Proof",
+                        "description": "Zero-knowledge proof that the tally was computed correctly"
                     },
                     "creator_id": {
                         "type": "integer",
@@ -2454,9 +2817,34 @@
                     "description",
                     "start_date",
                     "end_date",
+                    "public_key",
+                    "encrypted_private_key",
                     "creator_id"
                 ],
                 "title": "Vote"
+            },
+            "VoteCastData": {
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "title": "Token"
+                    },
+                    "signature": {
+                        "type": "string",
+                        "title": "Signature"
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Content"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "token",
+                    "signature",
+                    "content"
+                ],
+                "title": "VoteCastData"
             },
             "VoteCreationModel": {
                 "properties": {
@@ -2528,19 +2916,6 @@
                     "candidates"
                 ],
                 "title": "VoteCreationModel"
-            },
-            "VoteInputData": {
-                "properties": {
-                    "content": {
-                        "type": "string",
-                        "title": "Content"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "content"
-                ],
-                "title": "VoteInputData"
             },
             "VoteResultsModel": {
                 "properties": {
@@ -2632,6 +3007,10 @@
                         "type": "boolean",
                         "title": "Has Been Counted"
                     },
+                    "public_key": {
+                        "type": "string",
+                        "title": "Public Key"
+                    },
                     "creator": {
                         "$ref": "#/components/schemas/UserResponseModel"
                     }
@@ -2644,6 +3023,7 @@
                     "start_date",
                     "end_date",
                     "has_been_counted",
+                    "public_key",
                     "creator"
                 ],
                 "title": "VoteWithCreatorResponseModel"

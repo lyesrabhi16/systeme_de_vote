@@ -8,6 +8,10 @@ class ErrorCodeModel(BaseModel):
 
 
 class ERROR_CODES(dict, Enum):
+    BLIND_SIGNATURE_ALREADY_ISSUED = ErrorCodeModel(
+        code="BLIND_SIGNATURE_ALREADY_ISSUED",
+        message="Blind signature has already been issued for this vote",
+    )
     INVALID_CREDENTIALS = ErrorCodeModel(
         code="INVALID_CREDENTIALS",
         message="Invalid credentials",

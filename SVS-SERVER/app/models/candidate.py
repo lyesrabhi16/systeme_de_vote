@@ -12,7 +12,13 @@ class Candidate(SQLModel, table=True):
     photo_url: str | None = Field(
         default=None, title="Photo URL", max_length=500, nullable=True
     )
-    vote_count: int = Field(default=0, title="Vote Count")
+
+    # Plaintext result (POST-TALLY ONLY)
+    vote_count: int | None = Field(
+        default=0,
+        title="Final vote count",
+        description="Decrypted final count after tally",
+    )
     vote_id: int = Field(..., title="Vote ID", foreign_key="vote.id")
 
     vote: Vote = Relationship(

@@ -4,6 +4,8 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**castVote**](#castvote) | **POST** /vote/cast/{vote_id} | Cast Vote|
+|[**checkIfUserVotedOnVote**](#checkifuservotedonvote) | **POST** /vote/check/{vote_id}/user-voted | Check If User Voted On Vote|
 |[**createVote**](#createvote) | **POST** /vote/ | Create Vote|
 |[**getAllVotes**](#getallvotes) | **GET** /vote/ | Get All Votes|
 |[**getAlreadyVotedOnVotes**](#getalreadyvotedonvotes) | **GET** /vote/voted | Get Already Voted On Votes|
@@ -11,10 +13,121 @@ All URIs are relative to *http://localhost*
 |[**getAvailableVotes**](#getavailablevotes) | **GET** /vote/available | Get Available Votes|
 |[**getCreatedVotes**](#getcreatedvotes) | **GET** /vote/created | Get Created Votes|
 |[**getFinishedVotes**](#getfinishedvotes) | **GET** /vote/finishedVotes | Get Finished Votes|
+|[**getVoteBulletins**](#getvotebulletins) | **GET** /vote/bulletins/{vote_id}/ | Get Public Vote Bulletins|
 |[**getVoteById**](#getvotebyid) | **GET** /vote/{vote_id}/ | Get Vote By Id|
 |[**getVoteCount**](#getvotecount) | **GET** /vote/count/{vote_id}/ | Get Vote Count|
 |[**getVoteResult**](#getvoteresult) | **GET** /vote/result/{vote_id}/ | Get Vote Result|
-|[**vote**](#vote) | **POST** /vote/{vote_id}/ | Vote|
+|[**requestBlindSignature**](#requestblindsignature) | **POST** /vote/{vote_id}/blind-signature/ | Request Blind Signature|
+
+# **castVote**
+> MessageResponse castVote(voteCastData)
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration,
+    VoteCastData
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+let voteCastData: VoteCastData; //
+
+const { status, data } = await apiInstance.castVote(
+    voteId,
+    voteCastData
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteCastData** | **VoteCastData**|  | |
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**MessageResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **checkIfUserVotedOnVote**
+> BooleanResponse checkIfUserVotedOnVote(requiredTokenInput)
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration,
+    RequiredTokenInput
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+let requiredTokenInput: RequiredTokenInput; //
+
+const { status, data } = await apiInstance.checkIfUserVotedOnVote(
+    voteId,
+    requiredTokenInput
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **requiredTokenInput** | **RequiredTokenInput**|  | |
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**BooleanResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **createVote**
 > FullVoteResponseModel createVote(voteCreationModel)
@@ -340,6 +453,63 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getVoteBulletins**
+> PaginatedListResponseBulletin getVoteBulletins()
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+let page: number; // (optional) (default to 1)
+let itemsPerPage: number; // (optional) (default to 10)
+
+const { status, data } = await apiInstance.getVoteBulletins(
+    voteId,
+    page,
+    itemsPerPage
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+| **page** | [**number**] |  | (optional) defaults to 1|
+| **itemsPerPage** | [**number**] |  | (optional) defaults to 10|
+
+
+### Return type
+
+**PaginatedListResponseBulletin**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getVoteById**
 > FullVoteResponseModel getVoteById()
 
@@ -493,8 +663,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **vote**
-> MessageResponse vote(voteInputData)
+# **requestBlindSignature**
+> BlindSignatureResponseModel requestBlindSignature(blindSignatureRequestModel)
 
 
 ### Example
@@ -503,18 +673,18 @@ No authorization required
 import {
     VoteApi,
     Configuration,
-    VoteInputData
+    BlindSignatureRequestModel
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new VoteApi(configuration);
 
 let voteId: number; // (default to undefined)
-let voteInputData: VoteInputData; //
+let blindSignatureRequestModel: BlindSignatureRequestModel; //
 
-const { status, data } = await apiInstance.vote(
+const { status, data } = await apiInstance.requestBlindSignature(
     voteId,
-    voteInputData
+    blindSignatureRequestModel
 );
 ```
 
@@ -522,13 +692,13 @@ const { status, data } = await apiInstance.vote(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **voteInputData** | **VoteInputData**|  | |
+| **blindSignatureRequestModel** | **BlindSignatureRequestModel**|  | |
 | **voteId** | [**number**] |  | defaults to undefined|
 
 
 ### Return type
 
-**MessageResponse**
+**BlindSignatureResponseModel**
 
 ### Authorization
 

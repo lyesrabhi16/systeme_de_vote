@@ -584,28 +584,32 @@ async def seed_bulletins(db: AsyncSession | None = None):
     # Implement vote seeding logic here
     bulletins = [
         Bulletin(
-            user_id=2,
             vote_id=1,
             content=encrypt_string("1"),
             date=datetime.strptime("2024-11-01 10:00:00", "%Y-%m-%d %H:%M:%S"),
+            voting_token="token_abc123",
+            token_signature="signature_xyz789",
         ),
         Bulletin(
-            user_id=3,
             vote_id=2,
             content=encrypt_string("2"),
             date=datetime.strptime("2024-10-15 11:30:00", "%Y-%m-%d %H:%M:%S"),
+            voting_token="token_def456",
+            token_signature="signature_uvw123",
         ),
         Bulletin(
-            user_id=1,
             vote_id=3,
             content=encrypt_string("4"),
             date=datetime.strptime("2024-09-20 09:15:00", "%Y-%m-%d %H:%M:%S"),
+            voting_token="token_ghi789",
+            token_signature="signature_rst456",
         ),
         Bulletin(
-            user_id=1,
             vote_id=2,
             content=encrypt_string("3"),
             date=datetime.strptime("2024-11-01 14:45:00", "%Y-%m-%d %H:%M:%S"),
+            voting_token="token_jkl012",
+            token_signature="signature_opq789",
         ),
     ]
     db.add_all(bulletins)

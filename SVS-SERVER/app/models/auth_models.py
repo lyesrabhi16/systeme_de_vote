@@ -10,6 +10,10 @@ class TokenInput(BaseModel):
     token: str | None = None
 
 
+class RequiredTokenInput(BaseModel):
+    token: str
+
+
 class TokenResponse(BaseModel):
     token: str
 

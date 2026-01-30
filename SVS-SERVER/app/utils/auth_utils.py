@@ -21,6 +21,12 @@ hasher = PasswordHash.recommended()
 crypto = Fernet(env.ENCRYPTION_KEY)
 
 
+def generate_unique_hash(**args) -> str:
+    """Generates a unique hash based on the provided arguments."""
+    concat_str = "|".join(f"{key}={value}" for key, value in sorted(args.items()))
+    return hash_string(concat_str)
+
+
 def encrypt_string(s: str) -> str:
     """Encrypts string and stores encrypted string in memory and returns a url safe string"""
     return crypto.encrypt(s.encode()).decode()

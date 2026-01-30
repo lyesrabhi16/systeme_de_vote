@@ -7,16 +7,24 @@ from sqlmodel import Relationship
 
 
 class Bulletin(SQLModel, table=True):
-    user_id: int | None = Field(default=None, primary_key=True, foreign_key="user.id")
-    vote_id: int | None = Field(default=None, primary_key=True, foreign_key="vote.id")
+    id: int | None = Field(default=None, primary_key=True)
+    vote_id: int | None = Field(default=None, index=True, foreign_key="vote.id")
 
-    content: str = Field(..., title="Content", max_length=2000)
+    content: str = Field(
+        ...,
+        title="Content",
+        max_length=4000,
+        description="Homomorphically encrypted ballot",
+    )
     date: datetime = Field(..., title="Date")
 
-    user: "User" = Relationship(
-        back_populates="bulletins",
-        sa_relationship_kwargs={"lazy": "selectin"},  # async safe
+    voting_token: str = Field(
+        ..., max_length=512, description="Unblinded anonymous voting token"
     )
+    token_signature: str = Field(
+        ..., max_length=1024, description="Authority signature over voting token"
+    )
+
     vote: "Vote" = Relationship(
         back_populates="bulletins",
         sa_relationship_kwargs={"lazy": "selectin"},  # async safe

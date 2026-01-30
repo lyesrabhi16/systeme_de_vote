@@ -275,7 +275,8 @@ const VotingCard = (props: {
     >
       <form
         onSubmit={form.handleSubmit(
-          (data) => {
+           (data) => {
+
             console.log('Submitting vote data:', data);
             const voteData: VoteCreationModel = {
               title: data.title,
