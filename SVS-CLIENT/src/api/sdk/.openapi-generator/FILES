@@ -7,8 +7,7 @@ common.ts
 configuration.ts
 docs/AdminApi.md
 docs/AuthApi.md
-docs/BlindSignatureRequestModel.md
-docs/BlindSignatureResponseModel.md
+docs/BinaryZKProofModel.md
 docs/BooleanResponse.md
 docs/Bulletin.md
 docs/Candidate.md
@@ -47,6 +46,7 @@ docs/ValidationError.md
 docs/ValidationErrorLocInner.md
 docs/Vote.md
 docs/VoteApi.md
+docs/VoteCastContentModel.md
 docs/VoteCastData.md
 docs/VoteCreationModel.md
 docs/VoteResultsModel.md

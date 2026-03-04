@@ -92,3 +92,7 @@ class ERROR_CODES(dict, Enum):
         code="USERNAME_ALREADY_EXISTS",
         message="Username already exists",
     )
+    USER_ALREADY_VOTED = ErrorCodeModel(
+        code="USER_ALREADY_VOTED",
+        message="User has already voted on this vote",
+    )

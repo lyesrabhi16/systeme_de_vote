@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Tuple
 from pydantic import BaseModel
 from sqlalchemy import Row
 from sqlmodel import select
@@ -24,8 +24,6 @@ class identifierType(Enum):
                 return User.username
             case identifierType.PHONE_NUMBER:
                 return User.phone_number
-            case identifierType.SSN:
-                return User.ssn
             case _:
                 raise ValueError(f"Invalid identifier type: {self}")
 

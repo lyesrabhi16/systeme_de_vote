@@ -9,8 +9,7 @@ Name | Type | Description | Notes
 **vote_id** | **number** |  | [optional] [default to undefined]
 **content** | **string** | Homomorphically encrypted ballot | [default to undefined]
 **date** | **string** |  | [default to undefined]
-**voting_token** | **string** | Unblinded anonymous voting token | [default to undefined]
-**token_signature** | **string** | Authority signature over voting token | [default to undefined]
+**unique_code** | **string** | Unique code for the bulletin, used for verification | [optional] [default to undefined]
 
 ## Example
 
@@ -22,8 +21,7 @@ const instance: Bulletin = {
     vote_id,
     content,
     date,
-    voting_token,
-    token_signature,
+    unique_code,
 };
 ```
 

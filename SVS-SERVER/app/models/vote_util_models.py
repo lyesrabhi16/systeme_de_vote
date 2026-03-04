@@ -53,6 +53,12 @@ class FinishedVoteResponseModel(SQLModel):
         if vote is None:
             return None
 
+        user_av = (
+            await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id)
+            if user
+            else None
+        )
+
         vote_with_creator = await VoteWithCreatorResponseModel.from_vote_id(vote_id)
         if vote_with_creator is None:
             return None
@@ -66,14 +72,18 @@ class FinishedVoteResponseModel(SQLModel):
                 candidate.id: candidate.vote_count for candidate in vote.candidates
             },
             abstention_count=(
-                len({av.user_id for av in vote.attributed_users})
-                - len({bulletin.user_id for bulletin in vote.bulletins})
+                len(
+                    {
+                        av.user_id
+                        for av in vote.attributed_users
+                        if not av.user_has_voted
+                    }
+                )
             ),
-            voter_count=len({bulletin.user_id for bulletin in vote.bulletins}),
-            user_has_voted=(
-                #! fix the user_has_voted check
-                False
+            voter_count=len(
+                {av.user_id for av in vote.attributed_users if av.user_has_voted}
             ),
+            user_has_voted=(user_av.user_has_voted if user_av else False),
             candidates=vote.candidates,
         )
 
@@ -92,14 +102,10 @@ class FullVoteResponseModel(SQLModel):
             raise ValueError("Database session is None")
         vote = await Vote.get_by_id(vote_id)
         finishedVote: FinishedVoteResponseModel | None = (
-            await FinishedVoteResponseModel.from_vote_id(vote_id)
+            await FinishedVoteResponseModel.from_vote_id(vote_id, user)
         )
         if finishedVote is None or vote is None:
             return None
-        finishedVote.user_has_voted = (
-            #! fix the user_has_voted check
-            False
-        )
         return FullVoteResponseModel(
             vote=finishedVote,
             candidates=vote.candidates,
@@ -172,3 +178,6 @@ class VoteCreationModel(SQLModel):
         await db.refresh(vote)
 
         return await FullVoteResponseModel.from_vote_id(vote.id)
+
+
+

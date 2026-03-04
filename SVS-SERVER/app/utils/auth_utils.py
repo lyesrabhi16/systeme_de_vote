@@ -21,6 +21,11 @@ hasher = PasswordHash.recommended()
 crypto = Fernet(env.ENCRYPTION_KEY)
 
 
+def generate_unique_code() -> str:
+    """Generates a unique code for vote bulletins."""
+    return secrets.token_urlsafe(32)
+
+
 def generate_unique_hash(**args) -> str:
     """Generates a unique hash based on the provided arguments."""
     concat_str = "|".join(f"{key}={value}" for key, value in sorted(args.items()))

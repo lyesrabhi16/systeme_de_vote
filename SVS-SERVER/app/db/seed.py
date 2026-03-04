@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta
-import app.config.env
+from datetime import datetime
 from app.models import Candidate, Vote, User, AttributedVote, Bulletin
 from app.utils.auth_utils import hash_string
 from app.db import db_session, init_db, test_db_connection
@@ -419,6 +418,27 @@ async def seed_votes(db: AsyncSession | None = None):
             end_date=datetime.strptime("2024-07-29 23:59:59", "%Y-%m-%d %H:%M:%S"),
             creator_id=2,
         ),
+        Vote(
+            title="National Referendum February 2026",
+            description="Current referendum in progress",
+            start_date=datetime.strptime("2026-02-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2026-02-28 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=1,
+        ),
+        Vote(
+            title="Regional Council Election",
+            description="Ongoing regional election",
+            start_date=datetime.strptime("2026-01-15 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2026-03-15 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=2,
+        ),
+        Vote(
+            title="Department Head Selection",
+            description="Current department voting",
+            start_date=datetime.strptime("2026-02-05 00:00:00", "%Y-%m-%d %H:%M:%S"),
+            end_date=datetime.strptime("2026-02-20 23:59:59", "%Y-%m-%d %H:%M:%S"),
+            creator_id=3,
+        ),
     ]
 
     db.add_all(votes)
@@ -513,6 +533,222 @@ async def seed_candidates(db: AsyncSession | None = None):
             photo_url="http://example.com/photos/michael.jpg",
             vote_id=6,
         ),
+        Candidate(
+            first_name="Nina",
+            last_name="Simone",
+            photo_url="http://example.com/photos/nina.jpg",
+            vote_id=7,
+        ),
+        Candidate(
+            first_name="Oscar",
+            last_name="Wilde",
+            photo_url="http://example.com/photos/oscar.jpg",
+            vote_id=7,
+        ),
+        Candidate(
+            first_name="Pamela",
+            last_name="Anderson",
+            photo_url="http://example.com/photos/pamela.jpg",
+            vote_id=7,
+        ),
+        Candidate(
+            first_name="Quentin",
+            last_name="Tarantino",
+            photo_url="http://example.com/photos/quentin.jpg",
+            vote_id=8,
+        ),
+        Candidate(
+            first_name="Rachel",
+            last_name="Green",
+            photo_url="http://example.com/photos/rachel.jpg",
+            vote_id=8,
+        ),
+        Candidate(
+            first_name="Steve",
+            last_name="Jobs",
+            photo_url="http://example.com/photos/steve.jpg",
+            vote_id=8,
+        ),
+        Candidate(
+            first_name="Tina",
+            last_name="Fey",
+            photo_url="http://example.com/photos/tina.jpg",
+            vote_id=9,
+        ),
+        Candidate(
+            first_name="Uma",
+            last_name="Thurman",
+            photo_url="http://example.com/photos/uma.jpg",
+            vote_id=9,
+        ),
+        Candidate(
+            first_name="Vincent",
+            last_name="Vega",
+            photo_url="http://example.com/photos/vincent.jpg",
+            vote_id=9,
+        ),
+        Candidate(
+            first_name="Wendy",
+            last_name="Williams",
+            photo_url="http://example.com/photos/wendy.jpg",
+            vote_id=10,
+        ),
+        Candidate(
+            first_name="Xander",
+            last_name="Cage",
+            photo_url="http://example.com/photos/xander.jpg",
+            vote_id=10,
+        ),
+        Candidate(
+            first_name="Yara",
+            last_name="Shahidi",
+            photo_url="http://example.com/photos/yara.jpg",
+            vote_id=10,
+        ),
+        Candidate(
+            first_name="Zachary",
+            last_name="Levi",
+            photo_url="http://example.com/photos/zachary.jpg",
+            vote_id=11,
+        ),
+        Candidate(
+            first_name="Amy",
+            last_name="Adams",
+            photo_url="http://example.com/photos/amy.jpg",
+            vote_id=11,
+        ),
+        Candidate(
+            first_name="Bradley",
+            last_name="Cooper",
+            photo_url="http://example.com/photos/bradley.jpg",
+            vote_id=11,
+        ),
+        Candidate(
+            first_name="Cameron",
+            last_name="Diaz",
+            photo_url="http://example.com/photos/cameron.jpg",
+            vote_id=12,
+        ),
+        Candidate(
+            first_name="Daniel",
+            last_name="Craig",
+            photo_url="http://example.com/photos/daniel.jpg",
+            vote_id=12,
+        ),
+        Candidate(
+            first_name="Emily",
+            last_name="Blunt",
+            photo_url="http://example.com/photos/emily.jpg",
+            vote_id=12,
+        ),
+        Candidate(
+            first_name="Franklin",
+            last_name="Roosevelt",
+            photo_url="http://example.com/photos/franklin.jpg",
+            vote_id=13,
+        ),
+        Candidate(
+            first_name="Grace",
+            last_name="Kelly",
+            photo_url="http://example.com/photos/grace.jpg",
+            vote_id=13,
+        ),
+        Candidate(
+            first_name="Harrison",
+            last_name="Ford",
+            photo_url="http://example.com/photos/harrison.jpg",
+            vote_id=13,
+        ),
+        Candidate(
+            first_name="Isla",
+            last_name="Fisher",
+            photo_url="http://example.com/photos/isla.jpg",
+            vote_id=14,
+        ),
+        Candidate(
+            first_name="Jackie",
+            last_name="Chan",
+            photo_url="http://example.com/photos/jackie.jpg",
+            vote_id=14,
+        ),
+        Candidate(
+            first_name="Kate",
+            last_name="Winslet",
+            photo_url="http://example.com/photos/kate.jpg",
+            vote_id=14,
+        ),
+        Candidate(
+            first_name="Leonardo",
+            last_name="DiCaprio",
+            photo_url="http://example.com/photos/leonardo.jpg",
+            vote_id=15,
+        ),
+        Candidate(
+            first_name="Meryl",
+            last_name="Streep",
+            photo_url="http://example.com/photos/meryl.jpg",
+            vote_id=15,
+        ),
+        Candidate(
+            first_name="Natalie",
+            last_name="Portman",
+            photo_url="http://example.com/photos/natalie.jpg",
+            vote_id=15,
+        ),
+        Candidate(
+            first_name="Orlando",
+            last_name="Bloom",
+            photo_url="http://example.com/photos/orlando.jpg",
+            vote_id=16,
+        ),
+        Candidate(
+            first_name="Penelope",
+            last_name="Cruz",
+            photo_url="http://example.com/photos/penelope.jpg",
+            vote_id=16,
+        ),
+        Candidate(
+            first_name="Robert",
+            last_name="Downey Jr.",
+            photo_url="http://example.com/photos/robert.jpg",
+            vote_id=16,
+        ),
+        Candidate(
+            first_name="Scarlett",
+            last_name="Johansson",
+            photo_url="http://example.com/photos/scarlett.jpg",
+            vote_id=17,
+        ),
+        Candidate(
+            first_name="Tom",
+            last_name="Hanks",
+            photo_url="http://example.com/photos/tom.jpg",
+            vote_id=17,
+        ),
+        Candidate(
+            first_name="Uma",
+            last_name="Thurman",
+            photo_url="http://example.com/photos/uma.jpg",
+            vote_id=17,
+        ),
+        Candidate(
+            first_name="Viggo",
+            last_name="Mortensen",
+            photo_url="http://example.com/photos/viggo.jpg",
+            vote_id=18,
+        ),
+        Candidate(
+            first_name="Winona",
+            last_name="Ryder",
+            photo_url="http://example.com/photos/winona.jpg",
+            vote_id=18,
+        ),
+        Candidate(
+            first_name="Xavier",
+            last_name="Dolan",
+            photo_url="http://example.com/photos/xavier.jpg",
+            vote_id=18,
+        ),
     ]
     db.add_all(candidates)
     await db.commit()
@@ -567,6 +803,46 @@ async def seed_attributedVotes(db: AsyncSession | None = None):
             user_id=1,
             vote_id=8,
         ),
+        AttributedVote(
+            user_id=1,
+            vote_id=9,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=10,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=11,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=12,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=13,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=14,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=15,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=16,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=17,
+        ),
+        AttributedVote(
+            user_id=1,
+            vote_id=18,
+        ),
     ]
     db.add_all(votes)
     await db.commit()
@@ -587,29 +863,25 @@ async def seed_bulletins(db: AsyncSession | None = None):
             vote_id=1,
             content=encrypt_string("1"),
             date=datetime.strptime("2024-11-01 10:00:00", "%Y-%m-%d %H:%M:%S"),
-            voting_token="token_abc123",
-            token_signature="signature_xyz789",
+            signature="signature_xyz789",
         ),
         Bulletin(
             vote_id=2,
             content=encrypt_string("2"),
             date=datetime.strptime("2024-10-15 11:30:00", "%Y-%m-%d %H:%M:%S"),
-            voting_token="token_def456",
-            token_signature="signature_uvw123",
+            signature="signature_uvw123",
         ),
         Bulletin(
             vote_id=3,
             content=encrypt_string("4"),
             date=datetime.strptime("2024-09-20 09:15:00", "%Y-%m-%d %H:%M:%S"),
-            voting_token="token_ghi789",
-            token_signature="signature_rst456",
+            signature="signature_rst456",
         ),
         Bulletin(
             vote_id=2,
             content=encrypt_string("3"),
             date=datetime.strptime("2024-11-01 14:45:00", "%Y-%m-%d %H:%M:%S"),
-            voting_token="token_jkl012",
-            token_signature="signature_opq789",
+            signature="signature_opq789",
         ),
     ]
     db.add_all(bulletins)

@@ -27,14 +27,17 @@ const VoteCard = (props: {
         props.index === 0 && badgeType === VoteBadgeType.Ongoing
           ? 'scale-110 group-hover:scale-100'
           : badgeType === VoteBadgeType.Ongoing
-          ? 'hover:scale-110'
-          : ''
+            ? 'hover:scale-110'
+            : ''
       } ${badgeType !== VoteBadgeType.Ongoing ? disabledCardStyle : ''}`}
     >
       <CardTitle className='font-bold text-lg mb-2 flex flex-row flex-wrap justify-between items-center'>
         <p>{props.vote.title}</p>
         <div className='ml-auto'>
-          <VoteBadge type={badgeType} />
+          <VoteBadge
+            type={badgeType}
+            userAlreadyVoted={props.userHasVoted ?? false}
+          />
         </div>
       </CardTitle>
       <CardDescription className='text-sm text-muted-foreground'>

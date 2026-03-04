@@ -10,7 +10,12 @@ import inspect
 
 # DB
 _db_url = get_db_url()
-engine = create_async_engine(_db_url, echo=env.DEBUG, future=True)
+engine = create_async_engine(
+    _db_url,
+    echo=False,
+    # echo=env.DEBUG,
+    future=True,
+)
 
 # Redis Cache
 cache_db = get_redis_connection()
@@ -72,6 +77,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     Session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=True)
     async with Session() as session:
         yield session
+
 
 @db_session
 async def test_db_connection(db: AsyncSession | None = None):

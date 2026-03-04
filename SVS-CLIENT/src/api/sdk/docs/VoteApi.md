@@ -17,7 +17,6 @@ All URIs are relative to *http://localhost*
 |[**getVoteById**](#getvotebyid) | **GET** /vote/{vote_id}/ | Get Vote By Id|
 |[**getVoteCount**](#getvotecount) | **GET** /vote/count/{vote_id}/ | Get Vote Count|
 |[**getVoteResult**](#getvoteresult) | **GET** /vote/result/{vote_id}/ | Get Vote Result|
-|[**requestBlindSignature**](#requestblindsignature) | **POST** /vote/{vote_id}/blind-signature/ | Request Blind Signature|
 
 # **castVote**
 > MessageResponse castVote(voteCastData)
@@ -652,61 +651,6 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Successful Response |  -  |
-|**422** | Validation Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **requestBlindSignature**
-> BlindSignatureResponseModel requestBlindSignature(blindSignatureRequestModel)
-
-
-### Example
-
-```typescript
-import {
-    VoteApi,
-    Configuration,
-    BlindSignatureRequestModel
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new VoteApi(configuration);
-
-let voteId: number; // (default to undefined)
-let blindSignatureRequestModel: BlindSignatureRequestModel; //
-
-const { status, data } = await apiInstance.requestBlindSignature(
-    voteId,
-    blindSignatureRequestModel
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **blindSignatureRequestModel** | **BlindSignatureRequestModel**|  | |
-| **voteId** | [**number**] |  | defaults to undefined|
-
-
-### Return type
-
-**BlindSignatureResponseModel**
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
  - **Accept**: application/json
 
 

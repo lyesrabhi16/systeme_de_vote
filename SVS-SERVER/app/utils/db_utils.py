@@ -1,4 +1,5 @@
 from redis import Redis
+from redis.asyncio import Redis as AsyncRedis
 from sqlalchemy import URL
 from app.config.env import env
 
@@ -17,6 +18,18 @@ def get_db_url() -> URL:
 
 def get_redis_connection() -> Redis:
     return Redis(
+        host=env.REDIS_HOST,
+        port=env.REDIS_PORT,
+        db=env.REDIS_DB,
+        decode_responses=True,
+        username=env.REDIS_USER,
+        password=env.REDIS_PASSWORD,
+        encoding="utf-8",
+    )
+
+
+async def get_async_redis_connection() -> AsyncRedis:
+    return AsyncRedis(
         host=env.REDIS_HOST,
         port=env.REDIS_PORT,
         db=env.REDIS_DB,

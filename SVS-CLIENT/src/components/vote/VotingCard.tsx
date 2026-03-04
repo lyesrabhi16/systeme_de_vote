@@ -40,6 +40,7 @@ import useAuth from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import type { UsersTableData } from '@/pages/RegularUsersAdministrationPage';
 import { VoteFormSchema } from '@/schemas/vote.schemas';
+import { castVote } from '@/services/voting/voting';
 import { VoteBadgeType } from '@/utils/vote.utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -78,6 +79,7 @@ const VotingCard = (props: {
       vote: {
         id: 0,
         has_been_counted: false,
+        public_key: '',
         title: 'Nouveau Vote',
         description: 'Description du vote',
         start_date: new Date().toISOString(),
@@ -275,8 +277,7 @@ const VotingCard = (props: {
     >
       <form
         onSubmit={form.handleSubmit(
-           (data) => {
-
+          (data) => {
             console.log('Submitting vote data:', data);
             const voteData: VoteCreationModel = {
               title: data.title,
@@ -817,14 +818,16 @@ const VotingCard = (props: {
                   onClick={() => {
                     if (selectedCandidate === null) return;
                     setIsVotingDisabled((p) => ({ ...p, value: true }));
-                    apiClient()
-                      .vote.vote(vote.vote.vote.id, {
-                        content: `${selectedCandidate?.id}`,
-                      })
+                    castVote(
+                      vote.vote.vote as any,
+                      vote.candidates,
+                      selectedCandidate.id as number,
+                    )
                       .then(() => {
-                        window.location.reload();
+                        //window.location.reload();
+                        toast.success('Vote enregistré avec succès');
                       })
-                      .catch((err) => {
+                      .catch((err: Error) => {
                         console.error('Error while voting:', err);
                         toast.error(
                           "Une erreur est survenue lors de l'enregistrement de votre vote. Veuillez réessayer.",

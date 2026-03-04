@@ -1,79 +1,42 @@
+import json
+
 from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.models import bulletin
 from app.models.bulletin import Bulletin
 from fastapi import HTTPException
 from app.models.error_codes import ERROR_CODES
 from sqlalchemy.future import select
-from app.utils.auth_utils import decrypt_string
 from loguru import logger
 from app.models.vote import Vote
 from app.models.candidate import Candidate
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
+from phe import paillier
+from app.models.voting_models import VoteCastContentModel
 
 
-async def verify_blind_signature(
-    vote_id: int,
-    blinded_token: int,
-    blind_signature: int,
-    public_key: rsa.RSAPublicKey | str,
-) -> bool:
-    """Verify the blind signature using the vote's public key."""
-    if isinstance(public_key, str):
-        public_key = serialization.load_pem_public_key(
-            public_key.encode("utf-8"),
-        )
-    numbers = public_key.public_numbers()
-    n, e = numbers.n, numbers.e
-
-    recovered = pow(blind_signature, e, n)
-    return recovered == blinded_token
-
-
-async def generate_blind_signature(
-    private_key: rsa.RSAPrivateKey | str, blinded_token: int
-) -> int:
-    """Sign the blinded token using the provided private key."""
-    if isinstance(private_key, str):
-        private_key = serialization.load_pem_private_key(
-            private_key.encode("utf-8"),
-            password=None,
-        )
-    numbers = private_key.private_numbers()
-    n = numbers.public_numbers.n
-    d = numbers.d
-    logger.debug(f"Generating blind signature with n={n} d={d}")
-    return pow(blinded_token, d, n)
-
-
-def gen_encryption_key_pair():
-    """Generate a new asymmetric key pair."""
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    public_key = private_key.public_key()
-
-    pem_private = private_key.private_bytes(
-        encryption_algorithm=serialization.NoEncryption(),
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
-    )
-    pem_public = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-
+# --- Paillier Key Generation ---
+def gen_encryption_key_pair():  # -> dict[str, Any]:
+    """Generate a Paillier public/private key pair."""
+    public_key, private_key = paillier.generate_paillier_keypair(n_length=2048)
     return {
-        "PRIVATE_KEY": pem_private.decode("utf-8"),
-        "PUBLIC_KEY": pem_public.decode("utf-8"),
+        "PUBLIC_KEY": json.dumps({"n": str(public_key.n), "g": str(public_key.g)}),
+        "PRIVATE_KEY": json.dumps({"p": str(private_key.p), "q": str(private_key.q)}),
     }
 
 
+# --- Homomorphically sum votes ---
 @db_session
 async def get_vote_count(
-    vote_id: int, db: AsyncSession | None = None
+    vote_id: int,
+    db: AsyncSession | None = None,
 ) -> tuple[dict[int, int], list[Bulletin]]:
-    """count, set and return the total number of votes for each candidate of a given vote ID."""
+    """Count votes using Paillier homomorphic encryption."""
+    logger.debug(
+        f"Getting vote count for vote ID {vote_id} with db: {db.bind.url if db else 'None'}"
+    )
     if db is None:
         raise ValueError("Database session is None")
+
     vote = await Vote.get_by_id(vote_id)
     if vote is None:
         raise HTTPException(
@@ -82,42 +45,107 @@ async def get_vote_count(
         )
 
     bulletins = await db.execute(select(Bulletin).where(Bulletin.vote_id == vote_id))
-
     bulletins = bulletins.scalars().all()
+    # logger.debug(f"Found {len(bulletins)} bulletins for vote ID {vote_id}")
+    public_key_data = json.loads(vote.public_key)
+    # logger.debug(f"Loaded public key data: {public_key_data}")
+    public_key = paillier.PaillierPublicKey(n=int(public_key_data["n"]))
+    logger.debug(
+        f"Constructed Paillier public key: n={public_key.n}, g={public_key.g} n2={public_key.nsquare}"
+    )
+    private_key = vote.get_private_key()
+    # logger.debug(f"Constructed Paillier private key: p={private_key.p}, q={private_key.q}")
 
-    candidate_vote_counts = {candidate.id: 0 for candidate in vote.candidates}
-
+    # Initialize encrypted vote totals
+    candidate_totals = {
+        candidate.id: public_key.encrypt(0) for candidate in vote.candidates
+    }
     count_failures = []
+    logger.debug(f"Initialized candidate totals: {candidate_totals}")
+    logger.debug(
+        f"Processing {len(bulletins)} bulletins for vote ID {vote_id} with candidates: {list(candidate_totals.keys())}"
+    )
     for bulletin in bulletins:
         try:
-            decrypted_candidate_id = int(decrypt_string(bulletin.content))
-            if decrypted_candidate_id in candidate_vote_counts:
-                candidate_vote_counts[decrypted_candidate_id] += 1
-            else:
-                logger.warning(
-                    f"Decrypted Candidate ID {decrypted_candidate_id} not found among candidates for vote {vote_id}, bulletin {bulletin} is invalid."
-                )
-                count_failures.append(bulletin.model_dump())
-
-        except Exception as e:
-            logger.error(
-                f"Failed to decrypt bulletin content for bulletin {bulletin} : {e}"
+            # The content is expected to be a JSON list string with maps of VoteCastContent
+            values = json.loads(bulletin.content)
+            logger.debug(f"Decrypted bulletin {bulletin.id} content: {values}")
+            value_map = {
+                int(v["candidate_id"]): VoteCastContentModel(**v) for v in values
+            }
+            logger.debug(
+                f"Constructed value map for bulletin {bulletin.id}: {value_map}"
             )
-            count_failures.append(bulletin.model_dump())
-            continue
+            logger.debug
+            (
+                f"Processing bulletin {bulletin.id} for vote ID {vote_id} with candidates: {list(candidate_totals.keys())}"
+            )
+            for candidate_id in candidate_totals.keys():
+                logger.debug(
+                    f"Processing candidate ID {candidate_id} in bulletin {bulletin.id}"
+                )
+                data = value_map.get(candidate_id, None)
+                logger.debug(
+                    f"Extracted data for candidate ID {candidate_id} in bulletin {bulletin.id}: {data}"
+                )
+                proof = data.proof if data else None
+                if data and not proof:
+                    logger.warning(
+                        f"Missing proof for candidate ID {candidate_id} in bulletin {bulletin.id}"
+                    )
+                    count_failures.append(bulletin.model_dump())
+                    continue
+                if proof:
+                    logger.debug("###ZKP")
+                    proof_check = proof.verify(public_key, int(data.encrypted_value))
+                    if not proof_check:
+                        logger.warning(
+                            f"Invalid proof for candidate ID {candidate_id} in bulletin {bulletin.id}"
+                        )
+                        count_failures.append(bulletin.model_dump())
+                        continue
+                    logger.debug(f"Passed Proof Checks: {proof_check}")
+                encrypted_number = (
+                    paillier.EncryptedNumber(public_key, int(data.encrypted_value))
+                    if data
+                    else public_key.encrypt(0)
+                )
 
+                # logger.debug(
+                #   f"Adding encrypted votes for candidate ID {candidate_id}: current total {candidate_totals[candidate_id]}, adding {data}"
+                # )
+                # decrypted_data = private_key.raw_decrypt(data)
+                # logger.debug(
+                #    f"type of  decrypted_data: {type(decrypted_data)} Decrypted data for candidate ID {candidate_id}: {decrypted_data}"
+                # )
+                # logger.debug(
+                #    f"#VOTE_ID#{vote_id}# adding {private_key.decrypt(data)} to total for candidate ID {candidate_id}"
+                # )
+                candidate_totals[candidate_id] += encrypted_number
+        except Exception as e:
+            logger.error(f"Failed to decrypt bulletin {bulletin.id}: {e}")
+            count_failures.append(bulletin.model_dump())
+
+    # Convert encrypted totals to plaintext counts
+    plaintext_candidate_totals = {}
+    for candidate_id in candidate_totals.keys():
+        # Decrypt the total votes for each candidate
+        logger.debug(
+            f"Decrypting total votes for candidate ID {candidate_id} {candidate_totals[candidate_id]}"
+        )
+        plaintext_candidate_totals[candidate_id] = private_key.decrypt(
+            candidate_totals[candidate_id]
+        )
+    logger.debug(f"Decrypted candidate totals: {plaintext_candidate_totals}")
+    # Update DB counts
     for candidate in vote.candidates:
         db_candidate: Candidate | None = await db.get(Candidate, candidate.id)
         if db_candidate:
-            db_candidate.vote_count = candidate_vote_counts.get(candidate.id, 0)
+            db_candidate.vote_count = plaintext_candidate_totals[candidate.id]
+            db.add(db_candidate)
     await db.commit()
 
-    for candidate in vote.candidates:
-        logger.debug(
-            f"Candidate {candidate.id} has {candidate.vote_count} votes for vote {vote_id}"
-        )
-    logger.error(
-        f"Vote count results: {candidate_vote_counts} failures: {count_failures}"
+    logger.debug(
+        f"Vote count results: {plaintext_candidate_totals}, failures: {count_failures}"
     )
-
-    return (candidate_vote_counts, count_failures)
+    return plaintext_candidate_totals, count_failures

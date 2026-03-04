@@ -27,6 +27,7 @@ const VoteRowCard = (props: {
               { ...vote, creator_id: vote.creator.id },
               props.userHasVoted,
             )}
+            userAlreadyVoted={props.userHasVoted ?? false}
           />
         </div>
       </CardTitle>

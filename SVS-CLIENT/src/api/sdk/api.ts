@@ -23,12 +23,13 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
-export interface BlindSignatureRequestModel {
-    'blinded_message': string;
-}
-export interface BlindSignatureResponseModel {
-    'blinded_message': string;
-    'blind_signature': string;
+export interface BinaryZKProofModel {
+    'a0': string;
+    'a1': string;
+    'e0': string;
+    'e1': string;
+    'z0': string;
+    'z1': string;
 }
 export interface BooleanResponse {
     'result': boolean;
@@ -42,13 +43,9 @@ export interface Bulletin {
     'content': string;
     'date': string;
     /**
-     * Unblinded anonymous voting token
+     * Unique code for the bulletin, used for verification
      */
-    'voting_token': string;
-    /**
-     * Authority signature over voting token
-     */
-    'token_signature': string;
+    'unique_code'?: string;
 }
 export interface Candidate {
     'id'?: number | null;
@@ -252,6 +249,8 @@ export interface ValidationError {
     'loc': Array<ValidationErrorLocInner>;
     'msg': string;
     'type': string;
+    'input'?: any;
+    'ctx'?: object;
 }
 export interface ValidationErrorLocInner {
 }
@@ -277,10 +276,13 @@ export interface Vote {
     'tally_proof'?: string | null;
     'creator_id': number;
 }
+export interface VoteCastContentModel {
+    'candidate_id': number;
+    'encrypted_value': string;
+    'proof': BinaryZKProofModel;
+}
 export interface VoteCastData {
-    'token': string;
-    'signature': string;
-    'content': string;
+    'content': Array<VoteCastContentModel>;
 }
 export interface VoteCreationModel {
     'title': string;
@@ -2574,46 +2576,6 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * 
-         * @summary Request Blind Signature
-         * @param {number} voteId 
-         * @param {BlindSignatureRequestModel} blindSignatureRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        requestBlindSignature: async (voteId: number, blindSignatureRequestModel: BlindSignatureRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'voteId' is not null or undefined
-            assertParamExists('requestBlindSignature', 'voteId', voteId)
-            // verify required parameter 'blindSignatureRequestModel' is not null or undefined
-            assertParamExists('requestBlindSignature', 'blindSignatureRequestModel', blindSignatureRequestModel)
-            const localVarPath = `/vote/{vote_id}/blind-signature/`
-                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(blindSignatureRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
@@ -2793,20 +2755,6 @@ export const VoteApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['VoteApi.getVoteResult']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
-        /**
-         * 
-         * @summary Request Blind Signature
-         * @param {number} voteId 
-         * @param {BlindSignatureRequestModel} blindSignatureRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async requestBlindSignature(voteId: number, blindSignatureRequestModel: BlindSignatureRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BlindSignatureResponseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.requestBlindSignature(voteId, blindSignatureRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['VoteApi.requestBlindSignature']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
     }
 };
 
@@ -2946,17 +2894,6 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
          */
         getVoteResult(voteId: number, options?: RawAxiosRequestConfig): AxiosPromise<FinishedVoteResponseModel> {
             return localVarFp.getVoteResult(voteId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Request Blind Signature
-         * @param {number} voteId 
-         * @param {BlindSignatureRequestModel} blindSignatureRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        requestBlindSignature(voteId: number, blindSignatureRequestModel: BlindSignatureRequestModel, options?: RawAxiosRequestConfig): AxiosPromise<BlindSignatureResponseModel> {
-            return localVarFp.requestBlindSignature(voteId, blindSignatureRequestModel, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -3107,18 +3044,6 @@ export class VoteApi extends BaseAPI {
      */
     public getVoteResult(voteId: number, options?: RawAxiosRequestConfig) {
         return VoteApiFp(this.configuration).getVoteResult(voteId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @summary Request Blind Signature
-     * @param {number} voteId 
-     * @param {BlindSignatureRequestModel} blindSignatureRequestModel 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public requestBlindSignature(voteId: number, blindSignatureRequestModel: BlindSignatureRequestModel, options?: RawAxiosRequestConfig) {
-        return VoteApiFp(this.configuration).requestBlindSignature(voteId, blindSignatureRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

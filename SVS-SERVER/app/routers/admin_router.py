@@ -205,34 +205,34 @@ async def getParticipationData(db: AsyncSession):
     and number of users who never participated.
     """
 
-    # 1️⃣ Total votes cast (bulletins)
+    # Total votes cast (bulletins)
     total_votes_stmt = select(func.count()).select_from(Bulletin)
     result = await db.execute(total_votes_stmt)
     total_votes = result.scalar() or 0
 
-    # 2️⃣ Total abstentions
-    # User has an attributed vote, vote is finished, but no bulletin
-    finished_votes_subq = select(Vote.id).where(Vote.end_date < func.now()).subquery()
-
+    # Total abstentions
+    # User has an attributed vote, vote is finished, but user_has_voted is False
     abstain_stmt = (
         select(func.count())
         .select_from(AttributedVote)
         .join(Vote, AttributedVote.vote_id == Vote.id)
-        .outerjoin(
-            Bulletin,
-            (Bulletin.vote_id == AttributedVote.vote_id)
-            & (Bulletin.user_id == AttributedVote.user_id),
-        )
         .where(Vote.end_date < func.now())
-        .where(Bulletin.vote_id.is_(None))  # no bulletin => abstained
+        .where(AttributedVote.user_has_voted.is_(False))  # abstained
     )
     result = await db.execute(abstain_stmt)
     total_abstain = result.scalar() or 0
 
-    # 3️⃣ Users who never participated (no bulletins at all)
+    # Users who never participated (all his attributed_votes.user_has_voted are false or he has no attributed votes at all)
+    # Subquery: users who have at least one voted attributed_vote
+    subq = (
+        select(AttributedVote.user_id)
+        .where(AttributedVote.user_has_voted.is_(True))
+        .distinct()
+    ).subquery()
     no_participation_stmt = select(func.count(User.id)).where(
-        ~User.id.in_(select(Bulletin.user_id))
+        ~User.id.in_(select(subq.c.user_id))
     )
+
     result = await db.execute(no_participation_stmt)
     no_participation = result.scalar() or 0
     return {
@@ -250,33 +250,20 @@ async def getVotesStatusPerMonth(db: AsyncSession):
     Finished: votes ending in the month
     """
 
-    # We'll group by the month of the vote start date
-    month_expr = func.to_char(func.date_trunc("month", Vote.start_date), "YYYY-MM")
+    # Extract year-month as string 'YYYY-MM'
+    month_expr = func.to_char(Vote.start_date, "YYYY-MM")
 
-    # Votes starting in that month
+    # Upcoming: votes starting in the month
     upcoming_count = func.count(
-        case(
-            (
-                func.date_trunc("month", Vote.start_date)
-                == func.date_trunc("month", Vote.start_date),
-                1,
-            )
-        )
+        case((func.to_char(Vote.start_date, "YYYY-MM") == month_expr, 1))
     )
 
-    # Votes ending in that month
+    # Finished: votes ending in the month
     finished_count = func.count(
-        case(
-            (
-                func.date_trunc("month", Vote.end_date)
-                == func.date_trunc("month", Vote.end_date),
-                1,
-            )
-        )
+        case((func.to_char(Vote.end_date, "YYYY-MM") == month_expr, 1))
     )
 
-    # Ongoing votes: votes where month overlaps with vote period
-    # We'll check: vote.start_date <= month_end AND vote.end_date >= month_start
+    # Ongoing: votes overlapping the month
     ongoing_count = func.count(
         case(
             (
@@ -291,19 +278,18 @@ async def getVotesStatusPerMonth(db: AsyncSession):
         )
     )
 
-    statement = (
+    stmt = (
         select(
             month_expr.label("month"),
             upcoming_count.label("upcoming"),
             ongoing_count.label("ongoing"),
             finished_count.label("finished"),
         )
-        .select_from(Vote)
         .group_by(month_expr)
         .order_by(month_expr)
     )
 
-    result = await db.execute(statement)
+    result = await db.execute(stmt)
     votesStatusPerMonth = [dict(row) for row in result.mappings()]
     return votesStatusPerMonth
 

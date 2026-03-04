@@ -8,14 +8,6 @@ class AttributedVote(SQLModel, table=True):
     user_id: int | None = Field(default=None, primary_key=True, foreign_key="user.id")
     vote_id: int | None = Field(default=None, primary_key=True, foreign_key="vote.id")
 
-    blinded_token_hash: str | None = Field(
-        default=None, max_length=512, description="Hash of the blinded voting token"
-    )
-    blind_signature: str | None = Field(
-        default=None, max_length=1024, description="Signature over the blinded token"
-    )
-    signature_issued: bool = Field(default=False)
-
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     user_has_voted: bool = Field(

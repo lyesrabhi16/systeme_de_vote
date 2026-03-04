@@ -5,9 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**token** | **string** |  | [default to undefined]
-**signature** | **string** |  | [default to undefined]
-**content** | **string** |  | [default to undefined]
+**content** | [**Array&lt;VoteCastContentModel&gt;**](VoteCastContentModel.md) |  | [default to undefined]
 
 ## Example
 
@@ -15,8 +13,6 @@ Name | Type | Description | Notes
 import { VoteCastData } from './api';
 
 const instance: VoteCastData = {
-    token,
-    signature,
     content,
 };
 ```

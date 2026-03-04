@@ -15,6 +15,7 @@ fastapi-mail = "*"
 cryptography = "*"
 fastapi-crons = "*"
 fastcrud = "*"
+phe = "*"
 
 [dev-packages]
 ruff = "*"

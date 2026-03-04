@@ -1,3 +1,5 @@
+import secrets
+
 from sqlmodel import SQLModel, Field
 from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,16 +15,17 @@ class Bulletin(SQLModel, table=True):
     content: str = Field(
         ...,
         title="Content",
-        max_length=4000,
+        max_length=100000,
         description="Homomorphically encrypted ballot",
     )
     date: datetime = Field(..., title="Date")
 
-    voting_token: str = Field(
-        ..., max_length=512, description="Unblinded anonymous voting token"
-    )
-    token_signature: str = Field(
-        ..., max_length=1024, description="Authority signature over voting token"
+    unique_code: str = Field(
+        ...,
+        max_length=1024,
+        unique=True,
+        default_factory=lambda: secrets.token_urlsafe(32),
+        description="Unique code for the bulletin, used for verification",
     )
 
     vote: "Vote" = Relationship(

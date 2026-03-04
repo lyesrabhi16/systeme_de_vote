@@ -11,14 +11,10 @@ from app.models.vote_util_models import (
     FinishedVoteResponseModel,
     VoteCreationModel,
 )
-from app.models.voting_models import (
-    BlindSignatureRequestModel,
-    BlindSignatureResponseModel,
-    VoteCastData,
-)
+from app.models.voting_models import VoteCastData
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
-from app.utils import auth_utils, vote_utils, response_utils
+from app.utils import vote_utils, response_utils
 from app.utils.response_utils import paginate
 
 router = APIRouter()
@@ -63,7 +59,9 @@ async def get_created_votes(request: Request):
 )
 async def get_already_voted_on_votes(request: Request):
     user = await User.get_authenticated_user(request)
-    voted_votes = map(lambda b: b.vote, user.bulletins)
+    voted_votes = map(
+        lambda b: b.vote, {av for av in user.attributed_votes if av.user_has_voted}
+    )
     return list(voted_votes)
 
 
@@ -77,7 +75,8 @@ async def get_already_voted_on_votes(request: Request):
 )
 async def get_available_votes(request: Request):
     user = await User.get_authenticated_user(request)
-    voted_vote_ids = {vote.id for vote in map(lambda b: b.vote, user.bulletins)}
+    voted_vote_ids = {av.vote_id for av in user.attributed_votes if av.user_has_voted}
+    logger.debug(f"User {user.username} voted vote IDs: {voted_vote_ids}")
 
     available_votes = [
         attributed_vote.vote
@@ -99,19 +98,21 @@ async def get_available_votes(request: Request):
 )
 async def get_finished_votes(request: Request):
     user = await User.get_authenticated_user(request)
-    voted_vote_ids = {vote.id for vote in map(lambda b: b.vote, user.bulletins)}
+    voted_vote_ids = {av.vote_id for av in user.attributed_votes if av.user_has_voted}
     logger.debug(f"User {user.username} voted vote IDs: {voted_vote_ids}")
     finished_votes = set()
     for id in voted_vote_ids:
         finished_vote: FinishedVoteResponseModel | None = (
-            await FinishedVoteResponseModel.from_vote_id(id)
+            await FinishedVoteResponseModel.from_vote_id(id, user)
         )
         if finished_vote:
             finished_vote.user_has_voted = True
             finished_votes.add(finished_vote)
     for av in user.attributed_votes:
         if av.vote.is_vote_finished():
-            finished_vote = await FinishedVoteResponseModel.from_vote_id(av.vote.id)
+            finished_vote = await FinishedVoteResponseModel.from_vote_id(
+                av.vote.id, user
+            )
             if finished_vote and av.vote.id in voted_vote_ids:
                 continue  # Already added
             finished_votes.add(finished_vote)
@@ -189,104 +190,34 @@ async def get_all_votes(
 
 
 @router.post(
-    "/{vote_id}/blind-signature/",
-    operation_id="request_blind_signature",
-    response_model=BlindSignatureResponseModel,
-    dependencies=[
-        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
-    ],
-)
-async def request_blind_signature(
-    request: Request,
-    vote_id: int,
-    data: BlindSignatureRequestModel,
-):
-    user = await User.get_authenticated_user(request)
-    vote = await Vote.get_by_id(vote_id)
-
-    if not vote:
-        logger.warning(f"Vote with id {vote_id} not found.")
-        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
-
-    if vote.is_vote_finished():
-        logger.warning(f"Vote with id {vote_id} is already finished.")
-        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED)
-
-    if user.id not in map(lambda av: av.user_id, vote.attributed_users):
-        logger.warning(f"User {user.username} is not attributed to vote {vote_id}.")
-        raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
-
-    attributed_vote = await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id)
-
-    if not attributed_vote:
-        logger.error(
-            f"AttributedVote not found for user {user.username} and vote {vote_id}."
-        )
-        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
-    if attributed_vote.signature_issued:
-        logger.warning(
-            f"User {user.username} has already requested a blind signature for vote {vote_id}."
-        )
-        raise HTTPException(
-            status_code=400, detail=ERROR_CODES.BLIND_SIGNATURE_ALREADY_ISSUED
-        )
-
-    blind_signature = await vote_utils.generate_blind_signature(
-        auth_utils.decrypt_string(vote.encrypted_private_key),
-        int(data.blinded_message),
-    )
-    logger.debug(
-        f"Generated blind signature for user {user.username} on vote {vote_id}. Blind signature: {blind_signature}"
-    )
-
-    attributed_vote.signature_issued = True
-    attributed_vote.blind_signature = str(blind_signature)
-    attributed_vote.blinded_token_hash = auth_utils.hash_string(
-        str(data.blinded_message)
-    )
-    await attributed_vote.save()
-    b = BlindSignatureResponseModel(
-        blind_signature=str(blind_signature),
-        blinded_message=str(data.blinded_message),
-    )
-    logger.debug(
-        f"Returning blind signature response for user {user.username} on vote {vote_id}: {b}"
-    )
-    return b
-
-
-@router.post(
     "/cast/{vote_id}",
     operation_id="cast_vote",
     response_model=response_models.MessageResponse,
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+    ],
 )
 async def cast_vote(
     request: Request,
     vote_id: int,
     data: VoteCastData,
 ):
+    user = await User.get_authenticated_user(request)
     vote = await Vote.get_by_id(vote_id)
     if not vote:
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+    av = await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id)
+    if av is None:
+        logger.warning(f"User {user.username} is not attributed to vote {vote_id}.")
+        raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
 
     if vote.is_vote_finished():
         logger.warning(f"Vote with id {vote_id} is already finished.")
         raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED)
 
-    # Verify the blind signature and token
-    is_valid = await vote_utils.verify_blind_signature(
-        vote_id=vote_id,
-        blinded_token=int(data.token),
-        blind_signature=int(data.signature),
-        public_key=vote.public_key,
-    )
-    if not is_valid:
-        logger.warning(f"Invalid blind signature or token for vote {vote_id} by user.")
-        raise HTTPException(status_code=400, detail=ERROR_CODES.BAD_REQUEST)
-
-    #
-    await vote.register_vote(data)
+    # register the vote
+    await vote.register_vote(user, data)
     return response_models.MessageResponse(message="Vote recorded successfully.")
 
 
@@ -326,7 +257,7 @@ async def get_public_vote_bulletins(
 )
 async def get_vote_result(vote_id: int, request: Request):
     user = await User.get_authenticated_user(request)
-    finishedVote = await FinishedVoteResponseModel.from_vote_id(vote_id)
+    finishedVote = await FinishedVoteResponseModel.from_vote_id(vote_id, user)
     if not finishedVote:
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
@@ -362,7 +293,7 @@ async def get_vote_count(vote_id: int, request: Request):
             f"User {user.username} tried to access vote count {vote_id} without permission."
         )
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
-    count, failures = await vote_utils.get_vote_count(vote_id)
+    count, failures = await vote_utils.get_vote_count(vote_id, vote.get_private_key())
     return VoteResultsModel(
         candidate_results=count,
         count_failures=failures,

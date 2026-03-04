@@ -1,4 +1,5 @@
 from typing import Any
+from pydantic.v1 import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel, Field, Relationship
 from app.db.db import db_session
@@ -6,6 +7,10 @@ from datetime import datetime
 from app.models.user import User, UserResponseModel
 from app.models.voting_models import VoteCastData
 from loguru import logger
+from phe import PaillierPublicKey, PaillierPrivateKey, paillier
+import json
+
+from app.utils import auth_utils
 
 
 class Vote(SQLModel, table=True):
@@ -73,8 +78,11 @@ class Vote(SQLModel, table=True):
             self.encrypted_private_key = auth_utils.encrypt_string(keys["PRIVATE_KEY"])
 
     @db_session
-    async def register_vote(self, data: VoteCastData, db: AsyncSession | None = None):
+    async def register_vote(
+        self, user: User, data: VoteCastData, db: AsyncSession | None = None
+    ):
         """Vote on a vote."""
+        from app.models.attributed_votes import AttributedVote
         from app.models.bulletin import Bulletin
         from app.utils import auth_utils
 
@@ -83,15 +91,22 @@ class Vote(SQLModel, table=True):
 
         bulletin = Bulletin(
             vote_id=self.id,
-            content=auth_utils.encrypt_string(data.content),
+            content=json.dumps(list(d.model_dump() for d in data.content)),
             date=datetime.now(),
-            voting_token=data.token,
-            token_signature=data.signature,
+            unique_code=auth_utils.generate_unique_code(),  # Generate a unique code for the bulletin
         )
         db.add(bulletin)
+        av = await AttributedVote.get_by_ids(user_id=user.id, vote_id=self.id)
+        if av is None or av.user_has_voted:
+            logger.warning(f"User {user.username} has already voted on vote {self.id}.")
+            raise ValueError("User has already voted on this vote.")
+        if av:
+            av.user_has_voted = True
+            db.add(av)
+
         await db.commit()
 
-        logger.info(f"User voted on vote {self.id}")
+        logger.debug(f"User {user.username} voted on vote {self.id}")
 
     def is_vote_finished(self) -> bool:
         return self.end_date < datetime.utcnow()
@@ -112,6 +127,23 @@ class Vote(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+    def get_public_key(self) -> PaillierPublicKey:
+        """Return the public key for this vote."""
+        data = json.loads(self.public_key)
+        public_key = PaillierPublicKey(n=int(data["n"]))
+        public_key.g = int(data["g"])  # Set g explicitly if needed
+        return public_key
+
+    def get_private_key(self) -> PaillierPrivateKey:
+        """Decrypt and return the private key for this vote."""
+        decrypted_key_str = auth_utils.decrypt_string(self.encrypted_private_key)
+        decrypted_key_data = json.loads(decrypted_key_str)
+        return paillier.PaillierPrivateKey(
+            public_key=self.get_public_key(),
+            p=int(decrypted_key_data["p"]),
+            q=int(decrypted_key_data["q"]),
+        )
 
 
 class VoteWithCreatorResponseModel(SQLModel):

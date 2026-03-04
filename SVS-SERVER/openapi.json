@@ -584,58 +584,6 @@
                 }
             }
         },
-        "/vote/{vote_id}/blind-signature/": {
-            "post": {
-                "tags": [
-                    "vote"
-                ],
-                "summary": "Request Blind Signature",
-                "operationId": "request_blind_signature",
-                "parameters": [
-                    {
-                        "name": "vote_id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "title": "Vote Id"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/BlindSignatureRequestModel"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BlindSignatureResponseModel"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/vote/cast/{vote_id}": {
             "post": {
                 "tags": [
@@ -1529,36 +1477,43 @@
     },
     "components": {
         "schemas": {
-            "BlindSignatureRequestModel": {
+            "BinaryZKProofModel": {
                 "properties": {
-                    "blinded_message": {
+                    "a0": {
                         "type": "string",
-                        "title": "Blinded Message"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "blinded_message"
-                ],
-                "title": "BlindSignatureRequestModel"
-            },
-            "BlindSignatureResponseModel": {
-                "properties": {
-                    "blinded_message": {
-                        "type": "string",
-                        "title": "Blinded Message"
+                        "title": "A0"
                     },
-                    "blind_signature": {
+                    "a1": {
                         "type": "string",
-                        "title": "Blind Signature"
+                        "title": "A1"
+                    },
+                    "e0": {
+                        "type": "string",
+                        "title": "E0"
+                    },
+                    "e1": {
+                        "type": "string",
+                        "title": "E1"
+                    },
+                    "z0": {
+                        "type": "string",
+                        "title": "Z0"
+                    },
+                    "z1": {
+                        "type": "string",
+                        "title": "Z1"
                     }
                 },
                 "type": "object",
                 "required": [
-                    "blinded_message",
-                    "blind_signature"
+                    "a0",
+                    "a1",
+                    "e0",
+                    "e1",
+                    "z0",
+                    "z1"
                 ],
-                "title": "BlindSignatureResponseModel"
+                "title": "BinaryZKProofModel"
             },
             "BooleanResponse": {
                 "properties": {
@@ -1599,7 +1554,7 @@
                     },
                     "content": {
                         "type": "string",
-                        "maxLength": 4000,
+                        "maxLength": 100000,
                         "title": "Content",
                         "description": "Homomorphically encrypted ballot"
                     },
@@ -1608,25 +1563,17 @@
                         "format": "date-time",
                         "title": "Date"
                     },
-                    "voting_token": {
-                        "type": "string",
-                        "maxLength": 512,
-                        "title": "Voting Token",
-                        "description": "Unblinded anonymous voting token"
-                    },
-                    "token_signature": {
+                    "unique_code": {
                         "type": "string",
                         "maxLength": 1024,
-                        "title": "Token Signature",
-                        "description": "Authority signature over voting token"
+                        "title": "Unique Code",
+                        "description": "Unique code for the bulletin, used for verification"
                     }
                 },
                 "type": "object",
                 "required": [
                     "content",
-                    "date",
-                    "voting_token",
-                    "token_signature"
+                    "date"
                 ],
                 "title": "Bulletin"
             },
@@ -2719,6 +2666,13 @@
                     "type": {
                         "type": "string",
                         "title": "Error Type"
+                    },
+                    "input": {
+                        "title": "Input"
+                    },
+                    "ctx": {
+                        "type": "object",
+                        "title": "Context"
                     }
                 },
                 "type": "object",
@@ -2823,25 +2777,40 @@
                 ],
                 "title": "Vote"
             },
+            "VoteCastContentModel": {
+                "properties": {
+                    "candidate_id": {
+                        "type": "integer",
+                        "title": "Candidate Id"
+                    },
+                    "encrypted_value": {
+                        "type": "string",
+                        "title": "Encrypted Value"
+                    },
+                    "proof": {
+                        "$ref": "#/components/schemas/BinaryZKProofModel"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "candidate_id",
+                    "encrypted_value",
+                    "proof"
+                ],
+                "title": "VoteCastContentModel"
+            },
             "VoteCastData": {
                 "properties": {
-                    "token": {
-                        "type": "string",
-                        "title": "Token"
-                    },
-                    "signature": {
-                        "type": "string",
-                        "title": "Signature"
-                    },
                     "content": {
-                        "type": "string",
+                        "items": {
+                            "$ref": "#/components/schemas/VoteCastContentModel"
+                        },
+                        "type": "array",
                         "title": "Content"
                     }
                 },
                 "type": "object",
                 "required": [
-                    "token",
-                    "signature",
                     "content"
                 ],
                 "title": "VoteCastData"
