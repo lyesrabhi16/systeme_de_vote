@@ -21,7 +21,6 @@ crud = FastCRUD(model=User)
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
-        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),
     ],
 )
 async def create_user(request: Request, user_data: UserCreationModel):

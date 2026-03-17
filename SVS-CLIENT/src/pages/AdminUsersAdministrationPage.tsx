@@ -8,7 +8,7 @@ import { DataTable } from '@/components/utils/datatable/DataTable';
 import { DataTableColumnHeader } from '@/components/utils/datatable/ColumnHeader';
 import { useBreadCrumbs } from '@/hooks/useBreadCrumbs';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import UserActivationStateBadge from '@/components/users/UserActivationStateBadge';
 import UserTableActions from '@/components/users/UserTableActions';
@@ -35,21 +35,35 @@ const AdminsAdministrationPage = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [userFormModalType, setUserFormModalType] =
     useState<keyof typeof UserFormModalTypes>('readonly');
+  const [loading, setLoading] = useState(false);
 
   const fetchUsers = async (page: number, perPage: number, search?: string) => {
+    setLoading(true);
     try {
       const res = await apiClient().admin.getAdmins(page, perPage, search);
-      setUsersMeta({
-        ...res.data,
-        data: res.data.data,
-      });
+      setUsersMeta({ ...res.data });
     } catch (error) {
       console.error(error);
-      toast.error('Échec de la récupération des utilisateurs', {
+      toast.error('Échec de la récupération des administrateurs', {
         id: 'fetch_admins_error',
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+  const refreshCurrentPage = (search = searchValue) =>
+    fetchUsers(usersMeta?.page ?? 1, usersMeta?.items_per_page ?? 10, search);
+
+  const openUserModal = (
+    user: UserResponseModel,
+    type: keyof typeof UserFormModalTypes,
+  ) => {
+    setUserFormModalType(type);
+    setSelectedUser(user);
+    setIsUserModalOpen(true);
+  };
+
   const Breadcrumbs = useBreadCrumbs({
     admin: true,
     additionalLabel: () => ({
@@ -58,82 +72,66 @@ const AdminsAdministrationPage = () => {
     }),
   });
 
-  const cols: ColumnDef<UsersTableData>[] = [
-    {
-      id: 'user',
-      accessorKey: 'email',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Administrateur' />
-      ),
-      cell: ({ row }) => {
-        const user = row.original;
-
-        return <UserInfoRow user={user as UserResponseModel} />;
+  const cols = useMemo<ColumnDef<UsersTableData>[]>(
+    () => [
+      {
+        id: 'user',
+        accessorKey: 'email',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title='Administrateur' />
+        ),
+        cell: ({ row }) => (
+          <UserInfoRow user={row.original as UserResponseModel} />
+        ),
       },
-    },
-    {
-      accessorKey: 'is_active',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Statut' />
-      ),
-      cell: ({ row }) => (
-        <div className='flex flex-row gap-1'>
+      {
+        accessorKey: 'is_active',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title='Statut' />
+        ),
+        cell: ({ row }) => (
           <UserActivationStateBadge
             user={row.original as UserResponseModel}
-            successCallback={() =>
-              fetchUsers(usersMeta?.page ?? 1, usersMeta?.items_per_page ?? 10)
-            }
+            successCallback={refreshCurrentPage}
           />
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'authority',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Autorité' />
-      ),
-      cell: ({ row }) => (
-        <div className='flex flex-row gap-1'>
+        ),
+      },
+      {
+        accessorKey: 'authority',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title='Autorité' />
+        ),
+        cell: ({ row }) => (
           <UserAuthorityTypeBadge
             user={row.original as UserResponseModel}
-            successCallback={() =>
-              fetchUsers(usersMeta?.page ?? 1, usersMeta?.items_per_page ?? 10)
-            }
+            successCallback={refreshCurrentPage}
           />
-        </div>
-      ),
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => (
-        <UserTableActions
-          user={row.original as UserResponseModel}
-          onView={(user) => {
-            setUserFormModalType('readonly');
-            setSelectedUser(user);
-            setIsUserModalOpen(true);
-          }}
-          onEdit={(user) => {
-            setUserFormModalType('default');
-            setSelectedUser(user);
-            setIsUserModalOpen(true);
-          }}
-          onUserUpdated={() =>
-            fetchUsers(
-              usersMeta?.page ?? 1,
-              usersMeta?.items_per_page ?? 10,
-              searchValue,
-            )
-          }
-        />
-      ),
-    },
-  ];
+        ),
+      },
+      {
+        id: 'actions',
+        cell: ({ row }) => (
+          <UserTableActions
+            user={row.original as UserResponseModel}
+            onView={(user) => openUserModal(user, 'readonly')}
+            onEdit={(user) => openUserModal(user, 'default')}
+            onUserUpdated={refreshCurrentPage}
+          />
+        ),
+      },
+    ],
+    // refreshCurrentPage is stable within a render cycle; usersMeta page/size
+    // are captured via the closure — cols rebuild when those change
+    [usersMeta?.page, usersMeta?.items_per_page, searchValue],
+  );
 
   return (
     <AppContainer admin noBreadcrumbs>
       <Breadcrumbs />
+
+      {/* View / edit modal (opened from row actions or double-click) */}
       <UserFormModal
+        admin
         type={userFormModalType}
         user={selectedUser as UserResponseModel}
         open={isUserModalOpen}
@@ -141,57 +139,52 @@ const AdminsAdministrationPage = () => {
           setIsUserModalOpen(open);
           if (!open) {
             setSelectedUser(null);
+            refreshCurrentPage();
           }
-          fetchUsers(
-            usersMeta?.page ?? 1,
-            usersMeta?.items_per_page ?? 10,
-            searchValue,
-          );
         }}
       />
-      <div className='w-full p-8'>
-        <div className='mb-6 flex flex-row flex-wrap items-center justify-between gap-4'>
-          <div>
-            <h2 className='text-2xl font-bold'>Administrateurs</h2>
-            <p className='text-sm text-muted-foreground'>
-              Gérer les comptes administrateurs
-            </p>
-          </div>
+
+      <div className='w-full p-4 sm:p-8'>
+        {/* Page header */}
+        <div className='mb-6'>
+          <h2 className='text-2xl font-bold'>Administrateurs</h2>
+          <p className='text-sm text-muted-foreground'>
+            Gérer les comptes administrateurs
+          </p>
         </div>
-        <div className='flex flex-row items-center justify-between mb-4'>
+
+        {/* Toolbar */}
+        <div className='flex flex-row items-center justify-between mb-4 gap-4 flex-wrap'>
           <InputWithIcons
             LeftIcon={LucideSearch}
             input_props={{
-              placeholder: 'Search...',
+              placeholder: 'Rechercher...',
               value: searchValue,
               onChange: (e) => setSearchValue(e.target.value),
             }}
-            input_group_props={{
-              className: 'max-w-[300px]',
-            }}
+            input_group_props={{ className: 'max-w-[300px]' }}
           />
           <UserFormModal
             type='add'
-            admin={true}
+            admin
             onOpenChange={(open, setOpen) => {
               setOpen?.(open);
-              fetchUsers(
-                usersMeta?.page ?? 1,
-                usersMeta?.items_per_page ?? 10,
-                searchValue,
-              );
+              refreshCurrentPage();
             }}
             trigger={
               <Button>
-                <LucideUserPlus /> Ajouter un administrateur
+                <LucideUserPlus className='w-4 h-4 mr-2' />
+                Ajouter un administrateur
               </Button>
             }
           />
         </div>
+
         <DataTable
           columns={cols}
           data={usersMeta?.data ?? []}
           search={searchValue}
+          loading={loading}
           metadata={{
             data: usersMeta?.data ?? [],
             page: usersMeta?.page ?? 1,
@@ -200,19 +193,10 @@ const AdminsAdministrationPage = () => {
             items_per_page: usersMeta?.items_per_page ?? 10,
           }}
           fetchData={fetchUsers}
-          initialSortingState={[
-            {
-              id: 'user',
-              desc: false,
-            },
-          ]}
-          onRowDoubleClick={(user_row) => {
-            const user = usersMeta?.data.find((u) => u.id === user_row.id);
-            if (user) {
-              setSelectedUser(user);
-              setIsUserModalOpen(true);
-            }
-          }}
+          initialSortingState={[{ id: 'user', desc: false }]}
+          onRowDoubleClick={(row) =>
+            openUserModal(row as UserResponseModel, 'readonly')
+          }
         />
       </div>
     </AppContainer>

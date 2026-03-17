@@ -17,58 +17,73 @@ import {
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
+  pageSizeOptions?: number[];
 }
 
 export function DataTablePagination<TData>({
   table,
+  pageSizeOptions = [5, 10, 20, 25, 50, 100],
 }: DataTablePaginationProps<TData>) {
+  const { pageIndex, pageSize } = table.getState().pagination;
+  const pageCount = table.getPageCount();
+  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+  const totalCount = table.getFilteredRowModel().rows.length;
+
   return (
     <div className='flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between'>
-      {/* Sélection */}
-      <div className='flex-1 text-sm text-muted-foreground'>
-        {table.getFilteredSelectedRowModel().rows.length} sur{' '}
-        {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
-      </div>
+      {/* Selection count — only shown when row selection is enabled */}
+      {selectedCount > 0 ? (
+        <p className='flex-1 text-sm text-muted-foreground'>
+          {selectedCount} sur {totalCount} ligne(s) sélectionnée(s)
+        </p>
+      ) : (
+        <p className='flex-1 text-sm text-muted-foreground'>
+          {totalCount} ligne(s)
+        </p>
+      )}
 
-      {/* Pagination */}
-      <div className='flex items-center gap-6 lg:gap-8'>
-        {/* Lignes par page */}
+      <div className='flex flex-wrap items-center gap-4 lg:gap-6'>
+        {/* Page size selector */}
         <div className='flex items-center gap-2'>
-          <p className='text-sm font-medium'>Lignes par page</p>
+          <p className='text-sm font-medium whitespace-nowrap'>
+            Lignes par page
+          </p>
           <Select
-            value={`${table.getState().pagination.pageSize}`}
-            onValueChange={(value) => table.setPageSize(Number(value))}
+            value={`${pageSize}`}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value));
+              table.setPageIndex(0);
+            }}
           >
             <SelectTrigger className='h-8 w-20'>
-              <SelectValue placeholder={table.getState().pagination.pageSize} />
+              <SelectValue placeholder={pageSize} />
             </SelectTrigger>
             <SelectContent side='top'>
-              {[1, 5, 10, 20, 25, 30, 40, 50, 100].map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
+              {pageSizeOptions.map((size) => (
+                <SelectItem key={size} value={`${size}`}>
+                  {size}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Indicateur de page */}
-        <div className='flex min-w-[110px] items-center justify-center text-sm font-medium'>
-          Page {table.getState().pagination.pageIndex + 1} sur{' '}
-          {table.getPageCount()}
+        {/* Page indicator */}
+        <div className='flex min-w-[100px] items-center justify-center text-sm font-medium tabular-nums'>
+          Page {pageIndex + 1} sur {pageCount > 0 ? pageCount : 1}
         </div>
 
-        {/* Navigation */}
-        <div className='flex items-center gap-2'>
+        {/* Navigation buttons */}
+        <div className='flex items-center gap-1'>
           <Button
             variant='outline'
             size='icon'
             className='hidden h-8 w-8 lg:flex'
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
+            aria-label='Première page'
           >
-            <span className='sr-only'>Première page</span>
-            <ChevronsLeft />
+            <ChevronsLeft className='h-4 w-4' />
           </Button>
 
           <Button
@@ -77,9 +92,9 @@ export function DataTablePagination<TData>({
             className='h-8 w-8'
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            aria-label='Page précédente'
           >
-            <span className='sr-only'>Page précédente</span>
-            <ChevronLeft />
+            <ChevronLeft className='h-4 w-4' />
           </Button>
 
           <Button
@@ -88,20 +103,20 @@ export function DataTablePagination<TData>({
             className='h-8 w-8'
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            aria-label='Page suivante'
           >
-            <span className='sr-only'>Page suivante</span>
-            <ChevronRight />
+            <ChevronRight className='h-4 w-4' />
           </Button>
 
           <Button
             variant='outline'
             size='icon'
             className='hidden h-8 w-8 lg:flex'
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            onClick={() => table.setPageIndex(pageCount - 1)}
             disabled={!table.getCanNextPage()}
+            aria-label='Dernière page'
           >
-            <span className='sr-only'>Dernière page</span>
-            <ChevronsRight />
+            <ChevronsRight className='h-4 w-4' />
           </Button>
         </div>
       </div>

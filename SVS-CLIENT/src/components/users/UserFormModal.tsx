@@ -48,17 +48,24 @@ import {
   LucideCheck,
   LucideUserPlus,
 } from 'lucide-react';
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import { toast, useSonner } from 'sonner';
 import type z from 'zod';
 
-type doneStateType = {
-  state: boolean;
-  success: boolean | null;
-};
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const UserFormModal = (props: {
+type DoneState = { state: boolean; success: boolean | null };
+
+type AsyncActionKey = 'resetPassword' | 'sendVerificationEmail';
+
+interface UserFormModalProps {
   user?: User;
   type: keyof typeof UserFormModalTypes | undefined;
   trigger?: React.ReactNode;
@@ -69,28 +76,23 @@ const UserFormModal = (props: {
     defaultSetOpen?: Dispatch<SetStateAction<boolean>>,
   ) => void;
   admin?: boolean;
-}) => {
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const UserFormModal = (props: UserFormModalProps) => {
   const { toasts } = useSonner();
 
-  const [user, setUser] = useState({
-    old: props.user,
-    ...props.user,
-  });
+  const [user, setUser] = useState({ old: props.user, ...props.user });
   const [manualPassword, setManualPassword] = useState(false);
   const [loading, setLoading] = useState({
     form: false,
     resetPassword: false,
     sendVerificationEmail: false,
   });
-  const [done, setDone] = useState<Record<string, doneStateType>>({
-    resetPassword: {
-      state: true,
-      success: null,
-    },
-    sendVerificationEmail: {
-      state: true,
-      success: null,
-    },
+  const [done, setDone] = useState<Record<AsyncActionKey, DoneState>>({
+    resetPassword: { state: true, success: null },
+    sendVerificationEmail: { state: true, success: null },
   });
 
   const [open, setOpen] = useState(false);
@@ -99,86 +101,115 @@ const UserFormModal = (props: {
       ? (open: boolean) => props.onOpenChange?.(open, setOpen)
       : setOpen;
 
-  const [formType, setFormtype] = useState(props.type || 'default');
+  const [formType, setFormtype] = useState(props.type ?? 'default');
+
+  // ── Forms ──────────────────────────────────────────────────────────────────
 
   const userForm = useForm<z.infer<typeof UserFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(UserFormSchema),
     defaultValues: {
-      id: user.id || undefined,
-      username: user.username || '',
-      email: user.email || '',
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      phone_number: user.phone_number || '',
-      is_active: user.is_active || false,
-      is_admin: user.is_admin || false,
-      verified_email: user.verified_email || false,
-      verified_phone_number: user.verified_phone_number || false,
-      password: user.password || '',
+      id: user.id ?? undefined,
+      username: user.username ?? '',
+      email: user.email ?? '',
+      first_name: user.first_name ?? '',
+      last_name: user.last_name ?? '',
+      phone_number: user.phone_number ?? '',
+      is_active: user.is_active ?? false,
+      is_admin: user.is_admin ?? false,
+      verified_email: user.verified_email ?? false,
+      verified_phone_number: user.verified_phone_number ?? false,
+      password: user.password ?? '',
     },
   });
+
   const adminForm = useForm<z.infer<typeof AdminUserFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(AdminUserFormSchema),
     defaultValues: {
-      id: user.id || undefined,
-      username: user.username || '',
-      email: user.email || '',
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      phone_number: user.phone_number || '',
-      is_active: user.is_active || false,
-      is_admin: user.is_admin || false,
-      verified_email: user.verified_email || false,
-      verified_phone_number: user.verified_phone_number || false,
-      password: user.password || '',
-      authority: user.authority || undefined,
+      id: user.id ?? undefined,
+      username: user.username ?? '',
+      email: user.email ?? '',
+      first_name: user.first_name ?? '',
+      last_name: user.last_name ?? '',
+      phone_number: user.phone_number ?? '',
+      is_active: user.is_active ?? false,
+      is_admin: user.is_admin ?? false,
+      verified_email: user.verified_email ?? false,
+      verified_phone_number: user.verified_phone_number ?? false,
+      password: user.password ?? '',
+      authority: user.authority ?? undefined,
     },
   });
+
   const form = (props.admin ? adminForm : userForm) as UseFormReturn<
     z.infer<typeof UserFormSchema>
   >;
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
   const refreshUserData = async (id?: number) => {
-    const res = await apiClient().users.adminGetUserById(
-      id ?? (user.id as number),
-    );
+    const targetId = id ?? user.id;
+    if (!targetId) return;
+    const res = await apiClient().users.adminGetUserById(targetId);
     setUser({ old: res.data, ...res.data });
   };
+
   const resetForm = () => {
+    const base = {
+      id: user.id ?? undefined,
+      username: user.username ?? '',
+      email: user.email ?? '',
+      first_name: user.first_name ?? '',
+      last_name: user.last_name ?? '',
+      phone_number: user.phone_number ?? '',
+      is_active: user.is_active ?? false,
+      is_admin: user.is_admin ?? false,
+      verified_email: user.verified_email ?? false,
+      verified_phone_number: user.verified_phone_number ?? false,
+    };
     if (props.admin) {
-      adminForm.reset({
-        id: user.id || undefined,
-        username: user.username || '',
-        email: user.email || '',
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
-        phone_number: user.phone_number || '',
-        is_active: user.is_active || false,
-        is_admin: user.is_admin || false,
-        verified_email: user.verified_email || false,
-        verified_phone_number: user.verified_phone_number || false,
-        authority: user.authority || undefined,
-      });
+      adminForm.reset({ ...base, authority: user.authority ?? undefined });
     } else {
-      userForm.reset({
-        id: user.id || undefined,
-        username: user.username || '',
-        email: user.email || '',
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
-        phone_number: user.phone_number || '',
-        is_active: user.is_active || false,
-        is_admin: user.is_admin || false,
-        verified_email: user.verified_email || false,
-        verified_phone_number: user.verified_phone_number || false,
-      });
+      userForm.reset(base);
     }
   };
+
+  // ── Use a ref to skip the form-reset effect when we update user state
+  //    ourselves (e.g. toggling is_active / is_admin badges).
+  //    Using a ref instead of state avoids a double-render.
+  const skipNextUserEffect = useRef(false);
+
+  const setUserWithoutReset = (updater: (prev: typeof user) => typeof user) => {
+    skipNextUserEffect.current = true;
+    setUser(updater);
+  };
+
+  // ── Effects ────────────────────────────────────────────────────────────────
+
+  // Re-sync form when internal `user` state changes (e.g. after refreshUserData)
+  useEffect(() => {
+    if (skipNextUserEffect.current) {
+      skipNextUserEffect.current = false;
+      return;
+    }
+    setFormtype(props.type ?? 'default');
+    resetForm();
+  }, [user]);
+
+  // Re-sync when the parent changes the `props.user` prop
+  useEffect(() => {
+    setUser({ old: props.user, ...props.user });
+    if (props.user?.id) {
+      refreshUserData(props.user.id);
+    }
+  }, [props.user]);
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+
   const handleSubmit = (data: User) => {
     setLoading((p) => ({ ...p, form: true }));
-    //console.log('Submitting form with data: ', manualPassword, data, user);
+
     const new_data = {
       ...data,
       verified_email: user.verified_email,
@@ -186,15 +217,15 @@ const UserFormModal = (props: {
       is_active: user.is_active,
       is_admin: user.is_admin,
       authority: user.is_admin
-        ? data.authority ||
-          adminForm.getValues('authority') ||
-          AuthorityEnum.Inscription
+        ? (data.authority ??
+          adminForm.getValues('authority') ??
+          AuthorityEnum.Inscription)
         : null,
       password: manualPassword ? data.password : undefined,
     };
-    //console.log('new_data:', new_data);
 
     setUser((s) => ({ ...s, ...new_data }));
+
     if (formType === 'add') {
       apiClient()
         .users.createUser({
@@ -203,7 +234,7 @@ const UserFormModal = (props: {
           last_name: new_data.last_name as string,
           username: new_data.username as string,
           phone_number: new_data.phone_number,
-          is_admin: props.admin || false,
+          is_admin: props.admin ?? false,
           authority: props.admin
             ? (new_data.authority as UserCreationModelAuthorityEnum)
             : undefined,
@@ -217,52 +248,29 @@ const UserFormModal = (props: {
           setFormtype('readonly');
         })
         .catch((e) => {
-          console.log('error: ', e);
-
-          if (e.response?.data?.detail?.code) {
-            const code = e.response.data.detail.code;
-            console.log(
-              'error code: ',
-              code,
-              ERROR_CODES.EMAIL_ALREADY_EXISTS,
-              ERROR_CODES.USERNAME_ALREADY_EXISTS === code,
+          const code = e.response?.data?.detail?.code;
+          if (code === ERROR_CODES.EMAIL_ALREADY_EXISTS) {
+            toast.error(
+              'Un utilisateur avec cette adresse e-mail existe déjà',
+              { id: 'email_already_exists' },
             );
-
-            if (code == ERROR_CODES.EMAIL_ALREADY_EXISTS) {
-              toast.error(
-                'Un utilisateur avec cette adresse e-mail existe déjà',
-                {
-                  id: 'email_already_exists',
-                },
-              );
-              return;
-            }
-            if (code == ERROR_CODES.USERNAME_ALREADY_EXISTS) {
-              toast.error(
-                "Un utilisateur avec ce nom d'utilisateur existe déjà",
-                {
-                  id: 'username_already_exists',
-                },
-              );
-              return;
-            }
-            if (code == ERROR_CODES.PHONE_NUMBER_ALREADY_EXISTS) {
-              toast.error(
-                'Un utilisateur avec ce numéro de téléphone existe déjà',
-                {
-                  id: 'phone_number_already_exists',
-                },
-              );
-              return;
-            }
+          } else if (code === ERROR_CODES.USERNAME_ALREADY_EXISTS) {
+            toast.error(
+              "Un utilisateur avec ce nom d'utilisateur existe déjà",
+              { id: 'username_already_exists' },
+            );
+          } else if (code === ERROR_CODES.PHONE_NUMBER_ALREADY_EXISTS) {
+            toast.error(
+              'Un utilisateur avec ce numéro de téléphone existe déjà',
+              { id: 'phone_number_already_exists' },
+            );
+          } else {
+            toast.error("Échec de la création de l'utilisateur", {
+              id: 'user_creation_failed',
+            });
           }
-          toast.error("Échec de la création de l'utilisateur", {
-            id: 'user_creation_failed',
-          });
         })
-        .finally(() => {
-          setLoading((p) => ({ ...p, form: false }));
-        });
+        .finally(() => setLoading((p) => ({ ...p, form: false })));
       return;
     }
 
@@ -282,52 +290,115 @@ const UserFormModal = (props: {
           id: 'user_update_failed',
         });
       })
-      .finally(() => {
-        setLoading((p) => ({ ...p, form: false }));
-      });
+      .finally(() => setLoading((p) => ({ ...p, form: false })));
   };
 
-  // Reset state when dialog opens or user changes
-  let [allowFormReset, setAllowFormReset] = useState(true);
-  useEffect(() => {
-    if (allowFormReset) {
-      //console.log('user in modal: ', user);
-      setFormtype(props.type || 'default');
-      resetForm();
-    } else {
-      setAllowFormReset(true);
+  // ── Async action handlers (extracted from JSX) ─────────────────────────────
+
+  const handleResetPassword = () => {
+    setLoading((p) => ({ ...p, resetPassword: true }));
+    setDone((p) => ({ ...p, resetPassword: { state: false, success: false } }));
+
+    Promise.all([
+      apiClient().users.adminUpdateUser(
+        user.id as number,
+        { request_password_reset: true } as UserUpdateModel,
+      ),
+      apiClient().auth.passwordResetRequest({ email: user.email as string }),
+    ])
+      .then(() => {
+        toast.success(
+          'Demande de réinitialisation du mot de passe effectuée avec succès',
+          {
+            id: 'password_reset_request_success',
+          },
+        );
+        setDone((p) => ({
+          ...p,
+          resetPassword: { state: true, success: true },
+        }));
+      })
+      .catch(() => {
+        toast.error('Échec de la demande de réinitialisation du mot de passe', {
+          id: 'password_reset_request_failed',
+        });
+        setDone((p) => ({
+          ...p,
+          resetPassword: { state: true, success: false },
+        }));
+      })
+      .finally(() => setLoading((p) => ({ ...p, resetPassword: false })));
+  };
+
+  const handleSendVerificationEmail = () => {
+    setLoading((p) => ({ ...p, sendVerificationEmail: true }));
+    setDone((p) => ({
+      ...p,
+      sendVerificationEmail: { state: false, success: false },
+    }));
+
+    apiClient()
+      .admin.sendVerificationEmail(user.id as number)
+      .then(() => {
+        toast.success('E-mail de vérification renvoyé avec succès', {
+          id: 'verification_email_sent',
+        });
+        setDone((p) => ({
+          ...p,
+          sendVerificationEmail: { state: true, success: true },
+        }));
+      })
+      .catch(() => {
+        toast.error("Échec de l'envoi de l'e-mail de vérification", {
+          id: 'verification_email_failed',
+        });
+        setDone((p) => ({
+          ...p,
+          sendVerificationEmail: { state: true, success: false },
+        }));
+      })
+      .finally(() =>
+        setLoading((p) => ({ ...p, sendVerificationEmail: false })),
+      );
+  };
+
+  // ── Render helpers ─────────────────────────────────────────────────────────
+
+  const actionIcon = (key: AsyncActionKey, idleIcon: React.ReactNode) => {
+    if (loading[key]) {
+      return key === 'sendVerificationEmail' ? (
+        <Spinner className='w-4 h-4' />
+      ) : (
+        <LucideRefreshCcw className='w-4 h-4 animate-spin' />
+      );
     }
-  }, [user]);
-  useEffect(() => {
-    if (allowFormReset) {
-      //console.log('props.user changed: ', props.user);
-      setUser({ old: props.user, ...props.user });
-      refreshUserData(props.user?.id as number);
-    } else {
-      setAllowFormReset(true);
-    }
-  }, [props.user]);
+    if (done[key].success === null || done[key].state) return idleIcon;
+    return done[key].success ? (
+      <LucideCheck className='w-4 h-4 text-green-500' />
+    ) : (
+      <LucideX className='w-4 h-4 text-destructive' />
+    );
+  };
+
+  // ── JSX ────────────────────────────────────────────────────────────────────
 
   const content = (
     <>
       {props.trigger && <DialogTrigger asChild>{props.trigger}</DialogTrigger>}
       <DialogContent
         onInteractOutside={(e) => {
-          //console.log('toasts', toasts);
-          if (toasts.length > 0) {
-            e.preventDefault();
-          }
+          if (toasts.length > 0) e.preventDefault();
         }}
-        className='max-h-[90vh] overflow-x-scroll min-w-fit max-w-full sm:w-[500px]'
+        className='flex flex-col w-full max-w-lg max-h-[90dvh] overflow-y-auto mx-2 sm:mx-auto'
       >
         <DialogTitle>{UserFormModalTypes[formType].title}</DialogTitle>
         <DialogDescription>
           {UserFormModalTypes[formType].description}
         </DialogDescription>
 
-        {/* User Avatar & Status Section */}
+        {/* Avatar & status badges */}
         {formType !== 'add' && (
-          <div className='rounded-lg p-6 space-y-4'>
+          <div className='rounded-lg p-3 sm:p-6 space-y-4'>
             <UserAvatarWithUserName
               user={user as UserResponseModel}
               containerClassName='flex-col'
@@ -335,141 +406,114 @@ const UserFormModal = (props: {
             />
             <div className='flex gap-3 justify-center flex-wrap'>
               <CheckBadge
-                test={() => user.is_active || false}
+                test={() => user.is_active ?? false}
                 successText='Actif'
                 failText='Inactif'
                 disabled={formType === 'readonly'}
                 className={user.is_active ? 'bg-primary' : undefined}
                 variant={user.is_active ? 'default' : 'destructive'}
-                onClick={() => {
-                  setAllowFormReset(false);
-                  setUser((s) => ({
+                onClick={() =>
+                  setUserWithoutReset((s) => ({
                     ...s,
                     is_active: !s.is_active,
-                  }));
-                }}
+                  }))
+                }
               />
               <ActionBadge
                 text={user.is_admin ? 'Administrateur' : 'Utilisateur'}
                 disabled={formType === 'readonly'}
                 className={user.is_admin ? 'bg-primary' : undefined}
                 variant={user.is_admin ? 'default' : 'secondary'}
-                onClick={() => {
-                  setAllowFormReset(false);
-                  setUser((s) => ({
+                onClick={() =>
+                  setUserWithoutReset((s) => ({
                     ...s,
                     is_admin: !s.is_admin,
                     authority:
                       !s.is_admin && s.authority === null
                         ? AuthorityEnum.Inscription
                         : s.authority,
-                  }));
-                }}
+                  }))
+                }
               />
               {user.is_admin && (
                 <UserAuthorityTypeBadge
                   user={user as UserResponseModel}
                   disabled={formType === 'readonly'}
-                  onClick={() => {
-                    setAllowFormReset(false);
-                    setUser((s) => ({
+                  onClick={() =>
+                    setUserWithoutReset((s) => ({
                       ...s,
                       authority:
                         s.authority === AuthorityEnum.Inscription
                           ? AuthorityEnum.Vote
                           : AuthorityEnum.Inscription,
-                    }));
-                  }}
+                    }))
+                  }
                 />
               )}
             </div>
           </div>
         )}
 
+        {/* Form */}
         <form
           id='user-form'
           className='space-y-6 mt-6'
           onSubmit={form.handleSubmit(
-            (data) => {
-              handleSubmit(data as User);
-            },
+            (data) => handleSubmit(data as User),
             (errors) => {
               console.log(errors);
-
               toast.error('Corriger les erreurs dans le formulaire', {
                 id: 'form_validation_error',
               });
             },
           )}
         >
-          {/* Personal Information Section */}
+          {/* Personal information */}
           <div className='space-y-4'>
             <SectionHeader
               icon={LucideUser}
               title='Informations personnelles'
             />
             <FieldGroup className='space-y-4'>
-              <Controller
-                name='last_name'
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor='last_name'>Nom de famille</FieldLabel>
-                    <Input
-                      id='last_name'
-                      placeholder='Entrez le nom de famille'
-                      disabled={formType === 'readonly'}
-                      {...field}
-                    />
-                    {fieldState.error && (
-                      <FieldError errors={[fieldState.error]} />
+              {(['last_name', 'first_name', 'username'] as const).map(
+                (name) => (
+                  <Controller
+                    key={name}
+                    name={name}
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={name}>
+                          {name === 'last_name'
+                            ? 'Nom de famille'
+                            : name === 'first_name'
+                              ? 'Prénom'
+                              : "Nom d'utilisateur"}
+                        </FieldLabel>
+                        <Input
+                          id={name}
+                          placeholder={
+                            name === 'last_name'
+                              ? 'Entrez le nom de famille'
+                              : name === 'first_name'
+                                ? 'Entrez le prénom'
+                                : "Entrez le nom d'utilisateur"
+                          }
+                          disabled={formType === 'readonly'}
+                          {...field}
+                        />
+                        {fieldState.error && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
                     )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name='first_name'
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor='first_name'>Prénom</FieldLabel>
-                    <Input
-                      id='first_name'
-                      placeholder='Entrez le prénom'
-                      disabled={formType === 'readonly'}
-                      {...field}
-                    />
-                    {fieldState.error && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name='username'
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor='username'>
-                      Nom d'utilisateur
-                    </FieldLabel>
-                    <Input
-                      id='username'
-                      type='text'
-                      placeholder="Entrez le nom d'utilisateur"
-                      disabled={formType === 'readonly'}
-                      {...field}
-                    />
-                    {fieldState.error && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
+                  />
+                ),
+              )}
             </FieldGroup>
           </div>
 
-          {/* Contact Information Section */}
+          {/* Contact information */}
           <div className='space-y-4'>
             <SectionHeader icon={LucideMail} title='Informations de contact' />
             <FieldGroup className='space-y-4'>
@@ -485,16 +529,16 @@ const UserFormModal = (props: {
                       <span>Adresse e-mail</span>
                       {formType !== 'add' && (
                         <CheckBadge
-                          test={() => user.verified_email || false}
+                          test={() => user.verified_email ?? false}
                           successText='Vérifiée'
                           failText='Non vérifiée'
                           disabled={formType === 'readonly'}
-                          onClick={() => {
+                          onClick={() =>
                             setUser((s) => ({
                               ...s,
                               verified_email: !s.verified_email,
-                            }));
-                          }}
+                            }))
+                          }
                         />
                       )}
                     </FieldLabel>
@@ -523,16 +567,16 @@ const UserFormModal = (props: {
                       <span>Numéro de téléphone</span>
                       {formType !== 'add' && (
                         <CheckBadge
-                          test={() => user.verified_phone_number || false}
+                          test={() => user.verified_phone_number ?? false}
                           successText='Vérifié'
                           failText='Non vérifié'
                           disabled={formType === 'readonly'}
-                          onClick={() => {
+                          onClick={() =>
                             setUser((s) => ({
                               ...s,
                               verified_phone_number: !s.verified_phone_number,
-                            }));
-                          }}
+                            }))
+                          }
                         />
                       )}
                     </FieldLabel>
@@ -552,7 +596,7 @@ const UserFormModal = (props: {
             </FieldGroup>
           </div>
 
-          {/* Actions Section */}
+          {/* Additional actions */}
           <div className='space-y-4'>
             <SectionHeader
               icon={LucideLockKeyhole}
@@ -570,9 +614,7 @@ const UserFormModal = (props: {
                           <FieldLabel htmlFor='authority'>
                             Autorité de l'administrateur
                           </FieldLabel>
-
                           <Select
-                            /* Bind the value and the change handler explicitly */
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                             value={field.value}
@@ -583,14 +625,13 @@ const UserFormModal = (props: {
                             <SelectContent>
                               {Object.values(
                                 UserCreationModelAuthorityEnum,
-                              ).map((authority) => (
-                                <SelectItem key={authority} value={authority}>
-                                  {authority.toLocaleUpperCase()}
+                              ).map((a) => (
+                                <SelectItem key={a} value={a}>
+                                  {a.toLocaleUpperCase()}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-
                           {fieldState.error && (
                             <FieldError errors={[fieldState.error]} />
                           )}
@@ -598,6 +639,7 @@ const UserFormModal = (props: {
                       )}
                     />
                   )}
+
                   {manualPassword ? (
                     <Controller
                       name='password'
@@ -608,7 +650,7 @@ const UserFormModal = (props: {
                           className='mt-2'
                         >
                           <FieldLabel htmlFor='password'>
-                            <p>Mot de passe</p>
+                            Mot de passe
                           </FieldLabel>
                           <Input
                             id='password'
@@ -624,182 +666,61 @@ const UserFormModal = (props: {
                     />
                   ) : (
                     <p className='text-sm text-muted-foreground mt-2'>
-                      Mot de passe: sera demander à la prochaine connexion
+                      Mot de passe : sera demandé à la prochaine connexion
                     </p>
                   )}
+
                   <Button
                     variant='link'
-                    className='p-0 m-0'
+                    className='p-0 m-0 h-auto whitespace-normal text-left'
                     onClick={(e) => {
                       e.preventDefault();
-                      setManualPassword(!manualPassword);
+                      setManualPassword((p) => !p);
                     }}
                   >
                     {manualPassword
-                      ? "Sinon laisser l'utilisateur de définir un mot de passe"
-                      : "Sinon créer l'utilisateur avec un mot de passe défini"}
+                      ? "Laisser l'utilisateur définir son mot de passe"
+                      : "Créer l'utilisateur avec un mot de passe défini"}
                   </Button>
                 </>
               ) : (
                 <>
+                  {formType !== 'readonly' && (
+                    <Button
+                      variant='ghost'
+                      className='w-full justify-start h-auto whitespace-normal text-left py-2'
+                      disabled
+                      type='button'
+                    >
+                      <LucidePenBox className='w-4 h-4 mr-2 shrink-0' />
+                      Changer le mot de passe
+                    </Button>
+                  )}
+
                   <Button
                     variant='ghost'
-                    className={`w-full justify-start ${
-                      formType === 'readonly' ? 'hidden' : ''
-                    }`}
-                    disabled={formType === 'readonly'}
-                    type='button'
-                  >
-                    <LucidePenBox className='w-4 h-4' />
-                    Changer le mot de passe
-                  </Button>
-                  <Button
-                    variant='ghost'
-                    className='w-full justify-start'
+                    className='w-full justify-start h-auto whitespace-normal text-left py-2'
                     type='button'
                     disabled={loading.resetPassword}
-                    onClick={() => {
-                      setLoading((p) => ({ ...p, resetPassword: true }));
-                      setDone((p) => ({
-                        ...p,
-                        resetPassword: {
-                          state: false,
-                          success: false,
-                        },
-                      }));
-
-                      Promise.all([
-                        apiClient().users.adminUpdateUser(
-                          user.id as number,
-                          { request_password_reset: true } as UserUpdateModel,
-                        ),
-                        apiClient().auth.passwordResetRequest({
-                          email: user.email as string,
-                        }),
-                      ])
-                        .then(() => {
-                          toast.success(
-                            'Demande de réinitialisation du mot de passe effectuée avec succès',
-                            {
-                              id: 'password_reset_request_success',
-                            },
-                          );
-                          setDone((p) => ({
-                            ...p,
-                            resetPassword: {
-                              state: true,
-                              success: true,
-                            },
-                          }));
-                        })
-                        .catch(() => {
-                          toast.error(
-                            'Échec de la demande de réinitialisation du mot de passe',
-                            {
-                              id: 'password_reset_request_failed',
-                            },
-                          );
-                          setDone((p) => ({
-                            ...p,
-                            resetPassword: {
-                              state: true,
-                              success: false,
-                            },
-                          }));
-                        })
-                        .finally(() => {
-                          setLoading((p) => ({ ...p, resetPassword: false }));
-                        });
-                    }}
+                    onClick={handleResetPassword}
                   >
-                    {(done.resetPassword.state &&
-                      done.resetPassword.success === null) ||
-                    loading.resetPassword ? (
-                      <LucideRefreshCcw
-                        className={
-                          loading.resetPassword
-                            ? 'w-4 h-4 animate-spin'
-                            : 'w-4 h-4'
-                        }
-                      />
-                    ) : done.resetPassword.success ? (
-                      <LucideCheck className='w-4 h-4 text-green-500' />
-                    ) : (
-                      <LucideX className='w-4 h-4 text-destructive' />
+                    {actionIcon(
+                      'resetPassword',
+                      <LucideRefreshCcw className='w-4 h-4 mr-2 shrink-0' />,
                     )}
                     Demander une réinitialisation du mot de passe
                   </Button>
+
                   <Button
                     variant='ghost'
-                    className='w-full justify-start'
+                    className='w-full justify-start h-auto whitespace-normal text-left py-2'
                     type='button'
                     disabled={loading.sendVerificationEmail}
-                    onClick={() => {
-                      setLoading((p) => ({
-                        ...p,
-                        sendVerificationEmail: true,
-                      }));
-                      setDone((p) => ({
-                        ...p,
-                        sendVerificationEmail: {
-                          state: false,
-                          success: false,
-                        },
-                      }));
-                      apiClient()
-                        .admin.sendVerificationEmail(user.id as number)
-                        .then(() => {
-                          toast.success(
-                            'E-mail de vérification renvoyé avec succès',
-                            {
-                              id: 'verification_email_sent',
-                            },
-                          );
-
-                          setDone((p) => ({
-                            ...p,
-                            sendVerificationEmail: {
-                              state: true,
-                              success: true,
-                            },
-                          }));
-                        })
-                        .catch(() => {
-                          toast.error(
-                            "Échec de l'envoi de l'e-mail de vérification",
-                            {
-                              id: 'verification_email_failed',
-                            },
-                          );
-
-                          setDone((p) => ({
-                            ...p,
-                            sendVerificationEmail: {
-                              state: true,
-                              success: false,
-                            },
-                          }));
-                        })
-                        .finally(() => {
-                          setLoading((p) => ({
-                            ...p,
-                            sendVerificationEmail: false,
-                          }));
-                        });
-                    }}
+                    onClick={handleSendVerificationEmail}
                   >
-                    {(done.sendVerificationEmail.state &&
-                      done.sendVerificationEmail.success === null) ||
-                    loading.sendVerificationEmail ? (
-                      loading.sendVerificationEmail ? (
-                        <Spinner className='w-4 h-4' />
-                      ) : (
-                        <LucideMail className='w-4 h-4' />
-                      )
-                    ) : done.sendVerificationEmail.success ? (
-                      <LucideCheck className='w-4 h-4 text-green-500' />
-                    ) : (
-                      <LucideX className='w-4 h-4 text-destructive' />
+                    {actionIcon(
+                      'sendVerificationEmail',
+                      <LucideMail className='w-4 h-4 mr-2 shrink-0' />,
                     )}
                     Envoyer un e-mail de vérification
                   </Button>
@@ -810,40 +731,45 @@ const UserFormModal = (props: {
         </form>
 
         <DialogFooter className='mt-6'>
-          <div className='flex gap-3 flex-wrap'>
+          <div className='flex flex-col-reverse sm:flex-row gap-2 w-full sm:w-auto sm:justify-end'>
+            {formType === 'add' && (
+              <Button
+                className='w-full sm:w-auto'
+                form='user-form'
+                type='submit'
+                disabled={loading.form}
+              >
+                <LucideUserPlus className='w-4 h-4 mr-2' />
+                Créer
+              </Button>
+            )}
+            {formType === 'default' && (
+              <Button
+                className='w-full sm:w-auto'
+                form='user-form'
+                type='submit'
+                disabled={loading.form}
+              >
+                <LucidePenBox className='w-4 h-4 mr-2' />
+                Enregistrer
+              </Button>
+            )}
+            {formType === 'readonly' && (
+              <Button
+                className='w-full sm:w-auto'
+                onClick={() => setFormtype('default')}
+              >
+                <LucidePenBox className='w-4 h-4 mr-2' />
+                Modifier
+              </Button>
+            )}
             <Button
-              form='user-form'
-              type='submit'
-              disabled={formType !== 'add' || loading.form}
-              className={formType !== 'add' ? 'hidden' : ''}
-            >
-              <LucideUserPlus className='w-4 h-4' />
-              Créer
-            </Button>
-
-            <Button
-              form='user-form'
-              type='submit'
-              disabled={formType !== 'default' || loading.form}
-              className={formType !== 'default' ? 'hidden' : ''}
-            >
-              <LucidePenBox className='w-4 h-4' />
-              Enregistrer
-            </Button>
-            <Button
-              disabled={formType !== 'readonly'}
-              className={formType === 'readonly' ? '' : 'hidden'}
-              onClick={() => setFormtype('default')}
-            >
-              <LucidePenBox className='w-4 h-4' />
-              Modifier
-            </Button>
-            <Button
+              className='w-full sm:w-auto'
               variant='secondary'
               onClick={() => onOpenChange(false)}
               type='button'
             >
-              <LucideX className='w-4 h-4' />
+              <LucideX className='w-4 h-4 mr-2' />
               Fermer
             </Button>
           </div>
