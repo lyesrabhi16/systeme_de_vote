@@ -43,19 +43,28 @@ AxiosInstance.interceptors.response.use(
     error => {
         // You can handle global errors here
         if (error.response) {
-            // For example, handle 401 Unauthorized globally
+            // handle 403 Forbidden globally
+            if (error.response.status === 403) {
+                toast.error('Vous n\'avez pas la permission d\'effectuer cette action.', {
+                    id: 'forbidden_error',
+                });
+            }
+            // handle 401 Unauthorized globally
             console.log("API Error Response:", error.response);
             const login_required_codes = [
                 ERROR_CODES.AUTHENTICATION_REQUIRED,
                 ERROR_CODES.UNAUTHORIZED,
                 ERROR_CODES.TOKEN_EXPIRED,
                 ERROR_CODES.TOKEN_INVALID,
+                ERROR_CODES.INVALID_CREDENTIALS,
             ]
             if (error.response.status === 401 && login_required_codes.includes(error.response.data?.detail?.code) && !AUTHENTICATION_REQUIRED_DETECTED) {
                 // Optionally, you can redirect to login or show a message
                 AUTHENTICATION_REQUIRED_DETECTED = true;
                 toast.getToasts().forEach(t => toast.dismiss(t.id));
-                toast.error('Votre session a expiré. Veuillez vous reconnecter.');
+                toast.error('Votre session a expiré. Veuillez vous reconnecter.', {
+                    id: 'session_expired_error',
+                });
                 const onClose = () => {
                     localStorage.removeItem("token");
                     AUTHENTICATION_REQUIRED_DETECTED = false;
@@ -66,6 +75,7 @@ AxiosInstance.interceptors.response.use(
                 toast(
                     "Votre session a expiré. Vous allez être redirigé vers la page de connexion.",
                     {
+                        id: 'session_expired_redirect',
                         position: 'top-center',
                         dismissible: true,
                         duration: 5000,
@@ -83,8 +93,8 @@ AxiosInstance.interceptors.response.use(
 
 const getConfigParams = (): ConfigurationParameters => {
     return {
-        basePath: 'http://localhost:8000',
-        //basePath: 'https://svs-server.localhost',
+        //basePath: 'http://localhost:8000',
+        basePath: 'https://svs-server.localhost',
         baseOptions: {
             headers: {
                 'Content-Type': 'application/json',

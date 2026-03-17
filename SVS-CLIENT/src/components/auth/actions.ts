@@ -39,8 +39,8 @@ export const useAuthActions = (init_data?: {
 
     const getMaskedEmail: () => string = () => {
         const login_data = store.get_temp_data('login_data');
-        console.log('login_data: ', login_data);
-        console.log('store temp data: ', store.temp_data);
+        //console.log('login_data: ', login_data);
+        //console.log('store temp data: ', store.temp_data);
         if (
             typeof login_data === 'object' &&
             login_data &&
@@ -55,23 +55,29 @@ export const useAuthActions = (init_data?: {
         auth
             .login_otp_step({ otp: data.otp, id: data.id, remember_me: store.get_temp_data('remember_me') as boolean || false })
             .then(() => {
-                console.log('Login OTP verification step successful');
+                //console.log('Login OTP verification step successful');
                 const first_login = store.get_temp_data('first_login') as boolean || false;
                 if (first_login) {
                     navigate(routes.RESET_PASSWORD);
                     toast.success(
-                        'Authentification réussie, veuillez changer votre mot de passe',
+                        'Authentification réussie, veuillez changer votre mot de passe', {
+                        id: 'first_login_success',
+                    }
                     );
                     return;
                 }
                 navigate(routes.HOME);
                 toast.success(
-                    'Authentification réussie, vous êtes maintenant connecté',
+                    'Authentification réussie, vous êtes maintenant connecté', {
+                    id: 'login_success',
+                }
                 );
             })
-            .catch((err) => {
-                console.log('Login OTP verification step failed:', err);
-                toast.error("Echec de l'authentification : code OTP invalide");
+            .catch((_err) => {
+                //console.log('Login OTP verification step failed:', err);
+                toast.error("Echec de l'authentification : code OTP invalide", {
+                    id: 'otp_verification_failed',
+                });
             });
     };
     const handleResendCode = async (data: OTPResendRequestModel) => {
@@ -79,9 +85,11 @@ export const useAuthActions = (init_data?: {
             .resend_otp_email({
                 id: data.id,
             })
-            .then((res) => {
-                console.log('otp email resent: ', res);
-                toast.success('Code OTP renvoyé avec succès par e-mail');
+            .then((_res) => {
+                //console.log('otp email resent: ', res);
+                toast.success('Code OTP renvoyé avec succès par e-mail', {
+                    id: 'otp_resent_success',
+                });
                 setResendButtonState({
                     disabled: true,
                     text: 'Renvoyez le code',
@@ -90,7 +98,9 @@ export const useAuthActions = (init_data?: {
             })
             .catch((err) => {
                 console.log('err in resend email: ', err);
-                toast.error("Échec de l'envoi du code OTP par e-mail");
+                toast.error("Échec de l'envoi du code OTP par e-mail", {
+                    id: 'otp_resent_failed',
+                });
             });
     };
 
@@ -123,15 +133,19 @@ export const useAuthActions = (init_data?: {
             .then((d) => {
                 if (d.id === null) {
                     console.error('Login failed: No id returned');
-                    toast.error('Échec de la connexion : identifiants invalides');
+                    toast.error('Échec de la connexion : identifiants invalides', {
+                        id: 'invalid_credentials',
+                    });
                     return;
                 }
                 navigate(`${routes.OTP_VERIFICATION}/${d.id}`);
                 store.set_temp_data('login_data', d);
                 store.set_temp_data('remember_me', data.remember_me || false);
                 store.set_temp_data('first_login', d.first_login || false);
-                console.log('Login password step successful:', d.id);
-                toast.success('Connexion réussie, veuillez vérifier votre OTP');
+                //console.log('Login password step successful:', d.id);
+                toast.success('Connexion réussie, veuillez vérifier votre OTP', {
+                    id: 'login_password_step_success',
+                });
             })
             .catch((error: AxiosError) => {
                 console.error('Login failed:', error);
@@ -143,11 +157,15 @@ export const useAuthActions = (init_data?: {
                             };
                         }) || undefined;
                     if (detail?.code === 'INVALID_CREDENTIALS') {
-                        toast.error('Échec de la connexion : identifiants invalides');
+                        toast.error('Échec de la connexion : identifiants invalides', {
+                            id: 'invalid_credentials',
+                        });
                         return;
                     }
                 }
-                toast.error('Échec de la connexion : une erreur est survenue');
+                toast.error('Échec de la connexion : une erreur est survenue', {
+                    id: 'login_failed',
+                });
             })
             .finally(() => {
                 setLoading({ ...loading, loginButton: false });
@@ -160,13 +178,17 @@ export const useAuthActions = (init_data?: {
             .send_password_reset_email({ email: data.email })
             .then(() => {
                 toast.success(
-                    'E-mail de réinitialisation du mot de passe envoyé avec succès',
+                    'E-mail de réinitialisation du mot de passe envoyé avec succès', {
+                    id: 'password_reset_email_sent',
+                }
                 );
             })
             .catch((error: AxiosError) => {
                 console.error('Password reset request failed:', error);
                 toast.error(
-                    "Échec de l'envoi de l'e-mail de réinitialisation du mot de passe",
+                    "Échec de l'envoi de l'e-mail de réinitialisation du mot de passe", {
+                    id: 'password_reset_email_failed',
+                }
                 );
             })
             .finally(() => {
@@ -178,12 +200,16 @@ export const useAuthActions = (init_data?: {
         setLoading({ ...loading, passwordResetButton: true });
         auth.validate_password_reset_email(data).then(
             () => {
-                toast.success("Mot de passe réinitialiser avec success");
+                toast.success("Mot de passe réinitialiser avec success", {
+                    id: 'password_reset_success',
+                });
                 navigate(routes.LOGIN);
             }
         ).catch(
             () => {
-                toast.error('Erreur de réinitialiser du mot de passe');
+                toast.error('Erreur de réinitialiser du mot de passe', {
+                    id: 'password_reset_failed',
+                });
             }
         ).finally(() => setLoading({ ...loading, passwordResetButton: false }))
     }

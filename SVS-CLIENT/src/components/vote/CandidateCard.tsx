@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Spinner } from '@/components/ui/spinner';
+import CandidateFormModal from '@/components/vote/CandidateFormModal';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import {
   LucidePenBox,
@@ -47,7 +48,7 @@ const CandidateCard = (props: {
     apiClient()
       .candidates.deleteCandidate(candidate.id as number)
       .then(() => {
-        console.log('Candidate deleted');
+        //console.log('Candidate deleted');
         props.onUpdated?.();
       })
       .catch((err) => {
@@ -59,16 +60,17 @@ const CandidateCard = (props: {
       });
   };
   const [openDeleteAlert, setOpenDeleteAlert] = useState(false);
+  const [openCandidateForm, setOpenCandidateForm] = useState(false);
   return (
     <Card
       key={candidate.id}
       onClick={onClick}
       className={
         selected
-          ? `w-64 flex flex-col flex-nowrap gap-2 justify-center items-center ${
+          ? `w-64 flex flex-col w-full flex-nowrap gap-2 justify-center items-center ${
               disabled ? '' : 'scale-110 cursor-pointer'
             } transition-transform duration-200 border-2 ${color} px-0 pt-0`
-          : `w-64 flex flex-col flex-nowrap gap-2 justify-center items-center ${
+          : `w-64 flex flex-col w-full flex-nowrap gap-2 justify-center items-center ${
               disabled ? '' : 'hover:scale-110 cursor-pointer'
             } transition-transform duration-200 pt-1 `
       }
@@ -100,6 +102,18 @@ const CandidateCard = (props: {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <CandidateFormModal
+        formType='edit'
+        open={openCandidateForm}
+        onOpenChange={setOpenCandidateForm}
+        onSubmit={(updatedCandidate) => {
+          if (props.onUpdated) {
+            props.onUpdated(updatedCandidate as Candidate);
+          }
+        }}
+        initialData={{ ...candidate } as any}
+      />
+
       <CardHeader className='w-full p-0'>
         {props.editable && (
           <div className='w-full flex flex-row flex-nowrap items-center justify-between'>
@@ -113,7 +127,11 @@ const CandidateCard = (props: {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setOpenCandidateForm(true);
+                  }}
+                >
                   <LucidePenBox /> Modifier
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -127,7 +145,10 @@ const CandidateCard = (props: {
             <Button
               variant='ghost'
               className='hover:text-destructive hover:bg-destructive/10 rounded-full p-1 ml-auto'
-              onClick={() => setOpenDeleteAlert(true)}
+              onClick={(e) => {
+                e.preventDefault();
+                setOpenDeleteAlert(true);
+              }}
             >
               <LucideX size={16} />
             </Button>
@@ -135,7 +156,9 @@ const CandidateCard = (props: {
         )}
       </CardHeader>
       <CardContent className='flex flex-col items-center'>
-        {candidate.photo_url !== '' ? (
+        {candidate.photo_url === '' ||
+        candidate.photo_url === undefined ||
+        candidate.photo_url === null ? (
           <LucideUserCircle size={64} />
         ) : (
           <img

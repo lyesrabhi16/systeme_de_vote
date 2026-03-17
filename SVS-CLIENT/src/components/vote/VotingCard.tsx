@@ -16,6 +16,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -40,6 +48,7 @@ import useAuth from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import type { UsersTableData } from '@/pages/RegularUsersAdministrationPage';
 import { VoteFormSchema } from '@/schemas/vote.schemas';
+import { routes } from '@/services/routing';
 import { castVote } from '@/services/voting/voting';
 import { VoteBadgeType } from '@/utils/vote.utils';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,19 +56,57 @@ import {
   LucideCalendarPlus,
   LucidePenBox,
   LucidePlusCircle,
+  LucideTrash2,
   LucideX,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import z from 'zod';
+
+const EditableComponent = (props: {
+  editable?: boolean;
+  dropdown?: boolean;
+  className?: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+}) => {
+  if (props.editable) {
+    const editButton = (
+      <Button variant={'ghost'} onClick={props.onClick}>
+        <LucidePenBox />
+      </Button>
+    );
+    return (
+      <div
+        className={cn(
+          'flex flex-row flex-nowrap gap-2 justify-center items-center',
+          props.className,
+        )}
+      >
+        {props.children}
+        {props.editable ? (
+          props.dropdown ? (
+            <DropdownMenuTrigger asChild>{editButton}</DropdownMenuTrigger>
+          ) : (
+            editButton
+          )
+        ) : null}
+      </div>
+    );
+  }
+  return <>{props.children}</>;
+};
 
 const VotingCard = (props: {
   fullVote?: FullVoteResponseModel;
   flat?: boolean;
   editable?: boolean;
+  mode?: 'create' | 'edit' | 'readonly';
 }) => {
   const { user } = useAuth();
+  const _mode = props.mode ?? (props.editable ? 'edit' : 'readonly');
   const isNewVote = props.fullVote ? false : true;
   const [loading, setLoading] = useState({
     participantsSearch: false,
@@ -117,21 +164,24 @@ const VotingCard = (props: {
   );
   const [openToAll, setOpenToAll] = useState(true);
   const [winnerCount, setWinnerCount] = useState<number>(0);
-  const fetchVote = () => {
+  /* const fetchVote = () => {
+    if (!vote.vote.vote.id) return;
     apiClient()
       .vote.getVoteById(vote.vote.vote.id)
       .then((res) => {
-        console.log('Vote refreshed');
+        //console.log('Vote refreshed');
         setVote(res.data);
       })
       .catch((err) => {
         console.error('Failed to refresh vote details:', err);
-        toast.error('Échec de la récupération des détails du vote');
+        toast.error('Échec de la récupération des détails du vote', {
+          id: 'fetch_vote_failed',
+        });
       });
-  };
+  }; */
   useEffect(() => {
     if (vote.vote.user_has_voted) {
-      console.log('Disabling voting because user has already voted');
+      //console.log('Disabling voting because user has already voted');
       if (!isVotingDisabled.value) {
         setIsVotingDisabled((p) => ({
           ...p,
@@ -214,39 +264,7 @@ const VotingCard = (props: {
     }
   }, [isVotingDisabled, vote.candidates, winnerCount]);
 
-  const EditableComponent = (props: {
-    editable?: boolean;
-    dropdown?: boolean;
-    className?: string;
-    children: React.ReactNode;
-    onClick?: () => void;
-  }) => {
-    if (props.editable) {
-      const editButton = (
-        <Button variant={'ghost'} onClick={props.onClick}>
-          <LucidePenBox />
-        </Button>
-      );
-      return (
-        <div
-          className={cn(
-            'flex flex-row flex-nowrap gap-2 justify-center items-center',
-            props.className,
-          )}
-        >
-          {props.children}
-          {props.editable ? (
-            props.dropdown ? (
-              <DropdownMenuTrigger asChild>{editButton}</DropdownMenuTrigger>
-            ) : (
-              editButton
-            )
-          ) : null}
-        </div>
-      );
-    }
-    return <>{props.children}</>;
-  };
+  const navigate = useNavigate();
   const form = useForm<z.input<typeof VoteFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(VoteFormSchema),
@@ -255,7 +273,7 @@ const VotingCard = (props: {
       description: vote.vote.vote.description,
       start_date: new Date(vote.vote.vote.start_date),
       end_date: new Date(vote.vote.vote.end_date),
-      candidates: [],
+      candidates: [...vote.candidates],
       open_to_all: openToAll,
       attributed_user_ids: [],
       excluded_user_ids: [],
@@ -270,52 +288,215 @@ const VotingCard = (props: {
   const [participants, setParticipants] = useState<UsersTableData[]>([]);
   const [excludedUsers, setExcludedUsers] = useState<UsersTableData[]>([]);
   const [foundUsers, setFoundUsers] = useState<UsersTableData[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [formFieldStates, setFormFieldStates] = useState({
+    title: form.getFieldState('title'),
+    description: form.getFieldState('description'),
+    start_date: form.getFieldState('start_date'),
+    end_date: form.getFieldState('end_date'),
+    candidates: form.getFieldState('candidates'),
+  });
+  const updateFormFieldStates = () => {
+    const titleFieldState = form.getFieldState('title');
+    if (titleFieldState.error != formFieldStates.title.error) {
+      setFormFieldStates((p) => ({ ...p, title: titleFieldState }));
+    }
+    const descriptionFieldState = form.getFieldState('description');
+    if (descriptionFieldState.error != formFieldStates.description.error) {
+      setFormFieldStates((p) => ({ ...p, description: descriptionFieldState }));
+    }
+    const startDateFieldState = form.getFieldState('start_date');
+    if (startDateFieldState.error != formFieldStates.start_date.error) {
+      setFormFieldStates((p) => ({ ...p, start_date: startDateFieldState }));
+    }
+    const endDateFieldState = form.getFieldState('end_date');
+    if (endDateFieldState.error != formFieldStates.end_date.error) {
+      setFormFieldStates((p) => ({ ...p, end_date: endDateFieldState }));
+    }
+    const currentCandidatesState = form.getFieldState('candidates');
+    if (currentCandidatesState.error != formFieldStates.candidates.error) {
+      setFormFieldStates((p) => ({ ...p, candidates: currentCandidatesState }));
+    }
+  };
+  useEffect(() => {
+    updateFormFieldStates();
+  });
+  const [bulletinCode, setBulletinCode] = useState<string | null>(null);
+  const [showVoteCastingResult, setShowVoteCastingResult] = useState(false);
 
   return (
     <Card
-      className={`w-full p-4 overflow-hidden${props.flat ? ' rounded-none shadow-none border-0' : ''}`}
+      className={`w-full p-4 sm:p-4 md:p-6 overflow-hidden${props.flat ? ' rounded-none shadow-none border-0' : ''}`}
     >
+      {/* SUCCESS DIALOG */}
+      <Dialog
+        open={showVoteCastingResult}
+        onOpenChange={setShowVoteCastingResult}
+      >
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader className='space-y-2'>
+            <DialogTitle className='text-lg sm:text-xl'>
+              Vote enregistré
+            </DialogTitle>
+            <DialogDescription className='text-sm text-muted-foreground'>
+              Votre vote a été enregistré avec succès.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='space-y-4'>
+            <div>
+              <p className='text-sm mb-2'>Votre code unique :</p>
+              <div className='font-mono text-sm sm:text-base text-primary bg-primary/10 px-3 py-2 rounded-md break-all'>
+                {bulletinCode}
+              </div>
+            </div>
+
+            <p className='text-sm text-muted-foreground leading-relaxed'>
+              Conservez ce code précieusement. Il vous permettra de prouver
+              votre participation en cas de contestation.
+            </p>
+          </div>
+
+          <DialogFooter className='flex flex-col sm:flex-row gap-2 sm:justify-end'>
+            <Button
+              className='w-full sm:w-auto'
+              onClick={() => setShowVoteCastingResult(false)}
+            >
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DELETE DIALOG */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader className='space-y-2'>
+            <DialogTitle className='text-lg sm:text-xl'>
+              Confirmer la suppression
+            </DialogTitle>
+            <DialogDescription className='text-sm text-muted-foreground'>
+              Êtes-vous sûr de vouloir supprimer ce vote ? Cette action est
+              irréversible.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className='flex flex-col sm:flex-row gap-2 sm:justify-end'>
+            <Button
+              variant='outline'
+              className='w-full sm:w-auto'
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Annuler
+            </Button>
+
+            <Button
+              variant='destructive'
+              className='w-full sm:w-auto'
+              onClick={() => {
+                if (!vote.vote.vote.id) return;
+
+                apiClient()
+                  .vote.deleteVote(vote.vote.vote.id)
+                  .then(() => {
+                    navigate(routes.VOTES_ADMINISTRATION);
+                    toast.success('Vote supprimé avec succès', {
+                      id: 'vote_deleted',
+                    });
+                  })
+                  .catch((err) => {
+                    console.error('Failed to delete vote:', err);
+                    toast.error('Échec de la suppression du vote', {
+                      id: 'vote_deletion_failed',
+                    });
+                  })
+                  .finally(() => {
+                    setShowDeleteModal(false);
+                  });
+              }}
+            >
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <form
         onSubmit={form.handleSubmit(
           (data) => {
             console.log('Submitting vote data:', data);
+            const utc_timezone_offset = new Date().getTimezoneOffset() * 60000;
+            const start_date_utc = new Date(
+              data.start_date.getTime() - utc_timezone_offset,
+            );
+            const end_date_utc = new Date(
+              data.end_date.getTime() - utc_timezone_offset,
+            );
             const voteData: VoteCreationModel = {
               title: data.title,
               description: data.description,
-              start_date: data.start_date.toISOString(),
-              end_date: data.end_date.toISOString(),
+              start_date: start_date_utc.toISOString(),
+              end_date: end_date_utc.toISOString(),
               candidates: data.candidates as any,
               open_to_all: data.open_to_all,
               attributed_user_ids: participants.map((p) => p.id),
               excluded_user_ids: excludedUsers.map((u) => u.id),
             };
-            apiClient()
-              .vote.createVote(voteData)
-              .then((res) => {
-                toast.success('Vote Créé avec succès');
-                console.log('Vote created:', res.data);
-              })
-              .catch((err) => {
-                console.error('Failed to create vote:', err);
-                toast.error('Échec de la création du vote');
-              });
-            // Handle vote update submission here
+            console.log('Final vote data:', voteData);
+            if (!isNewVote) {
+              apiClient()
+                .vote.updateVote(vote.vote.vote.id, voteData)
+                .then((res) => {
+                  toast.success('Vote mis à jour avec succès', {
+                    id: 'vote_updated',
+                  });
+                  setVote((_p) => ({
+                    ...res.data,
+                  }));
+                  //console.log('Vote updated:', res.data);
+                })
+                .catch((err) => {
+                  console.error('Failed to update vote:', err);
+                  toast.error('Échec de la mise à jour du vote', {
+                    id: 'vote_update_failed',
+                  });
+                });
+            } else {
+              console.log('Creating vote with data:', voteData);
+              apiClient()
+                .vote.createVote(voteData)
+                .then((_res) => {
+                  toast.success('Vote Créé avec succès', {
+                    id: 'vote_created',
+                  });
+                  //console.log('Vote created:', res.data);
+                })
+                .catch((err) => {
+                  console.error('Failed to create vote:', err);
+                  toast.error('Échec de la création du vote', {
+                    id: 'vote_creation_failed',
+                  });
+                });
+            }
           },
-          (errors) => {
-            console.log('Vote form errors:', errors);
-            toast.error('Corriger les erreurs dans le formulaire du vote');
+          (_errors) => {
+            updateFormFieldStates();
+            toast.error('Corriger les erreurs dans le formulaire du vote', {
+              id: 'form_validation_error',
+            });
           },
         )}
       >
         <FieldGroup>
           <CardTitle className='flex flex-col gap-4 justify-center items-center'>
-            <div className='w-full flex flex-row flex-wrap gap-4 justify-between items-center'>
+            <div className='w-full flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-between sm:items-center'>
               {!show.titleEdit ? (
                 <EditableComponent
                   editable={props.editable}
                   onClick={() => setShow((p) => ({ ...p, titleEdit: true }))}
                 >
-                  <h1 className='text-4xl'>{vote.vote.vote.title}</h1>
+                  <h1 className='text-2xl sm:text-3xl md:text-4xl'>
+                    {vote.vote.vote.title}
+                  </h1>
                 </EditableComponent>
               ) : (
                 <Controller
@@ -339,11 +520,13 @@ const VotingCard = (props: {
                   )}
                 />
               )}
-              <div className='ml-auto'>
-                <VoteBadge type={isVotingDisabled.state} />
-              </div>
+              {_mode !== 'create' && (
+                <div className='ml-auto'>
+                  <VoteBadge type={isVotingDisabled.state} />
+                </div>
+              )}
             </div>
-            <div className='w-full flex flex-row flex-wrap gap-4 justify-between items-center'>
+            <div className='w-full flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-between sm:items-center'>
               <UserAvatarWithUserName user={vote.vote.vote.creator} />
               {!isNewVote && (
                 <p
@@ -357,7 +540,7 @@ const VotingCard = (props: {
               )}
             </div>
 
-            <div className='w-full flex flex-row flex-wrap gap-4 justify-between items-center'>
+            <div className='w-full flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-between sm:items-center'>
               <DropdownMenu>
                 <EditableComponent dropdown editable={props.editable}>
                   <p className='text-sm text-muted-foreground'>
@@ -479,7 +662,7 @@ const VotingCard = (props: {
               )}
             </div>
 
-            <div className='flex flex-col flex-nowrap justify-start items-center'>
+            <div className='flex flex-col flex-nowrap justify-start items-stretch '>
               <h2 className='text-2xl font-semibold mt-6 mb-4 w-full'>
                 Candidats
               </h2>
@@ -523,12 +706,7 @@ const VotingCard = (props: {
                       : 'Aucun candidat disponible pour ce vote.'}
                   </p>
                 ))}
-              {form.getFieldState('candidates').error && (
-                <FieldError
-                  errors={[form.getFieldState('candidates').error!]}
-                />
-              )}
-              <div className='flex flex-row flex-wrap gap-8 justify-center items-center'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full'>
                 {vote.candidates.map((candidate) => (
                   <CandidateCard
                     key={candidate.id}
@@ -536,7 +714,24 @@ const VotingCard = (props: {
                     selected={selectedCandidate === candidate}
                     disabled={isVotingDisabled.value}
                     editable={props.editable}
-                    onUpdated={() => fetchVote()}
+                    onUpdated={(c) => {
+                      if (_mode === 'readonly') return;
+                      form.setValue(
+                        'candidates',
+                        form
+                          .getValues('candidates')
+                          .map((cand) =>
+                            cand === candidate ? (c as any) : cand,
+                          ),
+                      );
+                      setVote((p) => ({
+                        ...p,
+                        candidates: p.candidates.map((cand) =>
+                          cand === candidate ? (c as any) : cand,
+                        ),
+                      }));
+                      updateFormFieldStates();
+                    }}
                     isVoteFinished={
                       isVotingDisabled.state === VoteBadgeType.Finished
                     }
@@ -552,12 +747,20 @@ const VotingCard = (props: {
                     onDelete={
                       isNewVote
                         ? () => {
+                            form.setValue(
+                              'candidates',
+                              form
+                                .getValues('candidates')
+                                .filter((c) => c !== candidate),
+                            );
                             setVote((p) => ({
                               ...p,
                               candidates: p.candidates.filter(
                                 (c) => c !== candidate,
                               ),
                             }));
+                            form.trigger('candidates');
+                            updateFormFieldStates();
                           }
                         : undefined
                     }
@@ -578,6 +781,8 @@ const VotingCard = (props: {
                         ...p,
                         candidates: [...p.candidates, data as Candidate],
                       }));
+
+                      updateFormFieldStates();
                       /* apiClient()
                         .candidates.createCandidate({
                           ...data,
@@ -618,7 +823,7 @@ const VotingCard = (props: {
                 <h2 className='text-2xl font-semibold mt-6 mb-4 w-full'>
                   Votants
                 </h2>
-                <div className='w-full flex flex-row flex-nowrap gap-4 justify-start items-center'>
+                <div className='w-full flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center'>
                   <Switch
                     checked={form.getValues('open_to_all')}
                     onCheckedChange={(checked) => {
@@ -639,8 +844,8 @@ const VotingCard = (props: {
                     : 'Seuls les utilisateurs spécifiquement attribués pourront participer à ce vote.'}
                 </div>
                 {openToAll ? null : (
-                  <div className='w-full mt-4 flex flex-row flex-wrap gap-8 justify-center items-start'>
-                    <Card className='max-w-[400px] p-2'>
+                  <div className='w-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <Card className='w-full p-3'>
                       <CardTitle>Participants</CardTitle>
                       <CardContent className='flex flex-col justify-center items-center flex-nowrap gap-2'>
                         <p className='text-sm text-muted-foreground'>
@@ -690,7 +895,7 @@ const VotingCard = (props: {
                               });
                           }}
                         />
-                        <Table>
+                        <Table className='w-full overflow-x-auto'>
                           <TableBody>
                             {participants.map((user) => (
                               <TableRow key={user.id}>
@@ -801,17 +1006,53 @@ const VotingCard = (props: {
                 )}
               </div>
             )}
+            {/* ERRORS */}
+            <div className='w-full mt-4'>
+              {Object.values(formFieldStates).some((state) => state.error) && (
+                <FieldError
+                  errors={Object.values(formFieldStates)
+                    .filter((state) => state.error)
+                    .map((state) => state.error!)}
+                />
+              )}
+            </div>
           </CardContent>
           <CardFooter>
-            <CardAction className='w-full flex flex-row flex-nowrap justify-end items-center'>
+            <CardAction className='w-full flex flex-col sm:flex-row gap-2 sm:justify-end sm:items-center w-full'>
               {isNewVote && (
-                <Button variant='default' type='submit'>
+                <Button
+                  className='w-full sm:w-auto'
+                  variant='default'
+                  type='submit'
+                >
                   <LucideCalendarPlus /> Créer le vote
                 </Button>
               )}
 
-              {props.editable ? null : (
+              {props.editable && _mode === 'edit' && (
+                <>
+                  <Button
+                    className='w-full sm:w-auto'
+                    variant='outline'
+                    type='submit'
+                  >
+                    <LucidePenBox /> Enregistrer les modifications
+                  </Button>
+                  <Button
+                    className='w-full sm:w-auto'
+                    variant={'destructive'}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    <LucideTrash2 /> Supprimer
+                  </Button>
+                </>
+              )}
+              {!props.editable && (
                 <Button
+                  className='w-full sm:w-auto'
                   disabled={
                     isVotingDisabled.value || selectedCandidate === null
                   }
@@ -823,14 +1064,21 @@ const VotingCard = (props: {
                       vote.candidates,
                       selectedCandidate.id as number,
                     )
-                      .then(() => {
+                      .then((r) => {
                         //window.location.reload();
-                        toast.success('Vote enregistré avec succès');
+                        toast.success('Vote enregistré avec succès', {
+                          id: 'vote_cast_success',
+                        });
+                        setBulletinCode(r.data.unique_code);
+                        setShowVoteCastingResult(true);
                       })
                       .catch((err: Error) => {
                         console.error('Error while voting:', err);
                         toast.error(
                           "Une erreur est survenue lors de l'enregistrement de votre vote. Veuillez réessayer.",
+                          {
+                            id: 'vote_cast_error',
+                          },
                         );
                         setIsVotingDisabled((p) => ({ ...p, value: false }));
                       });

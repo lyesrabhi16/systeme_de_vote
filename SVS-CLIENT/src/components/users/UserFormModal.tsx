@@ -1,5 +1,11 @@
 import apiClient, { ERROR_CODES } from '@/api/client';
-import type { User, UserResponseModel, UserUpdateModel } from '@/api/sdk';
+import {
+  AuthorityEnum,
+  UserCreationModelAuthorityEnum,
+  type User,
+  type UserResponseModel,
+  type UserUpdateModel,
+} from '@/api/sdk';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,12 +22,20 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import UserAuthorityTypeBadge from '@/components/users/AdminAuthorityTypeBadge';
 import ActionBadge from '@/components/utils/ActionBadge';
 import CheckBadge from '@/components/utils/CheckBadge';
 import SectionHeader from '@/components/utils/SectionHeader';
 import UserAvatarWithUserName from '@/components/utils/UserAvatarWithUserName';
-import { UserFormSchema } from '@/schemas/user.schemas';
+import { AdminUserFormSchema, UserFormSchema } from '@/schemas/user.schemas';
 import { UserFormModalTypes } from '@/utils/user.utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -34,8 +48,8 @@ import {
   LucideCheck,
   LucideUserPlus,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
 import { toast, useSonner } from 'sonner';
 import type z from 'zod';
 
@@ -50,7 +64,10 @@ const UserFormModal = (props: {
   trigger?: React.ReactNode;
   content_only?: boolean;
   open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: (
+    open: boolean,
+    defaultSetOpen?: Dispatch<SetStateAction<boolean>>,
+  ) => void;
   admin?: boolean;
 }) => {
   const { toasts } = useSonner();
@@ -77,11 +94,14 @@ const UserFormModal = (props: {
   });
 
   const [open, setOpen] = useState(false);
-  const onOpenChange = props.onOpenChange || setOpen;
+  const onOpenChange =
+    props.onOpenChange !== undefined
+      ? (open: boolean) => props.onOpenChange?.(open, setOpen)
+      : setOpen;
 
   const [formType, setFormtype] = useState(props.type || 'default');
 
-  const form = useForm<z.infer<typeof UserFormSchema>>({
+  const userForm = useForm<z.infer<typeof UserFormSchema>>({
     mode: 'onBlur',
     resolver: zodResolver(UserFormSchema),
     defaultValues: {
@@ -98,15 +118,10 @@ const UserFormModal = (props: {
       password: user.password || '',
     },
   });
-
-  const refreshUserData = async (id?: number) => {
-    const res = await apiClient().users.adminGetUserById(
-      id ?? (user.id as number),
-    );
-    setUser({ old: res.data, ...res.data });
-  };
-  const resetForm = () => {
-    form.reset({
+  const adminForm = useForm<z.infer<typeof AdminUserFormSchema>>({
+    mode: 'onBlur',
+    resolver: zodResolver(AdminUserFormSchema),
+    defaultValues: {
       id: user.id || undefined,
       username: user.username || '',
       email: user.email || '',
@@ -117,17 +132,68 @@ const UserFormModal = (props: {
       is_admin: user.is_admin || false,
       verified_email: user.verified_email || false,
       verified_phone_number: user.verified_phone_number || false,
-    });
+      password: user.password || '',
+      authority: user.authority || undefined,
+    },
+  });
+  const form = (props.admin ? adminForm : userForm) as UseFormReturn<
+    z.infer<typeof UserFormSchema>
+  >;
+
+  const refreshUserData = async (id?: number) => {
+    const res = await apiClient().users.adminGetUserById(
+      id ?? (user.id as number),
+    );
+    setUser({ old: res.data, ...res.data });
+  };
+  const resetForm = () => {
+    if (props.admin) {
+      adminForm.reset({
+        id: user.id || undefined,
+        username: user.username || '',
+        email: user.email || '',
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        phone_number: user.phone_number || '',
+        is_active: user.is_active || false,
+        is_admin: user.is_admin || false,
+        verified_email: user.verified_email || false,
+        verified_phone_number: user.verified_phone_number || false,
+        authority: user.authority || undefined,
+      });
+    } else {
+      userForm.reset({
+        id: user.id || undefined,
+        username: user.username || '',
+        email: user.email || '',
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        phone_number: user.phone_number || '',
+        is_active: user.is_active || false,
+        is_admin: user.is_admin || false,
+        verified_email: user.verified_email || false,
+        verified_phone_number: user.verified_phone_number || false,
+      });
+    }
   };
   const handleSubmit = (data: User) => {
     setLoading((p) => ({ ...p, form: true }));
+    //console.log('Submitting form with data: ', manualPassword, data, user);
     const new_data = {
       ...data,
       verified_email: user.verified_email,
       verified_phone_number: user.verified_phone_number,
       is_active: user.is_active,
       is_admin: user.is_admin,
+      authority: user.is_admin
+        ? data.authority ||
+          adminForm.getValues('authority') ||
+          AuthorityEnum.Inscription
+        : null,
+      password: manualPassword ? data.password : undefined,
     };
+    //console.log('new_data:', new_data);
+
     setUser((s) => ({ ...s, ...new_data }));
     if (formType === 'add') {
       apiClient()
@@ -138,10 +204,15 @@ const UserFormModal = (props: {
           username: new_data.username as string,
           phone_number: new_data.phone_number,
           is_admin: props.admin || false,
-          password: manualPassword ? (new_data.password as string) : undefined,
+          authority: props.admin
+            ? (new_data.authority as UserCreationModelAuthorityEnum)
+            : undefined,
+          password: new_data.password,
         })
         .then((r) => {
-          toast.success('Utilisateur créé avec succès');
+          toast.success('Utilisateur créé avec succès', {
+            id: 'user_creation_success',
+          });
           setUser({ old: r.data, ...r.data });
           setFormtype('readonly');
         })
@@ -160,23 +231,34 @@ const UserFormModal = (props: {
             if (code == ERROR_CODES.EMAIL_ALREADY_EXISTS) {
               toast.error(
                 'Un utilisateur avec cette adresse e-mail existe déjà',
+                {
+                  id: 'email_already_exists',
+                },
               );
               return;
             }
             if (code == ERROR_CODES.USERNAME_ALREADY_EXISTS) {
               toast.error(
                 "Un utilisateur avec ce nom d'utilisateur existe déjà",
+                {
+                  id: 'username_already_exists',
+                },
               );
               return;
             }
             if (code == ERROR_CODES.PHONE_NUMBER_ALREADY_EXISTS) {
               toast.error(
                 'Un utilisateur avec ce numéro de téléphone existe déjà',
+                {
+                  id: 'phone_number_already_exists',
+                },
               );
               return;
             }
           }
-          toast.error("Échec de la création de l'utilisateur");
+          toast.error("Échec de la création de l'utilisateur", {
+            id: 'user_creation_failed',
+          });
         })
         .finally(() => {
           setLoading((p) => ({ ...p, form: false }));
@@ -190,11 +272,15 @@ const UserFormModal = (props: {
         { ...new_data } as UserUpdateModel,
       )
       .then(() => {
-        toast.success('Utilisateur mis à jour avec succès');
+        toast.success('Utilisateur mis à jour avec succès', {
+          id: 'user_update_success',
+        });
         refreshUserData();
       })
       .catch(() => {
-        toast.error("Échec de la mise à jour de l'utilisateur");
+        toast.error("Échec de la mise à jour de l'utilisateur", {
+          id: 'user_update_failed',
+        });
       })
       .finally(() => {
         setLoading((p) => ({ ...p, form: false }));
@@ -202,15 +288,24 @@ const UserFormModal = (props: {
   };
 
   // Reset state when dialog opens or user changes
+  let [allowFormReset, setAllowFormReset] = useState(true);
   useEffect(() => {
-    console.log('user in modal: ', user);
-    setFormtype(props.type || 'default');
-    resetForm();
+    if (allowFormReset) {
+      //console.log('user in modal: ', user);
+      setFormtype(props.type || 'default');
+      resetForm();
+    } else {
+      setAllowFormReset(true);
+    }
   }, [user]);
   useEffect(() => {
-    console.log('props.user changed: ', props.user);
-    setUser({ old: props.user, ...props.user });
-    refreshUserData(props.user?.id as number);
+    if (allowFormReset) {
+      //console.log('props.user changed: ', props.user);
+      setUser({ old: props.user, ...props.user });
+      refreshUserData(props.user?.id as number);
+    } else {
+      setAllowFormReset(true);
+    }
   }, [props.user]);
 
   const content = (
@@ -218,7 +313,7 @@ const UserFormModal = (props: {
       {props.trigger && <DialogTrigger asChild>{props.trigger}</DialogTrigger>}
       <DialogContent
         onInteractOutside={(e) => {
-          console.log('toasts', toasts);
+          //console.log('toasts', toasts);
           if (toasts.length > 0) {
             e.preventDefault();
           }
@@ -247,6 +342,7 @@ const UserFormModal = (props: {
                 className={user.is_active ? 'bg-primary' : undefined}
                 variant={user.is_active ? 'default' : 'destructive'}
                 onClick={() => {
+                  setAllowFormReset(false);
                   setUser((s) => ({
                     ...s,
                     is_active: !s.is_active,
@@ -259,12 +355,33 @@ const UserFormModal = (props: {
                 className={user.is_admin ? 'bg-primary' : undefined}
                 variant={user.is_admin ? 'default' : 'secondary'}
                 onClick={() => {
+                  setAllowFormReset(false);
                   setUser((s) => ({
                     ...s,
                     is_admin: !s.is_admin,
+                    authority:
+                      !s.is_admin && s.authority === null
+                        ? AuthorityEnum.Inscription
+                        : s.authority,
                   }));
                 }}
               />
+              {user.is_admin && (
+                <UserAuthorityTypeBadge
+                  user={user as UserResponseModel}
+                  disabled={formType === 'readonly'}
+                  onClick={() => {
+                    setAllowFormReset(false);
+                    setUser((s) => ({
+                      ...s,
+                      authority:
+                        s.authority === AuthorityEnum.Inscription
+                          ? AuthorityEnum.Vote
+                          : AuthorityEnum.Inscription,
+                    }));
+                  }}
+                />
+              )}
             </div>
           </div>
         )}
@@ -279,7 +396,9 @@ const UserFormModal = (props: {
             (errors) => {
               console.log(errors);
 
-              toast.error('Corriger les erreurs dans le formulaire');
+              toast.error('Corriger les erreurs dans le formulaire', {
+                id: 'form_validation_error',
+              });
             },
           )}
         >
@@ -442,6 +561,43 @@ const UserFormModal = (props: {
             <div className='space-y-2 bg-muted/30 rounded-lg p-4'>
               {formType === 'add' ? (
                 <>
+                  {props.admin && (
+                    <Controller
+                      name='authority'
+                      control={adminForm.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor='authority'>
+                            Autorité de l'administrateur
+                          </FieldLabel>
+
+                          <Select
+                            /* Bind the value and the change handler explicitly */
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <SelectTrigger className='w-full'>
+                              <SelectValue placeholder="Sélectionnez l'autorité" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.values(
+                                UserCreationModelAuthorityEnum,
+                              ).map((authority) => (
+                                <SelectItem key={authority} value={authority}>
+                                  {authority.toLocaleUpperCase()}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          {fieldState.error && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
+                        </Field>
+                      )}
+                    />
+                  )}
                   {manualPassword ? (
                     <Controller
                       name='password'
@@ -524,6 +680,9 @@ const UserFormModal = (props: {
                         .then(() => {
                           toast.success(
                             'Demande de réinitialisation du mot de passe effectuée avec succès',
+                            {
+                              id: 'password_reset_request_success',
+                            },
                           );
                           setDone((p) => ({
                             ...p,
@@ -536,6 +695,9 @@ const UserFormModal = (props: {
                         .catch(() => {
                           toast.error(
                             'Échec de la demande de réinitialisation du mot de passe',
+                            {
+                              id: 'password_reset_request_failed',
+                            },
                           );
                           setDone((p) => ({
                             ...p,
@@ -589,6 +751,9 @@ const UserFormModal = (props: {
                         .then(() => {
                           toast.success(
                             'E-mail de vérification renvoyé avec succès',
+                            {
+                              id: 'verification_email_sent',
+                            },
                           );
 
                           setDone((p) => ({
@@ -602,6 +767,9 @@ const UserFormModal = (props: {
                         .catch(() => {
                           toast.error(
                             "Échec de l'envoi de l'e-mail de vérification",
+                            {
+                              id: 'verification_email_failed',
+                            },
                           );
 
                           setDone((p) => ({

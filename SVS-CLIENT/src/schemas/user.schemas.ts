@@ -1,3 +1,4 @@
+import { UserCreationModelAuthorityEnum } from "@/api/sdk";
 import z from "zod";
 
 export const passwordSchema = z.string().min(8, { message: "Le mot de passe doit contenir au moins 8 caractères" })
@@ -17,4 +18,8 @@ export const UserFormSchema = z.object({
     verified_phone_number: z.boolean().optional(),
     is_admin: z.boolean().optional(),
     password: passwordSchema.optional(),
+});
+
+export const AdminUserFormSchema = UserFormSchema.extend({
+    authority: z.enum([...Object.values(UserCreationModelAuthorityEnum)], { message: "Autorité invalide" }),
 });

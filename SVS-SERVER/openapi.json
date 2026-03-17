@@ -463,6 +463,96 @@
                         }
                     }
                 }
+            },
+            "put": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Update Vote",
+                "operationId": "update_vote",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoteUpdateModel"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FullVoteResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Delete Vote",
+                "operationId": "delete_vote",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/vote/": {
@@ -618,7 +708,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MessageResponse"
+                                    "$ref": "#/components/schemas/VoteCastResponseModel"
                                 }
                             }
                         }
@@ -1291,19 +1381,88 @@
                 }
             }
         },
-        "/admin/admin-only-endpoint": {
+        "/bulletins/": {
             "get": {
                 "tags": [
-                    "admin"
+                    "bulletins"
                 ],
-                "summary": "Admin Only Endpoint",
-                "operationId": "admin_only_endpoint",
+                "summary": "Get All Bulletins",
+                "operationId": "get_all_bulletins",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "title": "Page"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "default": 10,
+                            "title": "Per Page"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Search"
+                        }
+                    },
+                    {
+                        "name": "vote_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedListResponse_Bulletin_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
                             }
                         }
                     }
@@ -1477,6 +1636,14 @@
     },
     "components": {
         "schemas": {
+            "AuthorityEnum": {
+                "type": "string",
+                "enum": [
+                    "Inscription",
+                    "Vote"
+                ],
+                "title": "AuthorityEnum"
+            },
             "BinaryZKProofModel": {
                 "properties": {
                     "a0": {
@@ -1749,6 +1916,21 @@
                         "type": "boolean",
                         "title": "Is Admin"
                     },
+                    "authority": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "Inscription",
+                                    "Vote"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Authority"
+                    },
                     "unique_hash": {
                         "type": "string",
                         "title": "Unique Hash"
@@ -1788,54 +1970,159 @@
                         ]
                     },
                     "upcomingVotes": {
-                        "items": {
-                            "$ref": "#/components/schemas/VoteWithCreatorResponseModel"
-                        },
-                        "type": "array",
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/VoteWithCreatorResponseModel"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Upcomingvotes"
                     },
                     "ongoingVotes": {
-                        "items": {
-                            "$ref": "#/components/schemas/VoteWithCreatorResponseModel"
-                        },
-                        "type": "array",
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/VoteWithCreatorResponseModel"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Ongoingvotes"
                     },
                     "participationData": {
-                        "$ref": "#/components/schemas/ParticipationDataResponseModel"
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipationDataResponseModel"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "votesPerMonth": {
-                        "items": {
-                            "$ref": "#/components/schemas/VotesPerMonthResponseModel"
-                        },
-                        "type": "array",
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/VotesPerMonthResponseModel"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Votespermonth"
                     },
+                    "votesStatusPerMonth": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/VoteStatusPerMonthResponseModel"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Votesstatuspermonth"
+                    },
                     "userGrowthPerMonth": {
-                        "items": {
-                            "$ref": "#/components/schemas/UserGrowthPerMonthResponseModel"
-                        },
-                        "type": "array",
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/UserGrowthPerMonthResponseModel"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Usergrowthpermonth"
                     },
-                    "votesStatusPerMonth": {
-                        "items": {
-                            "$ref": "#/components/schemas/VoteStatusPerMonthResponseModel"
-                        },
-                        "type": "array",
-                        "title": "Votesstatuspermonth"
+                    "userRoleRepartition": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "integer"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Userrolerepartition"
+                    },
+                    "userActivityRepartition": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": {
+                                    "type": "integer"
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Useractivityrepartition"
+                    },
+                    "nbr_users": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Nbr Users"
+                    },
+                    "nbr_admins": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Nbr Admins"
+                    },
+                    "nbr_inscription_authority": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Nbr Inscription Authority"
+                    },
+                    "nbr_vote_authority": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Nbr Vote Authority"
                     }
                 },
                 "type": "object",
-                "required": [
-                    "lastFinishedVote",
-                    "upcomingVotes",
-                    "ongoingVotes",
-                    "participationData",
-                    "votesPerMonth",
-                    "userGrowthPerMonth",
-                    "votesStatusPerMonth"
-                ],
                 "title": "DashboardResponseModel"
             },
             "FinishedVoteResponseModel": {
@@ -2352,6 +2639,19 @@
                         "type": "boolean",
                         "title": "Is Admin"
                     },
+                    "authority": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AuthorityEnum",
+                                "maxLength": 20
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Authority",
+                        "description": "Authority can be None for regular users, Inscription or Vote"
+                    },
                     "requested_password_reset": {
                         "type": "boolean",
                         "title": "Requested Password Reset",
@@ -2410,6 +2710,21 @@
                     "is_admin": {
                         "type": "boolean",
                         "title": "Is Admin"
+                    },
+                    "authority": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "Inscription",
+                                    "Vote"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Authority"
                     }
                 },
                 "type": "object",
@@ -2507,6 +2822,21 @@
                     "is_admin": {
                         "type": "boolean",
                         "title": "Is Admin"
+                    },
+                    "authority": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "Inscription",
+                                    "Vote"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Authority"
                     }
                 },
                 "type": "object",
@@ -2600,6 +2930,21 @@
                             }
                         ],
                         "title": "Is Active"
+                    },
+                    "authority": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "Inscription",
+                                    "Vote"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Authority"
                     },
                     "verified_email": {
                         "anyOf": [
@@ -2815,6 +3160,19 @@
                 ],
                 "title": "VoteCastData"
             },
+            "VoteCastResponseModel": {
+                "properties": {
+                    "unique_code": {
+                        "type": "string",
+                        "title": "Unique Code"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "unique_code"
+                ],
+                "title": "VoteCastResponseModel"
+            },
             "VoteCreationModel": {
                 "properties": {
                     "title": {
@@ -2947,6 +3305,133 @@
                     "finished"
                 ],
                 "title": "VoteStatusPerMonthResponseModel"
+            },
+            "VoteUpdateModel": {
+                "properties": {
+                    "title": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Title"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description"
+                    },
+                    "start_date": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Start Date"
+                    },
+                    "end_date": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "End Date"
+                    },
+                    "candidates": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/CandidateCreateModel"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Candidates"
+                    },
+                    "public_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Public Key"
+                    },
+                    "private_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Private Key"
+                    },
+                    "open_to_all": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Open To All"
+                    },
+                    "attributed_user_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Attributed User Ids"
+                    },
+                    "excluded_user_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Excluded User Ids"
+                    }
+                },
+                "type": "object",
+                "title": "VoteUpdateModel"
             },
             "VoteWithCreatorResponseModel": {
                 "properties": {

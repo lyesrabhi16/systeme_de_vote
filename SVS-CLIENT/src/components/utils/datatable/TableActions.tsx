@@ -10,6 +10,7 @@ import type { ReactElement, ReactNode } from 'react';
 type TableActionItem = {
   key: string;
   content: ReactElement | ReactNode;
+  hide?: boolean;
 } & Omit<React.ComponentProps<typeof DropdownMenuItem>, 'content'>;
 type TableActionsProps = {
   items: TableActionItem[];
@@ -26,14 +27,18 @@ const TableActions = ({ items }: TableActionsProps) => {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align='end'>
-          {items.map((item) => (
-            <DropdownMenuItem
-              {...{ ...item, content: undefined }}
-              key={item.key}
-            >
-              {item.content}
-            </DropdownMenuItem>
-          ))}
+          {items.map((item) =>
+            item.hide ? (
+              <></>
+            ) : (
+              <DropdownMenuItem
+                {...{ ...item, content: undefined }}
+                key={item.key}
+              >
+                {item.content}
+              </DropdownMenuItem>
+            ),
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

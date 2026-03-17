@@ -88,6 +88,22 @@
         "documentation": {}
     },
     {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Enum",
+        "importPath": "enum",
+        "description": "enum",
+        "isExtraImport": true,
+        "detail": "enum",
+        "documentation": {}
+    },
+    {
         "label": "Enum",
         "importPath": "enum",
         "description": "enum",
@@ -194,6 +210,14 @@
     },
     {
         "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Literal",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -610,7 +634,7 @@
         "documentation": {}
     },
     {
-        "label": "SQLModel",
+        "label": "delete",
         "importPath": "sqlmodel",
         "description": "sqlmodel",
         "isExtraImport": true,
@@ -643,6 +667,14 @@
     },
     {
         "label": "async_sessionmaker",
+        "importPath": "sqlalchemy.ext.asyncio",
+        "description": "sqlalchemy.ext.asyncio",
+        "isExtraImport": true,
+        "detail": "sqlalchemy.ext.asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "AsyncSession",
         "importPath": "sqlalchemy.ext.asyncio",
         "description": "sqlalchemy.ext.asyncio",
         "isExtraImport": true,
@@ -962,6 +994,14 @@
         "documentation": {}
     },
     {
+        "label": "logger",
+        "importPath": "loguru",
+        "description": "loguru",
+        "isExtraImport": true,
+        "detail": "loguru",
+        "documentation": {}
+    },
+    {
         "label": "Redis",
         "importPath": "redis",
         "description": "redis",
@@ -1020,6 +1060,14 @@
     },
     {
         "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -1259,23 +1307,7 @@
         "documentation": {}
     },
     {
-        "label": "Bulletin",
-        "importPath": "app.models",
-        "description": "app.models",
-        "isExtraImport": true,
-        "detail": "app.models",
-        "documentation": {}
-    },
-    {
         "label": "Vote",
-        "importPath": "app.models",
-        "description": "app.models",
-        "isExtraImport": true,
-        "detail": "app.models",
-        "documentation": {}
-    },
-    {
-        "label": "AttributedVote",
         "importPath": "app.models",
         "description": "app.models",
         "isExtraImport": true,
@@ -1352,6 +1384,126 @@
         "description": "app.models",
         "isExtraImport": true,
         "detail": "app.models",
+        "documentation": {}
+    },
+    {
+        "label": "AuthorityEnum",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "UserResponseModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "AuthorityEnum",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "UserResponseModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "CurrentUserResponseModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "SuccessfulUserLoginResponseModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "UserCreationModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "UserResponseModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "UserUpdateModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "UserResponseModel",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "isExtraImport": true,
+        "detail": "app.models.user",
         "documentation": {}
     },
     {
@@ -1451,14 +1603,6 @@
         "documentation": {}
     },
     {
-        "label": "db",
-        "importPath": "app.db",
-        "description": "app.db",
-        "isExtraImport": true,
-        "detail": "app.db",
-        "documentation": {}
-    },
-    {
         "label": "cache_session",
         "importPath": "app.db",
         "description": "app.db",
@@ -1525,6 +1669,22 @@
     },
     {
         "label": "Row",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "and_",
+        "importPath": "sqlalchemy",
+        "description": "sqlalchemy",
+        "isExtraImport": true,
+        "detail": "sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "func",
         "importPath": "sqlalchemy",
         "description": "sqlalchemy",
         "isExtraImport": true,
@@ -1636,14 +1796,6 @@
         "documentation": {}
     },
     {
-        "label": "HTTPException",
-        "importPath": "fastapi",
-        "description": "fastapi",
-        "isExtraImport": true,
-        "detail": "fastapi",
-        "documentation": {}
-    },
-    {
         "label": "Request",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -1684,6 +1836,14 @@
         "documentation": {}
     },
     {
+        "label": "Request",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
         "label": "APIRouter",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -1717,6 +1877,22 @@
     },
     {
         "label": "Depends",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "APIRouter",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Query",
         "importPath": "fastapi",
         "description": "fastapi",
         "isExtraImport": true,
@@ -2045,6 +2221,78 @@
         "documentation": {}
     },
     {
+        "label": "FullVoteResponseModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "VoteWithCreatorResponseModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "VoteWithCreatorResponseModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "FullVoteResponseModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "FullVoteResponseModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "VoteResultsModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "FinishedVoteResponseModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "VoteCreationModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "VoteUpdateModel",
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "isExtraImport": true,
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
         "label": "db_session",
         "importPath": "app.db.db",
         "description": "app.db.db",
@@ -2126,35 +2374,11 @@
         "documentation": {}
     },
     {
-        "label": "VoteCastData",
-        "importPath": "app.models.voting_models",
-        "description": "app.models.voting_models",
+        "label": "auth_utils",
+        "importPath": "app.utils",
+        "description": "app.utils",
         "isExtraImport": true,
-        "detail": "app.models.voting_models",
-        "documentation": {}
-    },
-    {
-        "label": "VoteCastData",
-        "importPath": "app.models.voting_models",
-        "description": "app.models.voting_models",
-        "isExtraImport": true,
-        "detail": "app.models.voting_models",
-        "documentation": {}
-    },
-    {
-        "label": "VoteCastData",
-        "importPath": "app.models.voting_models",
-        "description": "app.models.voting_models",
-        "isExtraImport": true,
-        "detail": "app.models.voting_models",
-        "documentation": {}
-    },
-    {
-        "label": "VoteCastContentModel",
-        "importPath": "app.models.voting_models",
-        "description": "app.models.voting_models",
-        "isExtraImport": true,
-        "detail": "app.models.voting_models",
+        "detail": "app.utils",
         "documentation": {}
     },
     {
@@ -2246,6 +2470,14 @@
         "documentation": {}
     },
     {
+        "label": "smtp_utils",
+        "importPath": "app.utils",
+        "description": "app.utils",
+        "isExtraImport": true,
+        "detail": "app.utils",
+        "documentation": {}
+    },
+    {
         "label": "get_real_path",
         "importPath": "app.utils",
         "description": "app.utils",
@@ -2262,99 +2494,35 @@
         "documentation": {}
     },
     {
-        "label": "User",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
+        "label": "VoteCastData",
+        "importPath": "app.models.voting_models",
+        "description": "app.models.voting_models",
         "isExtraImport": true,
-        "detail": "app.models.user",
+        "detail": "app.models.voting_models",
         "documentation": {}
     },
     {
-        "label": "UserResponseModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
+        "label": "VoteCastData",
+        "importPath": "app.models.voting_models",
+        "description": "app.models.voting_models",
         "isExtraImport": true,
-        "detail": "app.models.user",
+        "detail": "app.models.voting_models",
         "documentation": {}
     },
     {
-        "label": "User",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
+        "label": "VoteCastResponseModel",
+        "importPath": "app.models.voting_models",
+        "description": "app.models.voting_models",
         "isExtraImport": true,
-        "detail": "app.models.user",
+        "detail": "app.models.voting_models",
         "documentation": {}
     },
     {
-        "label": "UserResponseModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
+        "label": "VoteCastContentModel",
+        "importPath": "app.models.voting_models",
+        "description": "app.models.voting_models",
         "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "CurrentUserResponseModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "User",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "SuccessfulUserLoginResponseModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "UserCreationModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "UserResponseModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "UserUpdateModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "UserResponseModel",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
-        "documentation": {}
-    },
-    {
-        "label": "User",
-        "importPath": "app.models.user",
-        "description": "app.models.user",
-        "isExtraImport": true,
-        "detail": "app.models.user",
+        "detail": "app.models.voting_models",
         "documentation": {}
     },
     {
@@ -2415,6 +2583,30 @@
         "documentation": {}
     },
     {
+        "label": "Bulletin",
+        "importPath": "app.models.bulletin",
+        "description": "app.models.bulletin",
+        "isExtraImport": true,
+        "detail": "app.models.bulletin",
+        "documentation": {}
+    },
+    {
+        "label": "Bulletin",
+        "importPath": "app.models.bulletin",
+        "description": "app.models.bulletin",
+        "isExtraImport": true,
+        "detail": "app.models.bulletin",
+        "documentation": {}
+    },
+    {
+        "label": "AttributedVote",
+        "importPath": "app.models.attributed_votes",
+        "description": "app.models.attributed_votes",
+        "isExtraImport": true,
+        "detail": "app.models.attributed_votes",
+        "documentation": {}
+    },
+    {
         "label": "AttributedVote",
         "importPath": "app.models.attributed_votes",
         "description": "app.models.attributed_votes",
@@ -2575,6 +2767,22 @@
         "documentation": {}
     },
     {
+        "label": "FastCRUD",
+        "importPath": "fastcrud",
+        "description": "fastcrud",
+        "isExtraImport": true,
+        "detail": "fastcrud",
+        "documentation": {}
+    },
+    {
+        "label": "PaginatedListResponse",
+        "importPath": "fastcrud",
+        "description": "fastcrud",
+        "isExtraImport": true,
+        "detail": "fastcrud",
+        "documentation": {}
+    },
+    {
         "label": "paginated_response",
         "importPath": "fastcrud",
         "description": "fastcrud",
@@ -2599,54 +2807,6 @@
         "documentation": {}
     },
     {
-        "label": "VoteWithCreatorResponseModel",
-        "importPath": "app.models.vote_util_models",
-        "description": "app.models.vote_util_models",
-        "isExtraImport": true,
-        "detail": "app.models.vote_util_models",
-        "documentation": {}
-    },
-    {
-        "label": "FullVoteResponseModel",
-        "importPath": "app.models.vote_util_models",
-        "description": "app.models.vote_util_models",
-        "isExtraImport": true,
-        "detail": "app.models.vote_util_models",
-        "documentation": {}
-    },
-    {
-        "label": "FullVoteResponseModel",
-        "importPath": "app.models.vote_util_models",
-        "description": "app.models.vote_util_models",
-        "isExtraImport": true,
-        "detail": "app.models.vote_util_models",
-        "documentation": {}
-    },
-    {
-        "label": "VoteResultsModel",
-        "importPath": "app.models.vote_util_models",
-        "description": "app.models.vote_util_models",
-        "isExtraImport": true,
-        "detail": "app.models.vote_util_models",
-        "documentation": {}
-    },
-    {
-        "label": "FinishedVoteResponseModel",
-        "importPath": "app.models.vote_util_models",
-        "description": "app.models.vote_util_models",
-        "isExtraImport": true,
-        "detail": "app.models.vote_util_models",
-        "documentation": {}
-    },
-    {
-        "label": "VoteCreationModel",
-        "importPath": "app.models.vote_util_models",
-        "description": "app.models.vote_util_models",
-        "isExtraImport": true,
-        "detail": "app.models.vote_util_models",
-        "documentation": {}
-    },
-    {
         "label": "paginate",
         "importPath": "app.utils.response_utils",
         "description": "app.utils.response_utils",
@@ -2671,12 +2831,59 @@
         "documentation": {}
     },
     {
-        "label": "threading",
-        "kind": 6,
+        "label": "DashboardResponseModel",
+        "importPath": "app.models.admin_util_models",
+        "description": "app.models.admin_util_models",
         "isExtraImport": true,
-        "importPath": "threading",
-        "description": "threading",
-        "detail": "threading",
+        "detail": "app.models.admin_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "getParticipationData",
+        "importPath": "app.utils.admin_utils",
+        "description": "app.utils.admin_utils",
+        "isExtraImport": true,
+        "detail": "app.utils.admin_utils",
+        "documentation": {}
+    },
+    {
+        "label": "getUserRoleRepartition",
+        "importPath": "app.utils.admin_utils",
+        "description": "app.utils.admin_utils",
+        "isExtraImport": true,
+        "detail": "app.utils.admin_utils",
+        "documentation": {}
+    },
+    {
+        "label": "getVotesPerMonth",
+        "importPath": "app.utils.admin_utils",
+        "description": "app.utils.admin_utils",
+        "isExtraImport": true,
+        "detail": "app.utils.admin_utils",
+        "documentation": {}
+    },
+    {
+        "label": "getUserGrowth",
+        "importPath": "app.utils.admin_utils",
+        "description": "app.utils.admin_utils",
+        "isExtraImport": true,
+        "detail": "app.utils.admin_utils",
+        "documentation": {}
+    },
+    {
+        "label": "getVotesStatusPerMonth",
+        "importPath": "app.utils.admin_utils",
+        "description": "app.utils.admin_utils",
+        "isExtraImport": true,
+        "detail": "app.utils.admin_utils",
+        "documentation": {}
+    },
+    {
+        "label": "getUserActivityRepartition",
+        "importPath": "app.utils.admin_utils",
+        "description": "app.utils.admin_utils",
+        "isExtraImport": true,
+        "detail": "app.utils.admin_utils",
         "documentation": {}
     },
     {
@@ -2800,6 +3007,22 @@
         "documentation": {}
     },
     {
+        "label": "Vote",
+        "importPath": "app.models.vote",
+        "description": "app.models.vote",
+        "isExtraImport": true,
+        "detail": "app.models.vote",
+        "documentation": {}
+    },
+    {
+        "label": "Vote",
+        "importPath": "app.models.vote",
+        "description": "app.models.vote",
+        "isExtraImport": true,
+        "detail": "app.models.vote",
+        "documentation": {}
+    },
+    {
         "label": "string",
         "kind": 6,
         "isExtraImport": true,
@@ -2916,14 +3139,6 @@
         "documentation": {}
     },
     {
-        "label": "Vote",
-        "importPath": "app.models.vote",
-        "description": "app.models.vote",
-        "isExtraImport": true,
-        "detail": "app.models.vote",
-        "documentation": {}
-    },
-    {
         "label": "Crons",
         "importPath": "fastapi_crons",
         "description": "fastapi_crons",
@@ -2973,6 +3188,14 @@
     },
     {
         "label": "auth_router",
+        "importPath": "app.routers",
+        "description": "app.routers",
+        "isExtraImport": true,
+        "detail": "app.routers",
+        "documentation": {}
+    },
+    {
+        "label": "bulletins_router",
         "importPath": "app.routers",
         "description": "app.routers",
         "isExtraImport": true,
@@ -3111,7 +3334,7 @@
         "kind": 5,
         "importPath": "app.db.db",
         "description": "app.db.db",
-        "peekOfCode": "_db_url = get_db_url()\nengine = create_async_engine(\n    _db_url,\n    echo=False,\n    # echo=env.DEBUG,\n    future=True,\n)\n# Redis Cache\ncache_db = get_redis_connection()\ndef cache_session(func):",
+        "peekOfCode": "_db_url = get_db_url()\nengine = create_async_engine(\n    _db_url,\n    echo=env.DEBUG,\n    future=True,\n)\n# Redis Cache\ncache_db = get_redis_connection()\ndef cache_session(func):\n    \"\"\"",
         "detail": "app.db.db",
         "documentation": {}
     },
@@ -3120,7 +3343,7 @@
         "kind": 5,
         "importPath": "app.db.db",
         "description": "app.db.db",
-        "peekOfCode": "engine = create_async_engine(\n    _db_url,\n    echo=False,\n    # echo=env.DEBUG,\n    future=True,\n)\n# Redis Cache\ncache_db = get_redis_connection()\ndef cache_session(func):\n    \"\"\"",
+        "peekOfCode": "engine = create_async_engine(\n    _db_url,\n    echo=env.DEBUG,\n    future=True,\n)\n# Redis Cache\ncache_db = get_redis_connection()\ndef cache_session(func):\n    \"\"\"\n    decorator to provide a redis cache session accessible via 'cache' parameter on the decorated function",
         "detail": "app.db.db",
         "documentation": {}
     },
@@ -3260,11 +3483,56 @@
         "documentation": {}
     },
     {
+        "label": "ParticipationDataResponseModel",
+        "kind": 6,
+        "importPath": "app.models.admin_util_models",
+        "description": "app.models.admin_util_models",
+        "peekOfCode": "class ParticipationDataResponseModel(BaseModel):\n    total_votes: int\n    total_abstain: int\n    no_participation: int\nclass VoteStatusPerMonthResponseModel(BaseModel):\n    month: str\n    upcoming: int\n    ongoing: int\n    finished: int\nclass UserGrowthPerMonthResponseModel(BaseModel):",
+        "detail": "app.models.admin_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "VoteStatusPerMonthResponseModel",
+        "kind": 6,
+        "importPath": "app.models.admin_util_models",
+        "description": "app.models.admin_util_models",
+        "peekOfCode": "class VoteStatusPerMonthResponseModel(BaseModel):\n    month: str\n    upcoming: int\n    ongoing: int\n    finished: int\nclass UserGrowthPerMonthResponseModel(BaseModel):\n    month: str\n    new_users_count: int\n    total_users: int\nclass VotesPerMonthResponseModel(BaseModel):",
+        "detail": "app.models.admin_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "UserGrowthPerMonthResponseModel",
+        "kind": 6,
+        "importPath": "app.models.admin_util_models",
+        "description": "app.models.admin_util_models",
+        "peekOfCode": "class UserGrowthPerMonthResponseModel(BaseModel):\n    month: str\n    new_users_count: int\n    total_users: int\nclass VotesPerMonthResponseModel(BaseModel):\n    month: str\n    vote_count: int\nclass DashboardResponseModel(BaseModel):\n    lastFinishedVote: FullVoteResponseModel | None = None\n    upcomingVotes: list[VoteWithCreatorResponseModel] | None = None",
+        "detail": "app.models.admin_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "VotesPerMonthResponseModel",
+        "kind": 6,
+        "importPath": "app.models.admin_util_models",
+        "description": "app.models.admin_util_models",
+        "peekOfCode": "class VotesPerMonthResponseModel(BaseModel):\n    month: str\n    vote_count: int\nclass DashboardResponseModel(BaseModel):\n    lastFinishedVote: FullVoteResponseModel | None = None\n    upcomingVotes: list[VoteWithCreatorResponseModel] | None = None\n    ongoingVotes: list[VoteWithCreatorResponseModel] | None = None\n    participationData: ParticipationDataResponseModel | None = None\n    votesPerMonth: list[VotesPerMonthResponseModel] | None = None\n    votesStatusPerMonth: list[VoteStatusPerMonthResponseModel] | None = None",
+        "detail": "app.models.admin_util_models",
+        "documentation": {}
+    },
+    {
+        "label": "DashboardResponseModel",
+        "kind": 6,
+        "importPath": "app.models.admin_util_models",
+        "description": "app.models.admin_util_models",
+        "peekOfCode": "class DashboardResponseModel(BaseModel):\n    lastFinishedVote: FullVoteResponseModel | None = None\n    upcomingVotes: list[VoteWithCreatorResponseModel] | None = None\n    ongoingVotes: list[VoteWithCreatorResponseModel] | None = None\n    participationData: ParticipationDataResponseModel | None = None\n    votesPerMonth: list[VotesPerMonthResponseModel] | None = None\n    votesStatusPerMonth: list[VoteStatusPerMonthResponseModel] | None = None\n    userGrowthPerMonth: list[UserGrowthPerMonthResponseModel] | None = None\n    userRoleRepartition: dict[str, int] | None = None\n    userActivityRepartition: dict[str, int] | None = None",
+        "detail": "app.models.admin_util_models",
+        "documentation": {}
+    },
+    {
         "label": "AttributedVote",
         "kind": 6,
         "importPath": "app.models.attributed_votes",
         "description": "app.models.attributed_votes",
-        "peekOfCode": "class AttributedVote(SQLModel, table=True):\n    user_id: int | None = Field(default=None, primary_key=True, foreign_key=\"user.id\")\n    vote_id: int | None = Field(default=None, primary_key=True, foreign_key=\"vote.id\")\n    created_at: datetime = Field(default_factory=datetime.utcnow)\n    user_has_voted: bool = Field(\n        default=False, description=\"Indicates if the user has cast their vote\"\n    )\n    user: \"User\" = Relationship(\n        back_populates=\"attributed_votes\",\n        sa_relationship_kwargs={\"lazy\": \"selectin\"},  # async safe",
+        "peekOfCode": "class AttributedVote(SQLModel, table=True):\n    user_id: int | None = Field(default=None, primary_key=True, foreign_key=\"user.id\")\n    vote_id: int | None = Field(\n        default=None,\n        primary_key=True,\n        foreign_key=\"vote.id\",\n        ondelete=\"CASCADE\",\n    )\n    created_at: datetime = Field(default_factory=datetime.utcnow)\n    user_has_voted: bool = Field(",
         "detail": "app.models.attributed_votes",
         "documentation": {}
     },
@@ -3440,6 +3708,15 @@
         "documentation": {}
     },
     {
+        "label": "AuthorityEnum",
+        "kind": 6,
+        "importPath": "app.models.user",
+        "description": "app.models.user",
+        "peekOfCode": "class AuthorityEnum(str, Enum):\n    Inscription = \"Inscription\"\n    Vote = \"Vote\"\nclass User(SQLModel, table=True):\n    id: int | None = Field(default=None, primary_key=True)\n    first_name: str = Field(..., title=\"First Name\", max_length=100)\n    last_name: str = Field(..., title=\"Last Name\", max_length=100)\n    email: str = Field(..., title=\"Email\", max_length=256, unique=True)\n    verified_email: bool = Field(default=False, title=\"Verified Email\")\n    username: str = Field(..., title=\"Username\", max_length=100, unique=True)",
+        "detail": "app.models.user",
+        "documentation": {}
+    },
+    {
         "label": "User",
         "kind": 6,
         "importPath": "app.models.user",
@@ -3453,7 +3730,7 @@
         "kind": 6,
         "importPath": "app.models.user",
         "description": "app.models.user",
-        "peekOfCode": "class UserUpdateModel(BaseModel):\n    first_name: str | None = None\n    last_name: str | None = None\n    email: str | None = None\n    username: str | None = None\n    phone_number: str | None = None\n    is_admin: bool | None = None\n    is_active: bool | None = None\n    verified_email: bool | None = None\n    verified_phone_number: bool | None = None",
+        "peekOfCode": "class UserUpdateModel(BaseModel):\n    first_name: str | None = None\n    last_name: str | None = None\n    email: str | None = None\n    username: str | None = None\n    phone_number: str | None = None\n    is_admin: bool | None = None\n    is_active: bool | None = None\n    authority: Literal[\"Inscription\", \"Vote\"] | None = None\n    verified_email: bool | None = None",
         "detail": "app.models.user",
         "documentation": {}
     },
@@ -3462,7 +3739,7 @@
         "kind": 6,
         "importPath": "app.models.user",
         "description": "app.models.user",
-        "peekOfCode": "class UserCreationModel(BaseModel):\n    first_name: str\n    last_name: str\n    email: str\n    username: str\n    phone_number: str\n    password: str | None = None\n    is_admin: bool\nclass UserResponseModel(BaseModel):\n    id: int",
+        "peekOfCode": "class UserCreationModel(BaseModel):\n    first_name: str\n    last_name: str\n    email: str\n    username: str\n    phone_number: str\n    password: str | None = None\n    is_admin: bool\n    authority: Literal[\"Inscription\", \"Vote\"] | None = None\nclass UserResponseModel(BaseModel):",
         "detail": "app.models.user",
         "documentation": {}
     },
@@ -3471,7 +3748,7 @@
         "kind": 6,
         "importPath": "app.models.user",
         "description": "app.models.user",
-        "peekOfCode": "class UserResponseModel(BaseModel):\n    id: int\n    first_name: str\n    last_name: str\n    email: str\n    username: str\n    phone_number: str\n    is_active: bool\n    is_admin: bool\n    @staticmethod",
+        "peekOfCode": "class UserResponseModel(BaseModel):\n    id: int\n    first_name: str\n    last_name: str\n    email: str\n    username: str\n    phone_number: str\n    is_active: bool\n    is_admin: bool\n    authority: Literal[\"Inscription\", \"Vote\"] | None = None",
         "detail": "app.models.user",
         "documentation": {}
     },
@@ -3566,6 +3843,15 @@
         "documentation": {}
     },
     {
+        "label": "VoteUpdateModel",
+        "kind": 6,
+        "importPath": "app.models.vote_util_models",
+        "description": "app.models.vote_util_models",
+        "peekOfCode": "class VoteUpdateModel(SQLModel):\n    title: str | None = None\n    description: str | None = None\n    start_date: datetime | None = None\n    end_date: datetime | None = None\n    candidates: list[CandidateCreateModel] | None = None\n    public_key: str | None = None\n    private_key: str | None = None\n    open_to_all: bool | None = None\n    attributed_user_ids: list[int] | None = None",
+        "detail": "app.models.vote_util_models",
+        "documentation": {}
+    },
+    {
         "label": "BinaryZKProofModel",
         "kind": 6,
         "importPath": "app.models.voting_models",
@@ -3579,7 +3865,7 @@
         "kind": 6,
         "importPath": "app.models.voting_models",
         "description": "app.models.voting_models",
-        "peekOfCode": "class VoteCastContentModel(BaseModel):\n    candidate_id: int\n    encrypted_value: str\n    proof: BinaryZKProofModel\nclass VoteCastData(BaseModel):\n    content: list[VoteCastContentModel]",
+        "peekOfCode": "class VoteCastContentModel(BaseModel):\n    candidate_id: int\n    encrypted_value: str\n    proof: BinaryZKProofModel\nclass VoteCastData(BaseModel):\n    content: list[VoteCastContentModel]\nclass VoteCastResponseModel(BaseModel):\n    unique_code: str",
         "detail": "app.models.voting_models",
         "documentation": {}
     },
@@ -3588,53 +3874,17 @@
         "kind": 6,
         "importPath": "app.models.voting_models",
         "description": "app.models.voting_models",
-        "peekOfCode": "class VoteCastData(BaseModel):\n    content: list[VoteCastContentModel]",
+        "peekOfCode": "class VoteCastData(BaseModel):\n    content: list[VoteCastContentModel]\nclass VoteCastResponseModel(BaseModel):\n    unique_code: str",
         "detail": "app.models.voting_models",
         "documentation": {}
     },
     {
-        "label": "ParticipationDataResponseModel",
+        "label": "VoteCastResponseModel",
         "kind": 6,
-        "importPath": "app.routers.admin_router",
-        "description": "app.routers.admin_router",
-        "peekOfCode": "class ParticipationDataResponseModel(SQLModel):\n    total_votes: int\n    total_abstain: int\n    no_participation: int\nclass VoteStatusPerMonthResponseModel(SQLModel):\n    month: str\n    upcoming: int\n    ongoing: int\n    finished: int\nclass UserGrowthPerMonthResponseModel(SQLModel):",
-        "detail": "app.routers.admin_router",
-        "documentation": {}
-    },
-    {
-        "label": "VoteStatusPerMonthResponseModel",
-        "kind": 6,
-        "importPath": "app.routers.admin_router",
-        "description": "app.routers.admin_router",
-        "peekOfCode": "class VoteStatusPerMonthResponseModel(SQLModel):\n    month: str\n    upcoming: int\n    ongoing: int\n    finished: int\nclass UserGrowthPerMonthResponseModel(SQLModel):\n    month: str\n    new_users_count: int\n    total_users: int\nclass VotesPerMonthResponseModel(SQLModel):",
-        "detail": "app.routers.admin_router",
-        "documentation": {}
-    },
-    {
-        "label": "UserGrowthPerMonthResponseModel",
-        "kind": 6,
-        "importPath": "app.routers.admin_router",
-        "description": "app.routers.admin_router",
-        "peekOfCode": "class UserGrowthPerMonthResponseModel(SQLModel):\n    month: str\n    new_users_count: int\n    total_users: int\nclass VotesPerMonthResponseModel(SQLModel):\n    month: str\n    vote_count: int\nclass DashboardResponseModel(SQLModel):\n    lastFinishedVote: FullVoteResponseModel | None\n    upcomingVotes: list[VoteWithCreatorResponseModel]",
-        "detail": "app.routers.admin_router",
-        "documentation": {}
-    },
-    {
-        "label": "VotesPerMonthResponseModel",
-        "kind": 6,
-        "importPath": "app.routers.admin_router",
-        "description": "app.routers.admin_router",
-        "peekOfCode": "class VotesPerMonthResponseModel(SQLModel):\n    month: str\n    vote_count: int\nclass DashboardResponseModel(SQLModel):\n    lastFinishedVote: FullVoteResponseModel | None\n    upcomingVotes: list[VoteWithCreatorResponseModel]\n    ongoingVotes: list[VoteWithCreatorResponseModel]\n    participationData: ParticipationDataResponseModel\n    votesPerMonth: list[VotesPerMonthResponseModel]\n    userGrowthPerMonth: list[UserGrowthPerMonthResponseModel]",
-        "detail": "app.routers.admin_router",
-        "documentation": {}
-    },
-    {
-        "label": "DashboardResponseModel",
-        "kind": 6,
-        "importPath": "app.routers.admin_router",
-        "description": "app.routers.admin_router",
-        "peekOfCode": "class DashboardResponseModel(SQLModel):\n    lastFinishedVote: FullVoteResponseModel | None\n    upcomingVotes: list[VoteWithCreatorResponseModel]\n    ongoingVotes: list[VoteWithCreatorResponseModel]\n    participationData: ParticipationDataResponseModel\n    votesPerMonth: list[VotesPerMonthResponseModel]\n    userGrowthPerMonth: list[UserGrowthPerMonthResponseModel]\n    votesStatusPerMonth: list[VoteStatusPerMonthResponseModel]\n@router.get(\n    \"/dashboard\",",
-        "detail": "app.routers.admin_router",
+        "importPath": "app.models.voting_models",
+        "description": "app.models.voting_models",
+        "peekOfCode": "class VoteCastResponseModel(BaseModel):\n    unique_code: str",
+        "detail": "app.models.voting_models",
         "documentation": {}
     },
     {
@@ -3642,7 +3892,7 @@
         "kind": 5,
         "importPath": "app.routers.admin_router",
         "description": "app.routers.admin_router",
-        "peekOfCode": "router = APIRouter()\ncrud = FastCRUD(model=User)\nvotes_crud = FastCRUD(model=Vote)\n@router.get(\n    \"/admin-only-endpoint\",\n    operation_id=\"admin_only_endpoint\",\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n    ],",
+        "peekOfCode": "router = APIRouter()\ncrud = FastCRUD(model=User)\nvotes_crud = FastCRUD(model=Vote)\n@router.get(\n    \"/\",\n    operation_id=\"get_admins\",\n    response_model=PaginatedListResponse[UserResponseModel],\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),",
         "detail": "app.routers.admin_router",
         "documentation": {}
     },
@@ -3651,7 +3901,7 @@
         "kind": 5,
         "importPath": "app.routers.admin_router",
         "description": "app.routers.admin_router",
-        "peekOfCode": "crud = FastCRUD(model=User)\nvotes_crud = FastCRUD(model=Vote)\n@router.get(\n    \"/admin-only-endpoint\",\n    operation_id=\"admin_only_endpoint\",\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n    ],\n)",
+        "peekOfCode": "crud = FastCRUD(model=User)\nvotes_crud = FastCRUD(model=Vote)\n@router.get(\n    \"/\",\n    operation_id=\"get_admins\",\n    response_model=PaginatedListResponse[UserResponseModel],\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),",
         "detail": "app.routers.admin_router",
         "documentation": {}
     },
@@ -3660,7 +3910,7 @@
         "kind": 5,
         "importPath": "app.routers.admin_router",
         "description": "app.routers.admin_router",
-        "peekOfCode": "votes_crud = FastCRUD(model=Vote)\n@router.get(\n    \"/admin-only-endpoint\",\n    operation_id=\"admin_only_endpoint\",\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n    ],\n)\nasync def admin_only_endpoint():",
+        "peekOfCode": "votes_crud = FastCRUD(model=Vote)\n@router.get(\n    \"/\",\n    operation_id=\"get_admins\",\n    response_model=PaginatedListResponse[UserResponseModel],\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),\n    ],",
         "detail": "app.routers.admin_router",
         "documentation": {}
     },
@@ -3671,6 +3921,24 @@
         "description": "app.routers.auth_router",
         "peekOfCode": "router = APIRouter()\n@router.post(\n    \"/login\",\n    response_model=SuccessfulUserLoginResponseModel,\n    dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],\n    operation_id=\"login\",\n)\nasync def login(data: UserLoginModel, response: Response):\n    # check credentials\n    user = await UserLoginModel.authenticate(",
         "detail": "app.routers.auth_router",
+        "documentation": {}
+    },
+    {
+        "label": "router",
+        "kind": 5,
+        "importPath": "app.routers.bulletins_router",
+        "description": "app.routers.bulletins_router",
+        "peekOfCode": "router = APIRouter()\ncrud = FastCRUD(model=Bulletin)\n@router.get(\n    \"/\",\n    operation_id=\"get_all_bulletins\",\n    response_model=PaginatedListResponse[Bulletin],\n)\nasync def get_all_bulletins(\n    page: int = Query(default=1, ge=1),\n    per_page: int = Query(default=10, ge=1, le=100),",
+        "detail": "app.routers.bulletins_router",
+        "documentation": {}
+    },
+    {
+        "label": "crud",
+        "kind": 5,
+        "importPath": "app.routers.bulletins_router",
+        "description": "app.routers.bulletins_router",
+        "peekOfCode": "crud = FastCRUD(model=Bulletin)\n@router.get(\n    \"/\",\n    operation_id=\"get_all_bulletins\",\n    response_model=PaginatedListResponse[Bulletin],\n)\nasync def get_all_bulletins(\n    page: int = Query(default=1, ge=1),\n    per_page: int = Query(default=10, ge=1, le=100),\n    search: str | None = None,",
+        "detail": "app.routers.bulletins_router",
         "documentation": {}
     },
     {
@@ -3687,7 +3955,7 @@
         "kind": 5,
         "importPath": "app.routers.users_router",
         "description": "app.routers.users_router",
-        "peekOfCode": "router = APIRouter()\ncrud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n    ],",
+        "peekOfCode": "router = APIRouter()\ncrud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),",
         "detail": "app.routers.users_router",
         "documentation": {}
     },
@@ -3696,7 +3964,7 @@
         "kind": 5,
         "importPath": "app.routers.users_router",
         "description": "app.routers.users_router",
-        "peekOfCode": "crud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n    ],\n)",
+        "peekOfCode": "crud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),\n    ],",
         "detail": "app.routers.users_router",
         "documentation": {}
     },

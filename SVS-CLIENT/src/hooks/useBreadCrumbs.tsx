@@ -22,19 +22,19 @@ export const useBreadCrumbs = (props?: {
       ].filter((i) => i !== undefined)
     : [];
   if (props?.additionalLabel) {
-    console.log('pushing additional Label: ', props.additionalLabel);
+    //console.log('pushing additional Label: ', props.additionalLabel);
 
     breadCrumbs.push(props.additionalLabel());
   }
 
   // jsx components for breadCrumbs
   const component = () => {
-    console.log('breadCrumbs:', breadCrumbs);
+    //console.log('breadCrumbs:', breadCrumbs);
     return (
       <Breadcrumb className='w-full px-4 py-2 text-muted-foreground rounded-md'>
         <BreadcrumbList>
           {breadCrumbs.map((item, index) => {
-            console.log(item);
+            //console.log(item);
 
             return (
               <div

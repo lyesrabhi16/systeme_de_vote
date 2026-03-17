@@ -59,13 +59,21 @@ class Vote(SQLModel, table=True):
     )  # async safe
 
     candidates: list["Candidate"] = Relationship(
-        back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+        back_populates="vote",
+        sa_relationship_kwargs={
+            "lazy": "selectin",
+            "cascade": "all, delete-orphan",
+        },  # async safe
     )
     bulletins: list["Bulletin"] = Relationship(
         back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
     )
     attributed_users: list["AttributedVote"] = Relationship(
-        back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+        back_populates="vote",
+        sa_relationship_kwargs={
+            "lazy": "selectin",
+            "cascade": "all, delete-orphan",
+        },  # async safe
     )
 
     def __init__(self, **data: Any):
@@ -78,6 +86,14 @@ class Vote(SQLModel, table=True):
             self.encrypted_private_key = auth_utils.encrypt_string(keys["PRIVATE_KEY"])
 
     @db_session
+    async def delete(self, db: AsyncSession | None = None) -> None:
+        """Delete the vote from the database."""
+        if db is None:
+            raise ValueError("Database session is None")
+        await db.delete(self)
+        await db.commit()
+
+    @db_session
     async def register_vote(
         self, user: User, data: VoteCastData, db: AsyncSession | None = None
     ):
@@ -88,7 +104,6 @@ class Vote(SQLModel, table=True):
 
         if db is None:
             raise ValueError("Database session is None")
-
         bulletin = Bulletin(
             vote_id=self.id,
             content=json.dumps(list(d.model_dump() for d in data.content)),
@@ -103,10 +118,11 @@ class Vote(SQLModel, table=True):
         if av:
             av.user_has_voted = True
             db.add(av)
-
+        unique_code = bulletin.unique_code
         await db.commit()
 
         logger.debug(f"User {user.username} voted on vote {self.id}")
+        return unique_code
 
     def is_vote_finished(self) -> bool:
         return self.end_date < datetime.utcnow()

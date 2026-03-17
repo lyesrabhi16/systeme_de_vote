@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **phone_number** | **string** |  | [default to undefined]
 **password** | **string** |  | [optional] [default to undefined]
 **is_admin** | **boolean** |  | [default to undefined]
+**authority** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -26,6 +27,7 @@ const instance: UserCreationModel = {
     phone_number,
     password,
     is_admin,
+    authority,
 };
 ```
 

@@ -2,11 +2,17 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship, select
 from pydantic import BaseModel
 from app.db.db import db_session
-from app.models.voting_models import VoteCastData
 from app.utils import auth_utils
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, Request
+from fastapi import Request
 from loguru import logger
+from typing import Literal
+from enum import Enum
+
+
+class AuthorityEnum(str, Enum):
+    Inscription = "Inscription"
+    Vote = "Vote"
 
 
 class User(SQLModel, table=True):
@@ -21,6 +27,15 @@ class User(SQLModel, table=True):
     verified_phone_number: bool = Field(default=False, title="Verified Phone Number")
     is_active: bool = Field(default=True, title="Is Active")
     is_admin: bool = Field(..., title="Is Admin")
+    # authority can be None for regular users, Inscription or Vote
+    authority: AuthorityEnum | None = Field(
+        default=None,
+        title="Authority",
+        max_length=20,
+        nullable=True,
+        index=True,
+        description="Authority can be None for regular users, Inscription or Vote",
+    )
     requested_password_reset: bool = Field(
         default=False, title="Requested Password Reset"
     )
@@ -126,6 +141,7 @@ class UserUpdateModel(BaseModel):
     phone_number: str | None = None
     is_admin: bool | None = None
     is_active: bool | None = None
+    authority: Literal["Inscription", "Vote"] | None = None
     verified_email: bool | None = None
     verified_phone_number: bool | None = None
     password: str | None = None
@@ -140,6 +156,7 @@ class UserCreationModel(BaseModel):
     phone_number: str
     password: str | None = None
     is_admin: bool
+    authority: Literal["Inscription", "Vote"] | None = None
 
 
 class UserResponseModel(BaseModel):
@@ -151,6 +168,7 @@ class UserResponseModel(BaseModel):
     phone_number: str
     is_active: bool
     is_admin: bool
+    authority: Literal["Inscription", "Vote"] | None = None
 
     @staticmethod
     @db_session
@@ -168,6 +186,7 @@ class UserResponseModel(BaseModel):
             phone_number=user.phone_number,
             is_active=user.is_active,
             is_admin=user.is_admin,
+            authority=user.authority,
         )
 
 
@@ -182,6 +201,7 @@ class CurrentUserResponseModel(BaseModel):
     verified_phone_number: bool
     is_active: bool
     is_admin: bool
+    authority: Literal["Inscription", "Vote"] | None = None
     unique_hash: str
     requested_password_reset: bool
 
@@ -206,6 +226,7 @@ class CurrentUserResponseModel(BaseModel):
             verified_phone_number=user.verified_phone_number,
             is_active=user.is_active,
             is_admin=user.is_admin,
+            authority=user.authority,
             unique_hash=unique_hash,
             requested_password_reset=user.requested_password_reset,
         )

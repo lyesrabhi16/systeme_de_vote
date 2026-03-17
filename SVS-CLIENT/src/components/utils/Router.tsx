@@ -1,6 +1,8 @@
+import { AuthorityEnum } from '@/api/sdk';
 import {
   AuthRequiredRoutes,
   AdminOnlyRoutes,
+  WithAuthorityOnlyRoutes,
 } from '@/components/utils/ProtectedRoutes';
 import AboutPage from '@/pages/AboutPage';
 import AdminPage from '@/pages/AdminPage';
@@ -14,7 +16,7 @@ import OTPVerificationPage from '@/pages/OTPVerificationPage';
 import PasswordResetPage from '@/pages/PasswordResetPage';
 import RegularUsersAdministrationPage from '@/pages/RegularUsersAdministrationPage';
 import UsersAdministration from '@/pages/UsersAdministration';
-import VoteAdmininstrationPage from '@/pages/VoteAdmininstrationPage';
+import VoteAdministrationPage from '@/pages/VoteAdmininstrationPage';
 import VotesAdministrationPage from '@/pages/VotesAdministrationPage';
 import VotingPage from '@/pages/VotingPage';
 import { routes } from '@/services/routing';
@@ -37,25 +39,39 @@ const Router = () => {
       <Route element={<AdminOnlyRoutes />}>
         <Route path={routes.ADMIN} element={<AdminPage />} />
         <Route
-          path={routes.PICK_USERS_ADMINISTRATION}
-          element={<UsersAdministration />}
-        />
+          element={
+            <WithAuthorityOnlyRoutes
+              requiredAuthority={AuthorityEnum.Inscription}
+            />
+          }
+        >
+          <Route
+            path={routes.PICK_USERS_ADMINISTRATION}
+            element={<UsersAdministration />}
+          />
+          <Route
+            path={routes.USERS_ADMINISTRATION}
+            element={<RegularUsersAdministrationPage />}
+          />
+          <Route
+            path={routes.ADMIN_ADMINISTRATION}
+            element={<AdminsAdministrationPage />}
+          />
+        </Route>
         <Route
-          path={routes.USERS_ADMINISTRATION}
-          element={<RegularUsersAdministrationPage />}
-        />
-        <Route
-          path={routes.ADMIN_ADMINISTRATION}
-          element={<AdminsAdministrationPage />}
-        />
-        <Route
-          path={routes.VOTES_ADMINISTRATION}
-          element={<VotesAdministrationPage />}
-        />
-        <Route
-          path={routes.VOTE_ADMINISTRATION}
-          element={<VoteAdmininstrationPage />}
-        />
+          element={
+            <WithAuthorityOnlyRoutes requiredAuthority={AuthorityEnum.Vote} />
+          }
+        >
+          <Route
+            path={routes.VOTES_ADMINISTRATION}
+            element={<VotesAdministrationPage />}
+          />
+          <Route
+            path={routes.VOTE_ADMINISTRATION}
+            element={<VoteAdministrationPage />}
+          />
+        </Route>
       </Route>
       <Route path={routes.RESET_PASSWORD} element={<PasswordResetPage />} />
       <Route path={routes.ABOUT} element={<AboutPage />} />

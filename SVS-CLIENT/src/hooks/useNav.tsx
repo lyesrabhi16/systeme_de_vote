@@ -1,4 +1,6 @@
+import { UserCreationModelAuthorityEnum } from '@/api/sdk';
 import { routes } from '@/services/routing';
+import useGlobalStore from '@/services/store';
 
 const linkMatch = (links: string[], path: string): boolean => {
   for (const link of links) {
@@ -39,6 +41,7 @@ export const useNav: (props?: { admin?: boolean }) => {
   currentNavItem: NavItemType | undefined;
   currentNavItemIndex: number;
 } = (props?: { admin?: boolean }) => {
+  const { user } = useGlobalStore();
   const _navItems = [
     { label: 'Home', links: [routes.HOME], hidden: false },
     { label: 'About', links: [routes.ABOUT], hidden: false },
@@ -55,12 +58,12 @@ export const useNav: (props?: { admin?: boolean }) => {
         routes.USERS_ADMINISTRATION,
         routes.ADMIN_ADMINISTRATION,
       ],
-      hidden: false,
+      hidden: user?.authority !== UserCreationModelAuthorityEnum.Inscription,
     },
     {
       label: 'Votes',
       links: [routes.VOTES_ADMINISTRATION, routes.VOTE_ADMINISTRATION],
-      hidden: false,
+      hidden: user?.authority !== UserCreationModelAuthorityEnum.Vote,
     },
   ];
 

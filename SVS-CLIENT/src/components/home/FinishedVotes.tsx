@@ -19,7 +19,9 @@ const FinishedVotes = () => {
         })
         .catch((error) => {
           console.error('Error fetching finished votes:', error);
-          toast.error('Erreur lors de la récupération des votes terminés.');
+          toast.error('Erreur lors de la récupération des votes terminés.', {
+            id: 'fetch_finished_votes_error',
+          });
         });
     };
 

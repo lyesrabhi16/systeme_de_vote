@@ -20,7 +20,7 @@ export const PasswordResetSchema = z.object({
     password1: PasswordSchema,
     password2: PasswordSchema,
 }).refine((data) => {
-    console.log('data in refine: ', data, data.password1, data.password2);
+    //console.log('data in refine: ', data, data.password1, data.password2);
     return data.password1 === data.password2
 }, {
     message: "Les mots de passe ne correspondent pas",

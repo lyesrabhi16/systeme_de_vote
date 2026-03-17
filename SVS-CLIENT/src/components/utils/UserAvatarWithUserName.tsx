@@ -10,7 +10,7 @@ const UserAvatarWithUserName = (props: {
   avatarClassName?: string;
 }) => {
   useEffect(() => {
-    console.log('userAvatar: ', props.user);
+    //console.log('userAvatar: ', props.user);
   });
   return (
     <div

@@ -50,9 +50,9 @@ async def get_vote_count(
     public_key_data = json.loads(vote.public_key)
     # logger.debug(f"Loaded public key data: {public_key_data}")
     public_key = paillier.PaillierPublicKey(n=int(public_key_data["n"]))
-    logger.debug(
-        f"Constructed Paillier public key: n={public_key.n}, g={public_key.g} n2={public_key.nsquare}"
-    )
+    # logger.debug(
+    #    f"Constructed Paillier public key: n={public_key.n}, g={public_key.g} n2={public_key.nsquare}"
+    # )
     private_key = vote.get_private_key()
     # logger.debug(f"Constructed Paillier private key: p={private_key.p}, q={private_key.q}")
 
@@ -61,10 +61,10 @@ async def get_vote_count(
         candidate.id: public_key.encrypt(0) for candidate in vote.candidates
     }
     count_failures = []
-    logger.debug(f"Initialized candidate totals: {candidate_totals}")
-    logger.debug(
-        f"Processing {len(bulletins)} bulletins for vote ID {vote_id} with candidates: {list(candidate_totals.keys())}"
-    )
+    # logger.debug(f"Initialized candidate totals: {candidate_totals}")
+    # logger.debug(
+    #    f"Processing {len(bulletins)} bulletins for vote ID {vote_id} with candidates: {list(candidate_totals.keys())}"
+    # )
     for bulletin in bulletins:
         try:
             # The content is expected to be a JSON list string with maps of VoteCastContent
@@ -73,21 +73,21 @@ async def get_vote_count(
             value_map = {
                 int(v["candidate_id"]): VoteCastContentModel(**v) for v in values
             }
-            logger.debug(
-                f"Constructed value map for bulletin {bulletin.id}: {value_map}"
-            )
+            #       logger.debug(
+            #           f"Constructed value map for bulletin {bulletin.id}: {value_map}"
+            #       )
             logger.debug
-            (
-                f"Processing bulletin {bulletin.id} for vote ID {vote_id} with candidates: {list(candidate_totals.keys())}"
-            )
+            #       (
+            #           f"Processing bulletin {bulletin.id} for vote ID {vote_id} with candidates: {list(candidate_totals.keys())}"
+            #       )
             for candidate_id in candidate_totals.keys():
-                logger.debug(
-                    f"Processing candidate ID {candidate_id} in bulletin {bulletin.id}"
-                )
+                #           logger.debug(
+                #               f"Processing candidate ID {candidate_id} in bulletin {bulletin.id}"
+                #           )
                 data = value_map.get(candidate_id, None)
-                logger.debug(
-                    f"Extracted data for candidate ID {candidate_id} in bulletin {bulletin.id}: {data}"
-                )
+                #          logger.debug(
+                #              f"Extracted data for candidate ID {candidate_id} in bulletin {bulletin.id}: {data}"
+                #          )
                 proof = data.proof if data else None
                 if data and not proof:
                     logger.warning(
@@ -96,7 +96,7 @@ async def get_vote_count(
                     count_failures.append(bulletin.model_dump())
                     continue
                 if proof:
-                    logger.debug("###ZKP")
+                    #             logger.debug("###ZKP")
                     proof_check = proof.verify(public_key, int(data.encrypted_value))
                     if not proof_check:
                         logger.warning(
@@ -104,7 +104,7 @@ async def get_vote_count(
                         )
                         count_failures.append(bulletin.model_dump())
                         continue
-                    logger.debug(f"Passed Proof Checks: {proof_check}")
+                #            logger.debug(f"Passed Proof Checks: {proof_check}")
                 encrypted_number = (
                     paillier.EncryptedNumber(public_key, int(data.encrypted_value))
                     if data
@@ -130,9 +130,9 @@ async def get_vote_count(
     plaintext_candidate_totals = {}
     for candidate_id in candidate_totals.keys():
         # Decrypt the total votes for each candidate
-        logger.debug(
-            f"Decrypting total votes for candidate ID {candidate_id} {candidate_totals[candidate_id]}"
-        )
+        # logger.debug(
+        #    f"Decrypting total votes for candidate ID {candidate_id} {candidate_totals[candidate_id]}"
+        # )
         plaintext_candidate_totals[candidate_id] = private_key.decrypt(
             candidate_totals[candidate_id]
         )

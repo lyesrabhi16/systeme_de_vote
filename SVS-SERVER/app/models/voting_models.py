@@ -89,3 +89,7 @@ class VoteCastContentModel(BaseModel):
 
 class VoteCastData(BaseModel):
     content: list[VoteCastContentModel]
+
+
+class VoteCastResponseModel(BaseModel):
+    unique_code: str

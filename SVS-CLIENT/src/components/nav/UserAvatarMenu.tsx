@@ -30,7 +30,9 @@ const UserAvatarMenu = () => {
         </DropdownMenuLabel>
         <DropdownMenuItem
           onClick={() => {
-            toast.error('Not Implemented yet');
+            toast.error('Not Implemented yet', {
+              id: 'profile_not_implemented',
+            });
           }}
         >
           Profile
@@ -39,7 +41,9 @@ const UserAvatarMenu = () => {
           onClick={async (e) => {
             e.preventDefault();
             await logout();
-            toast.success('Déconnexion réussie');
+            toast.success('Déconnexion réussie', {
+              id: 'logout_success',
+            });
           }}
         >
           Logout

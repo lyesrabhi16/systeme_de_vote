@@ -33,7 +33,7 @@ async def paginate(
             limit=limit,
             sort_orders=sort_orders,
             sort_columns=sort_columns,
-            _or={f"{column}__like": f"%{search}%" for column in search_columns},
+            _or={f"{column}__ilike": f"%{search}%" for column in search_columns},
             **kwargs,
         )
     else:

@@ -6,7 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 class AttributedVote(SQLModel, table=True):
     user_id: int | None = Field(default=None, primary_key=True, foreign_key="user.id")
-    vote_id: int | None = Field(default=None, primary_key=True, foreign_key="vote.id")
+    vote_id: int | None = Field(
+        default=None,
+        primary_key=True,
+        foreign_key="vote.id",
+        ondelete="CASCADE",
+    )
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

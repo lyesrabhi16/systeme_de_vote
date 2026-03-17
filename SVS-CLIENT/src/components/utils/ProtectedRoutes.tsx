@@ -1,3 +1,4 @@
+import type { AuthorityEnum } from '@/api/sdk';
 import { routes } from '@/services/routing';
 import useGlobalStore from '@/services/store';
 import { useEffect } from 'react';
@@ -28,6 +29,30 @@ export const AdminOnlyRoutes = () => {
   // Redirect to Not Allowed Page if not admin
   useEffect(() => {
     if (user === null || token === null || !user.is_admin) {
+      //console.log('not authorized redirecting to not allowed page', user, token);
+      navigate(routes.NOT_ALLOWED, { replace: true });
+    } else {
+      //console.log('authorized proceeding to admin route', user, token);
+    }
+  }, [user, token]);
+
+  // Render children if authorized
+  return <Outlet />;
+};
+
+export const WithAuthorityOnlyRoutes = (props: {
+  requiredAuthority: AuthorityEnum;
+}) => {
+  const { user, token } = useGlobalStore();
+  const navigate = useNavigate();
+
+  // Redirect to Not Allowed Page if not admin
+  useEffect(() => {
+    if (
+      user === null ||
+      token === null ||
+      user.authority !== props.requiredAuthority
+    ) {
       //console.log('not authorized redirecting to not allowed page', user, token);
       navigate(routes.NOT_ALLOWED, { replace: true });
     } else {

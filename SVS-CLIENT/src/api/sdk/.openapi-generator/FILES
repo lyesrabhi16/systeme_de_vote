@@ -7,9 +7,11 @@ common.ts
 configuration.ts
 docs/AdminApi.md
 docs/AuthApi.md
+docs/AuthorityEnum.md
 docs/BinaryZKProofModel.md
 docs/BooleanResponse.md
 docs/Bulletin.md
+docs/BulletinsApi.md
 docs/Candidate.md
 docs/CandidateCreateModel.md
 docs/CandidateUpdateModel.md
@@ -48,9 +50,11 @@ docs/Vote.md
 docs/VoteApi.md
 docs/VoteCastContentModel.md
 docs/VoteCastData.md
+docs/VoteCastResponseModel.md
 docs/VoteCreationModel.md
 docs/VoteResultsModel.md
 docs/VoteStatusPerMonthResponseModel.md
+docs/VoteUpdateModel.md
 docs/VoteWithCreatorResponseModel.md
 docs/VotesPerMonthResponseModel.md
 git_push.sh

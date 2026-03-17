@@ -21,6 +21,7 @@ crud = FastCRUD(model=User)
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),
     ],
 )
 async def create_user(request: Request, user_data: UserCreationModel):
@@ -34,6 +35,7 @@ async def create_user(request: Request, user_data: UserCreationModel):
         email=user_data.email.lower().strip(),
         phone_number=user_data.phone_number,
         is_admin=user_data.is_admin,
+        authority=user_data.authority,
         requested_password_reset=False if user_data.password else True,
     )
     if user_data.password:
@@ -76,6 +78,7 @@ async def create_user(request: Request, user_data: UserCreationModel):
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),
     ],
 )
 async def admin_get_users(
@@ -105,6 +108,7 @@ async def admin_get_users(
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),
     ],
 )
 async def admin_get_user_by_id(request: Request, id: int):
@@ -134,6 +138,7 @@ async def get_user_by_id(request: Request, id: int):
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),
     ],
 )
 async def admin_delete_user(request: Request, id: int):
@@ -154,6 +159,7 @@ async def admin_delete_user(request: Request, id: int):
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),
     ],
 )
 async def admin_update_user(
@@ -170,7 +176,9 @@ async def admin_update_user(
         "email",
         "phone_number",
         "is_admin",
+        "authority",
         "is_active",
+        "authority",
         "verified_email",
         "verified_phone_number",
     ]:

@@ -14,16 +14,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 type CandidateFormData = z.infer<typeof CandidateFormSchema>;
 
-// UI Components
-const Input = ({ className = '', ...props }) => (
-  <input
-    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
-    {...props}
-  />
-);
+
 
 export default function CandidateFormModal({
   formType = 'add',
@@ -56,9 +51,11 @@ export default function CandidateFormModal({
     }
   };
 
-  const handleError = (errors: any) => {
-    console.log('Form errors:', errors);
-    toast.error('Corriger les erreurs dans le formulaire');
+  const handleError = (_errors: any) => {
+    //console.log('Form errors:', errors);
+    toast.error('Corriger les erreurs dans le formulaire', {
+      id: 'form_validation_error',
+    });
   };
 
   const onFormSubmit = (e: React.FormEvent<HTMLElement>) => {
@@ -206,8 +203,10 @@ export default function CandidateFormModal({
             {/* Actions */}
             {formType !== 'readonly' && (
               <div className='flex justify-end gap-3 pt-4 border-t border-gray-200'>
-                <Button type='button' variant='outline'>
-                  Annuler
+                <Button type='button' variant='outline' onClick={
+                  () => onOpenChange?.(false)
+                }>
+                  Fermer
                 </Button>
                 <Button onClick={onFormSubmit} variant='default'>
                   {formType === 'add'

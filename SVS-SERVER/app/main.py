@@ -9,6 +9,7 @@ from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
 from app.routers import (
     auth_router,
+    bulletins_router,
     voting_router,
     users_router,
     candidates_router,
@@ -83,6 +84,11 @@ APP.include_router(
     candidates_router.router,
     prefix="/candidates",
     tags=["candidates"],
+)
+APP.include_router(
+    bulletins_router.router,
+    prefix="/bulletins",
+    tags=["bulletins"],
 )
 
 APP.include_router(

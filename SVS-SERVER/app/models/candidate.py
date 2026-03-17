@@ -19,7 +19,9 @@ class Candidate(SQLModel, table=True):
         title="Final vote count",
         description="Decrypted final count after tally",
     )
-    vote_id: int = Field(..., title="Vote ID", foreign_key="vote.id")
+    vote_id: int = Field(
+        ..., title="Vote ID", foreign_key="vote.id", ondelete="CASCADE"
+    )
 
     vote: Vote = Relationship(
         back_populates="candidates",

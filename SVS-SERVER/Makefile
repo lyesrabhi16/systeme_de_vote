@@ -35,9 +35,13 @@ build-client: ## Build the SVS-CLIENT application.
 	@cd ../SVS-CLIENT && bun install && bun run build
 	@echo "\033[32mSVS-CLIENT build complete.\033[0m"
 
-deploy: build-client ## Deploy the built SVS-CLIENT application to the server's app directory.
+deploy: update-requirements build-client ## Deploy the built SVS-CLIENT application to the server's app directory.
 	@echo "Deploying application..."
 	@cp -r ../SVS-CLIENT/dist ./app/
+	@echo "Recreating Docker containers..."
+	@docker compose -f docker-compose.yml down
+	@docker compose -f docker-compose.yml up -d --build
+	@echo "\033[32mDocker containers recreated.\033[0m"
 	@echo "\033[32mDeployment complete.\033[0m"
 
 generate-certs: ## Generate SSL certificates for the server.

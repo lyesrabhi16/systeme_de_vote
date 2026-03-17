@@ -37,7 +37,7 @@ const VerifyOTPCard = (props: { id: string }) => {
 
   // Resend button timer effect
   useEffect(() => {
-    let timer: number;
+    let timer: ReturnType<typeof setInterval>;
     if (resendButtonState.disabled) {
       timer = setInterval(() => {
         setResendButtonState((prevState) => ({
@@ -67,7 +67,7 @@ const VerifyOTPCard = (props: { id: string }) => {
   }, []);
 
   useEffect(() => {
-    console.log('OTP changed: ', otp, otp.length, submitButton.current);
+    //console.log('OTP changed: ', otp, otp.length, submitButton.current);
     if (otp.length === 6) {
       submitButton.current?.click();
     }

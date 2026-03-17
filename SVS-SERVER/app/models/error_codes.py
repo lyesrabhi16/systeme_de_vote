@@ -96,3 +96,27 @@ class ERROR_CODES(dict, Enum):
         code="USER_ALREADY_VOTED",
         message="User has already voted on this vote",
     )
+    INSCRIPTION_AUTHORITY_REQUIRED = ErrorCodeModel(
+        code="INSCRIPTION_AUTHORITY_REQUIRED",
+        message="Inscription authority is required to access this resource",
+    )
+    VOTE_AUTHORITY_REQUIRED = ErrorCodeModel(
+        code="VOTE_AUTHORITY_REQUIRED",
+        message="Vote authority is required to access this resource",
+    )
+    VOTE_FINISHED_CANNOT_UPDATE = ErrorCodeModel(
+        code="VOTE_FINISHED_CANNOT_UPDATE",
+        message="Vote is already finished and cannot be modified",
+    )
+    VOTE_STARTED_CANNOT_UPDATE = ErrorCodeModel(
+        code="VOTE_STARTED_CANNOT_UPDATE",
+        message="Vote has already started and cannot be modified",
+    )
+    VOTE_FINISHED_CANNOT_DELETE = ErrorCodeModel(
+        code="VOTE_FINISHED_CANNOT_DELETE",
+        message="Vote is already finished and cannot be deleted",
+    )
+    VOTE_STARTED_CANNOT_DELETE = ErrorCodeModel(
+        code="VOTE_STARTED_CANNOT_DELETE",
+        message="Vote has already started and cannot be deleted",
+    )

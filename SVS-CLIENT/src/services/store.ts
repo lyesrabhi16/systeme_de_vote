@@ -24,7 +24,7 @@ const useGlobalStore = create<GlobalStore>((set, get) => ({
         localStorage.removeItem("token");
         set({ user: null });
         set({ token: null });
-        console.log("User logged out, cleared user and token from store and localStorage");
+        //console.log("User logged out, cleared user and token from store and localStorage");
     },
     temp_data: {},
     get_temp_data: (key: string) => {

@@ -68,6 +68,7 @@ class AUTH_MIDDLEWARE:
         request.state.user = user
         logger.debug(f"User {request.state.user.username} authenticated successfully.")
 
+
     @classmethod
     async def RetrieveToken(cls, request: Request):
         logger.debug(f"{cls.__name__} token retrieval started")

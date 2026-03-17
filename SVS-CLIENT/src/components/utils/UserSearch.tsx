@@ -35,6 +35,7 @@ export function UserSearch(props: {
         <Button
           variant='outline'
           role='combobox'
+          aria-controls='user-search'
           aria-expanded={open}
           className='w-[300px] justify-between'
         >

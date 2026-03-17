@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **phone_number** | **string** |  | [optional] [default to undefined]
 **is_admin** | **boolean** |  | [optional] [default to undefined]
 **is_active** | **boolean** |  | [optional] [default to undefined]
+**authority** | **string** |  | [optional] [default to undefined]
 **verified_email** | **boolean** |  | [optional] [default to undefined]
 **verified_phone_number** | **boolean** |  | [optional] [default to undefined]
 **password** | **string** |  | [optional] [default to undefined]
@@ -30,6 +31,7 @@ const instance: UserUpdateModel = {
     phone_number,
     is_admin,
     is_active,
+    authority,
     verified_email,
     verified_phone_number,
     password,

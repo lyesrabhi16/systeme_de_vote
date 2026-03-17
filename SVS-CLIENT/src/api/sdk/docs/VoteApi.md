@@ -7,6 +7,7 @@ All URIs are relative to *http://localhost*
 |[**castVote**](#castvote) | **POST** /vote/cast/{vote_id} | Cast Vote|
 |[**checkIfUserVotedOnVote**](#checkifuservotedonvote) | **POST** /vote/check/{vote_id}/user-voted | Check If User Voted On Vote|
 |[**createVote**](#createvote) | **POST** /vote/ | Create Vote|
+|[**deleteVote**](#deletevote) | **DELETE** /vote/{vote_id}/ | Delete Vote|
 |[**getAllVotes**](#getallvotes) | **GET** /vote/ | Get All Votes|
 |[**getAlreadyVotedOnVotes**](#getalreadyvotedonvotes) | **GET** /vote/voted | Get Already Voted On Votes|
 |[**getAttributedVotes**](#getattributedvotes) | **GET** /vote/attributed | Get Attributed Votes|
@@ -17,9 +18,10 @@ All URIs are relative to *http://localhost*
 |[**getVoteById**](#getvotebyid) | **GET** /vote/{vote_id}/ | Get Vote By Id|
 |[**getVoteCount**](#getvotecount) | **GET** /vote/count/{vote_id}/ | Get Vote Count|
 |[**getVoteResult**](#getvoteresult) | **GET** /vote/result/{vote_id}/ | Get Vote Result|
+|[**updateVote**](#updatevote) | **PUT** /vote/{vote_id}/ | Update Vote|
 
 # **castVote**
-> MessageResponse castVote(voteCastData)
+> VoteCastResponseModel castVote(voteCastData)
 
 
 ### Example
@@ -53,7 +55,7 @@ const { status, data } = await apiInstance.castVote(
 
 ### Return type
 
-**MessageResponse**
+**VoteCastResponseModel**
 
 ### Authorization
 
@@ -169,6 +171,57 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **deleteVote**
+> MessageResponse deleteVote()
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+
+const { status, data } = await apiInstance.deleteVote(
+    voteId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**MessageResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 
@@ -651,6 +704,61 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updateVote**
+> FullVoteResponseModel updateVote(voteUpdateModel)
+
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration,
+    VoteUpdateModel
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+let voteUpdateModel: VoteUpdateModel; //
+
+const { status, data } = await apiInstance.updateVote(
+    voteId,
+    voteUpdateModel
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteUpdateModel** | **VoteUpdateModel**|  | |
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**FullVoteResponseModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 

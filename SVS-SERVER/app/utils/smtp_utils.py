@@ -65,6 +65,30 @@ def send_in_thread(func: Callable | None = None) -> Callable:
     return wrapper
 
 
+async def send_vote_cast_confirmation_email(
+    to_email: List[NameEmail] | List[str],
+    vote_title: str,
+    vote_id: int,
+    vote_content: str,
+    unique_code: str,
+):
+    """Send a vote cast confirmation email."""
+    logger.debug(
+        f"Sending vote cast confirmation email to {to_email} for vote: {vote_title}"
+    )
+    return await send_email(
+        to_email=to_email,
+        subject="Confirmation de votre vote",
+        template="vote_cast_confirmation.html",
+        context={
+            "VOTE_TITLE": vote_title,
+            "VOTE_ID": vote_id,
+            "VOTE_CONTENT": vote_content,
+            "UNIQUE_CODE": unique_code,
+        },
+    )
+
+
 async def send_connection_otp_email(
     to_email: List[NameEmail] | List[str],
     otp_code: str,

@@ -12,8 +12,7 @@ import inspect
 _db_url = get_db_url()
 engine = create_async_engine(
     _db_url,
-    echo=False,
-    # echo=env.DEBUG,
+    echo=env.DEBUG,
     future=True,
 )
 

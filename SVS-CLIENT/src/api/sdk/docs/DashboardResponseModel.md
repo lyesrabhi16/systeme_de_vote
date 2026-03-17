@@ -5,13 +5,19 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**lastFinishedVote** | [**FullVoteResponseModel**](FullVoteResponseModel.md) |  | [default to undefined]
-**upcomingVotes** | [**Array&lt;VoteWithCreatorResponseModel&gt;**](VoteWithCreatorResponseModel.md) |  | [default to undefined]
-**ongoingVotes** | [**Array&lt;VoteWithCreatorResponseModel&gt;**](VoteWithCreatorResponseModel.md) |  | [default to undefined]
-**participationData** | [**ParticipationDataResponseModel**](ParticipationDataResponseModel.md) |  | [default to undefined]
-**votesPerMonth** | [**Array&lt;VotesPerMonthResponseModel&gt;**](VotesPerMonthResponseModel.md) |  | [default to undefined]
-**userGrowthPerMonth** | [**Array&lt;UserGrowthPerMonthResponseModel&gt;**](UserGrowthPerMonthResponseModel.md) |  | [default to undefined]
-**votesStatusPerMonth** | [**Array&lt;VoteStatusPerMonthResponseModel&gt;**](VoteStatusPerMonthResponseModel.md) |  | [default to undefined]
+**lastFinishedVote** | [**FullVoteResponseModel**](FullVoteResponseModel.md) |  | [optional] [default to undefined]
+**upcomingVotes** | [**Array&lt;VoteWithCreatorResponseModel&gt;**](VoteWithCreatorResponseModel.md) |  | [optional] [default to undefined]
+**ongoingVotes** | [**Array&lt;VoteWithCreatorResponseModel&gt;**](VoteWithCreatorResponseModel.md) |  | [optional] [default to undefined]
+**participationData** | [**ParticipationDataResponseModel**](ParticipationDataResponseModel.md) |  | [optional] [default to undefined]
+**votesPerMonth** | [**Array&lt;VotesPerMonthResponseModel&gt;**](VotesPerMonthResponseModel.md) |  | [optional] [default to undefined]
+**votesStatusPerMonth** | [**Array&lt;VoteStatusPerMonthResponseModel&gt;**](VoteStatusPerMonthResponseModel.md) |  | [optional] [default to undefined]
+**userGrowthPerMonth** | [**Array&lt;UserGrowthPerMonthResponseModel&gt;**](UserGrowthPerMonthResponseModel.md) |  | [optional] [default to undefined]
+**userRoleRepartition** | **{ [key: string]: number; }** |  | [optional] [default to undefined]
+**userActivityRepartition** | **{ [key: string]: number; }** |  | [optional] [default to undefined]
+**nbr_users** | **number** |  | [optional] [default to undefined]
+**nbr_admins** | **number** |  | [optional] [default to undefined]
+**nbr_inscription_authority** | **number** |  | [optional] [default to undefined]
+**nbr_vote_authority** | **number** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -24,8 +30,14 @@ const instance: DashboardResponseModel = {
     ongoingVotes,
     participationData,
     votesPerMonth,
-    userGrowthPerMonth,
     votesStatusPerMonth,
+    userGrowthPerMonth,
+    userRoleRepartition,
+    userActivityRepartition,
+    nbr_users,
+    nbr_admins,
+    nbr_inscription_authority,
+    nbr_vote_authority,
 };
 ```
 

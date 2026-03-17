@@ -45,7 +45,9 @@ const RegularUsersAdministrationPage = () => {
       });
     } catch (error) {
       console.error(error);
-      toast.error('Échec de la récupération des utilisateurs');
+      toast.error('Échec de la récupération des utilisateurs', {
+        id: 'fetch_users_error',
+      });
     }
   };
 
@@ -131,6 +133,11 @@ const RegularUsersAdministrationPage = () => {
           if (!open) {
             setSelectedUser(null);
           }
+          fetchUsers(
+            usersMeta?.page ?? 1,
+            usersMeta?.items_per_page ?? 10,
+            searchValue,
+          );
         }}
       />
       <div className='w-full p-8'>
@@ -156,6 +163,14 @@ const RegularUsersAdministrationPage = () => {
           />
           <UserFormModal
             type='add'
+            onOpenChange={(open, setOpen) => {
+              setOpen?.(open);
+              fetchUsers(
+                usersMeta?.page ?? 1,
+                usersMeta?.items_per_page ?? 10,
+                searchValue,
+              );
+            }}
             trigger={
               <Button>
                 <LucideUserPlus /> Ajouter un utilisateur

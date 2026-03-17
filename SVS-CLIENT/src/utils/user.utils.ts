@@ -1,5 +1,5 @@
 import apiClient from "@/api/client";
-import type { CurrentUserResponseModel, UserResponseModel } from "@/api/sdk";
+import { CurrentUserResponseModelAuthorityEnum, type CurrentUserResponseModel, type UserResponseModel } from "@/api/sdk";
 import { toast } from "sonner";
 
 
@@ -41,12 +41,48 @@ export const SwitchUserActivationState = async (
         toast.success(
             `Utilisateur ${user.email} ${!isActive ? 'activé' : 'désactivé'
             } avec succès`,
+            {
+                id: `user_${userId}_activation_${!isActive ? 'activated' : 'deactivated'}_success`,
+            }
         );
     } catch (error) {
         console.error(error);
         toast.error(
             `Échec de la ${!isActive ? "l'activation" : 'la désactivation'
             } de l'utilisateur ${user.email}`,
+            {
+                id: `user_${userId}_activation_${!isActive ? 'activated' : 'deactivated'}_error`,
+            }
+        );
+    } finally {
+        setLoading(false);
+    }
+};
+
+export const SwitchUserAuthority = async (
+    user: UserResponseModel,
+    setLoading: (loading: boolean) => void,
+) => {
+    setLoading(true);
+    const userId = user.id;
+    const to_authority = user.authority === CurrentUserResponseModelAuthorityEnum.Inscription ? CurrentUserResponseModelAuthorityEnum.Vote : CurrentUserResponseModelAuthorityEnum.Inscription;
+    try {
+        await apiClient().users.adminUpdateUser(userId, {
+            authority: to_authority,
+        });
+        toast.success(
+            `Autorité de l'utilisateur ${user.email} mise à jour vers ${to_authority} avec succès`,
+            {
+                id: `user_${userId}_authority_updated_success`,
+            }
+        );
+    } catch (error) {
+        console.error(error);
+        toast.error(
+            `Échec de la mise à jour de l'autorité de l'utilisateur ${user.email}`,
+            {
+                id: `user_${userId}_authority_updated_error`,
+            }
         );
     } finally {
         setLoading(false);

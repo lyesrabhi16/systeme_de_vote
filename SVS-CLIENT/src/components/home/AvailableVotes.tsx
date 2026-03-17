@@ -19,7 +19,9 @@ const AvailableVotes = () => {
         })
         .catch((error) => {
           console.error('Error fetching available votes:', error);
-          toast.error('Erreur lors de la récupération des votes disponibles.');
+          toast.error('Erreur lors de la récupération des votes disponibles.', {
+            id: 'fetch_available_votes_error',
+          });
         });
     };
 

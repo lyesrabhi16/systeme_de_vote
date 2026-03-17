@@ -18,6 +18,7 @@ import InputWithIcons from '@/components/utils/InputWithIcons';
 import { LucideSearch, LucideUserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { UserFormModalTypes } from '@/utils/user.utils';
+import UserAuthorityTypeBadge from '@/components/users/AdminAuthorityTypeBadge';
 
 type UsersTableData = Pick<
   UserResponseModel,
@@ -44,7 +45,9 @@ const AdminsAdministrationPage = () => {
       });
     } catch (error) {
       console.error(error);
-      toast.error('Échec de la récupération des utilisateurs');
+      toast.error('Échec de la récupération des utilisateurs', {
+        id: 'fetch_admins_error',
+      });
     }
   };
   const Breadcrumbs = useBreadCrumbs({
@@ -76,6 +79,22 @@ const AdminsAdministrationPage = () => {
       cell: ({ row }) => (
         <div className='flex flex-row gap-1'>
           <UserActivationStateBadge
+            user={row.original as UserResponseModel}
+            successCallback={() =>
+              fetchUsers(usersMeta?.page ?? 1, usersMeta?.items_per_page ?? 10)
+            }
+          />
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'authority',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Autorité' />
+      ),
+      cell: ({ row }) => (
+        <div className='flex flex-row gap-1'>
+          <UserAuthorityTypeBadge
             user={row.original as UserResponseModel}
             successCallback={() =>
               fetchUsers(usersMeta?.page ?? 1, usersMeta?.items_per_page ?? 10)
@@ -123,6 +142,11 @@ const AdminsAdministrationPage = () => {
           if (!open) {
             setSelectedUser(null);
           }
+          fetchUsers(
+            usersMeta?.page ?? 1,
+            usersMeta?.items_per_page ?? 10,
+            searchValue,
+          );
         }}
       />
       <div className='w-full p-8'>
@@ -149,6 +173,14 @@ const AdminsAdministrationPage = () => {
           <UserFormModal
             type='add'
             admin={true}
+            onOpenChange={(open, setOpen) => {
+              setOpen?.(open);
+              fetchUsers(
+                usersMeta?.page ?? 1,
+                usersMeta?.items_per_page ?? 10,
+                searchValue,
+              );
+            }}
             trigger={
               <Button>
                 <LucideUserPlus /> Ajouter un administrateur

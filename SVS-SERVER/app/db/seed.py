@@ -1,5 +1,6 @@
 from datetime import datetime
 from app.models import Candidate, Vote, User, AttributedVote, Bulletin
+from app.models.user import AuthorityEnum
 from app.utils.auth_utils import hash_string
 from app.db import db_session, init_db, test_db_connection
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,6 +60,35 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=True,
+            authority=AuthorityEnum.Inscription,
+            created_at=datetime.strptime("2024-01-15 08:00:00", "%Y-%m-%d %H:%M:%S"),
+        ),
+        User(
+            first_name="admin",
+            last_name="inscription",
+            email="admin.inscription@example.com",
+            verified_email=True,
+            password=hashed_password,
+            username="admin",
+            phone_number="556-1234",
+            verified_phone_number=True,
+            is_active=True,
+            is_admin=True,
+            authority=AuthorityEnum.Inscription,
+            created_at=datetime.strptime("2024-01-15 08:00:00", "%Y-%m-%d %H:%M:%S"),
+        ),
+        User(
+            first_name="admin",
+            last_name="vote",
+            email="admin.vote@example.com",
+            verified_email=True,
+            password=hashed_password,
+            username="admin_vote",
+            phone_number="557-1234",
+            verified_phone_number=True,
+            is_active=True,
+            is_admin=True,
+            authority=AuthorityEnum.Vote,
             created_at=datetime.strptime("2024-01-15 08:00:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(
@@ -85,6 +115,7 @@ async def seed_users(db: AsyncSession | None = None):
             verified_phone_number=True,
             is_active=True,
             is_admin=False,
+            authority=None,
             created_at=datetime.strptime("2024-03-05 10:15:00", "%Y-%m-%d %H:%M:%S"),
         ),
         User(

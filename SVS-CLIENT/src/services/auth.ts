@@ -26,7 +26,7 @@ export const loadCurrentUser = async (store: GlobalStore) => {
     const token = getToken(store);
 
     if (!token) {
-        console.log("No token available to load current user");
+        //console.log("No token available to load current user");
         return null;
     }
     const api_response = await apiClient().auth.getCurrentUser(

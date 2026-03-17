@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Query, Request, Depends, HTTPException
 from fastcrud import FastCRUD, PaginatedListResponse, paginated_response
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
@@ -10,12 +12,12 @@ from app.models.vote_util_models import (
     VoteResultsModel,
     FinishedVoteResponseModel,
     VoteCreationModel,
+    VoteUpdateModel,
 )
-from app.models.voting_models import VoteCastData
+from app.models.voting_models import VoteCastData, VoteCastResponseModel
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
-from app.utils import vote_utils, response_utils
-from app.utils.response_utils import paginate
+from app.utils import vote_utils, response_utils, smtp_utils
 
 router = APIRouter()
 crud = FastCRUD(model=Vote)
@@ -83,6 +85,7 @@ async def get_available_votes(request: Request):
         for attributed_vote in user.attributed_votes
         if attributed_vote.vote.id not in voted_vote_ids
         and not attributed_vote.vote.is_vote_finished()
+        and not attributed_vote.user_has_voted
     ]
 
     logger.debug(f"User {user.username} has {len(available_votes)} available votes.")
@@ -192,7 +195,7 @@ async def get_all_votes(
 @router.post(
     "/cast/{vote_id}",
     operation_id="cast_vote",
-    response_model=response_models.MessageResponse,
+    response_model=VoteCastResponseModel,
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
@@ -217,8 +220,16 @@ async def cast_vote(
         raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED)
 
     # register the vote
-    await vote.register_vote(user, data)
-    return response_models.MessageResponse(message="Vote recorded successfully.")
+    unique_code = await vote.register_vote(user, data)
+    # send the unique code by email to the user
+    smtp_utils.send_in_thread(smtp_utils.send_vote_cast_confirmation_email)(
+        to_email=[user.email],
+        unique_code=unique_code,
+        vote_title=vote.title,
+        vote_id=vote.id,
+        vote_content=data.content,
+    )
+    return VoteCastResponseModel(unique_code=unique_code)
 
 
 @router.get(
@@ -237,7 +248,7 @@ async def get_public_vote_bulletins(
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
 
-    return await paginate(
+    return await response_utils.paginate(
         crud=bulletins_crud,
         page=page,
         per_page=items_per_page,
@@ -278,6 +289,8 @@ async def get_vote_result(vote_id: int, request: Request):
     response_model=VoteResultsModel,
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.VoteAuthorityOnly),
     ],
 )
 async def get_vote_count(vote_id: int, request: Request):
@@ -288,12 +301,7 @@ async def get_vote_count(vote_id: int, request: Request):
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
 
-    if user.is_admin is False:
-        logger.warning(
-            f"User {user.username} tried to access vote count {vote_id} without permission."
-        )
-        raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
-    count, failures = await vote_utils.get_vote_count(vote_id, vote.get_private_key())
+    count, failures = await vote_utils.get_vote_count(vote_id)
     return VoteResultsModel(
         candidate_results=count,
         count_failures=failures,
@@ -309,6 +317,7 @@ async def get_vote_count(vote_id: int, request: Request):
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.VoteAuthorityOnly),
     ],
 )
 async def create_vote(
@@ -340,3 +349,81 @@ async def check_if_user_voted_on_vote(
 
     has_voted = await user.has_voted_on(vote, token=data.token)
     return response_models.BooleanResponse(result=has_voted)
+
+
+@router.put(
+    "/{vote_id}/",
+    operation_id="update_vote",
+    response_model=FullVoteResponseModel,
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.VoteAuthorityOnly),
+    ],
+)
+async def update_vote(
+    vote_id: int,
+    data: VoteUpdateModel,
+):
+    vote = await Vote.get_by_id(vote_id)
+
+    if not vote:
+        logger.warning(f"Vote with id {vote_id} not found.")
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+    # check if vote is finished
+    if vote.is_vote_finished():
+        logger.warning(
+            f"Vote with id {vote_id} is already finished and cannot be updated."
+        )
+        raise HTTPException(
+            status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_UPDATE
+        )
+    # check if vote has started
+    if vote.start_date and vote.start_date < datetime.utcnow():
+        logger.warning(
+            f"Vote with id {vote_id} has already started and cannot be updated."
+        )
+        raise HTTPException(
+            status_code=400, detail=ERROR_CODES.VOTE_STARTED_CANNOT_UPDATE
+        )
+    updated_vote = await data.update(vote.id)
+    logger.debug(
+        f"Updated vote {vote_id} with data: {data.json()} {updated_vote.json()}"
+    )
+    return updated_vote
+
+
+@router.delete(
+    "/{vote_id}/",
+    operation_id="delete_vote",
+    response_model=response_models.MessageResponse,
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.VoteAuthorityOnly),
+    ],
+)
+async def delete_vote(vote_id: int):
+    vote = await Vote.get_by_id(vote_id)
+
+    if not vote:
+        logger.warning(f"Vote with id {vote_id} not found.")
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+    # check if vote is finished
+    if vote.is_vote_finished():
+        logger.warning(
+            f"Vote with id {vote_id} is already finished and cannot be deleted."
+        )
+        raise HTTPException(
+            status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_DELETE
+        )
+    # check if vote has started
+    if vote.start_date and vote.start_date < datetime.utcnow():
+        logger.warning(
+            f"Vote with id {vote_id} has already started and cannot be deleted."
+        )
+        raise HTTPException(
+            status_code=400, detail=ERROR_CODES.VOTE_STARTED_CANNOT_DELETE
+        )
+    await vote.delete()
+    return response_models.MessageResponse(message="Vote deleted successfully.")
