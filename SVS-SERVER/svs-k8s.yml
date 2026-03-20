@@ -1,0 +1,379 @@
+# ==========================================
+# Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: svs
+
+---
+# ==========================================
+# PersistentVolumeClaims
+# ==========================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: svs-data
+  namespace: svs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: svs-db-data
+  namespace: svs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: svs-redis-data
+  namespace: svs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+# ==========================================
+# ConfigMap for environment variables
+# ==========================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: svs-config
+  namespace: svs
+data:
+  # Add key=value from your compose.env
+  EXAMPLE_VAR: "value"
+
+---
+# ==========================================
+# SVS Server Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: svs-server
+  namespace: svs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: svs-server
+  template:
+    metadata:
+      labels:
+        app: svs-server
+    spec:
+      containers:
+        - name: svs-server
+          image: svs-server:latest # built inside Minikube
+          imagePullPolicy: Never
+          command: ["make", "run-production"]
+          envFrom:
+            - configMapRef:
+                name: svs-config
+            - secretRef:
+                name: svs-secrets-config
+          volumeMounts:
+            - name: svs-data
+              mountPath: /data
+      volumes:
+        - name: svs-data
+          persistentVolumeClaim:
+            claimName: svs-data
+
+---
+# ==========================================
+# PostgreSQL Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: svs-db
+  namespace: svs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: svs-db
+  template:
+    metadata:
+      labels:
+        app: svs-db
+    spec:
+      containers:
+        - name: svs-db
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: svs-secrets-config
+          volumeMounts:
+            - name: svs-db-data
+              mountPath: /var/lib/postgresql
+      volumes:
+        - name: svs-db-data
+          persistentVolumeClaim:
+            claimName: svs-db-data
+
+---
+# ==========================================
+# Redis Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: svs-redis
+  namespace: svs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: svs-redis
+  template:
+    metadata:
+      labels:
+        app: svs-redis
+    spec:
+      containers:
+        - name: svs-redis
+          image: redis:8.0
+          command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+          ports:
+            - containerPort: 6379
+          envFrom:
+            - secretRef:
+                name: svs-secrets-config
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+
+            - name: redis-config
+              mountPath: /usr/local/etc/redis
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: svs-redis-data
+        - name: redis-config
+          configMap:
+            name: redis-config
+
+---
+# ==========================================
+# Traefik Deployment
+# ==========================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traefik-role
+rules:
+  - apiGroups: [""]
+    resources: [services, endpoints, secrets, configmaps, nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: [endpointslices]
+    verbs: [get, list, watch]
+  - apiGroups: ["traefik.io"]
+    resources: ["*"]
+    verbs: [get, list, watch]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik
+  namespace: svs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traefik-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-role
+subjects:
+  - kind: ServiceAccount
+    name: traefik
+    namespace: svs
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: svs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik
+      containers:
+        - name: traefik
+          image: traefik:v3.6
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+            - containerPort: 8080
+          volumeMounts:
+            - name: dynamic
+              mountPath: /dynamic
+            - name: certs
+              mountPath: /certs
+              readOnly: true
+          envFrom:
+            - secretRef:
+                name: svs-secrets-config
+          args:
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+            - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+            - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+            - "--entrypoints.websecure.address=:443"
+            - "--entrypoints.websecure.http.tls=true"
+            - "--providers.file.filename=/dynamic/tls.yml"
+            - "--providers.kubernetescrd=true"
+            - "--providers.kubernetescrd.namespaces=svs"
+            - "--api.dashboard=true"
+            - "--api.insecure=true"
+            - "--log.level=INFO"
+            - "--accesslog=true"
+            - "--metrics.prometheus=true"
+      volumes:
+        - name: dynamic
+          configMap:
+            name: traefik-dynamic-config
+        - name: certs
+          configMap:
+            name: traefik-certs
+
+---
+# ==========================================
+# Services
+# ==========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: svs-server
+  namespace: svs
+spec:
+  selector:
+    app: svs-server
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svs-db
+  namespace: svs
+spec:
+  selector:
+    app: svs-db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svs-redis
+  namespace: svs
+spec:
+  selector:
+    app: svs-redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  namespace: svs
+spec:
+  selector:
+    app: traefik
+  ports:
+    - name: web
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: websecure
+      protocol: TCP
+      port: 443
+      targetPort: 443
+    - name: dashboard
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+
+---
+# ==========================================
+# Traefik IngressRoute (CRD)
+# ==========================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: svs-server
+  namespace: svs
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`svs-server.localdev`)
+      kind: Rule
+      services:
+        - name: svs-server
+          port: 8000
+  tls: {}
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: svs
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`dashboard.traefik.localdev`)
+      kind: Rule
+      services:
+        - name: traefik
+          port: 8080
+  tls: {}

@@ -115,7 +115,7 @@ const AdminsAdministrationPage = () => {
             user={row.original as UserResponseModel}
             onView={(user) => openUserModal(user, 'readonly')}
             onEdit={(user) => openUserModal(user, 'default')}
-            onUserUpdated={refreshCurrentPage}
+            onUserUpdated={() => refreshCurrentPage(searchValue)}
           />
         ),
       },

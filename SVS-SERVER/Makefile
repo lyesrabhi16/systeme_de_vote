@@ -28,7 +28,7 @@ run-dev: check-dependencies ## Run the FastAPI server in development mode.
 
 run-production: check-dependencies ## Run the FastAPI server in production mode.
 	@echo "Starting FastAPI server in production mode..."
-	fastapi run --host 0.0.0.0 --port 443
+	fastapi run --host 0.0.0.0 --port 8000
 
 build-client: ## Build the SVS-CLIENT application.
 	@echo "Building SVS-CLIENT application..."

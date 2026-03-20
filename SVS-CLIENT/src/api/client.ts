@@ -69,7 +69,7 @@ AxiosInstance.interceptors.response.use(
                     localStorage.removeItem("token");
                     AUTHENTICATION_REQUIRED_DETECTED = false;
                     if (!window.location.href.includes(routes.LOGIN)) {
-                        window.location.href = routes.LOGIN;
+                        window.location.href = window.location.origin + routes.LOGIN;
                     }
                 };
                 toast(
@@ -94,7 +94,7 @@ AxiosInstance.interceptors.response.use(
 const getConfigParams = (): ConfigurationParameters => {
     return {
         //basePath: 'http://localhost:8000',
-        basePath: 'https://svs-server.localhost',
+        basePath: 'https://svs-server.localdev',
         baseOptions: {
             headers: {
                 'Content-Type': 'application/json',

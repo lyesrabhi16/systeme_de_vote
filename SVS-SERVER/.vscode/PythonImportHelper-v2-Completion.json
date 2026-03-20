@@ -3955,7 +3955,7 @@
         "kind": 5,
         "importPath": "app.routers.users_router",
         "description": "app.routers.users_router",
-        "peekOfCode": "router = APIRouter()\ncrud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),",
+        "peekOfCode": "router = APIRouter()\ncrud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n    ],",
         "detail": "app.routers.users_router",
         "documentation": {}
     },
@@ -3964,7 +3964,7 @@
         "kind": 5,
         "importPath": "app.routers.users_router",
         "description": "app.routers.users_router",
-        "peekOfCode": "crud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),\n    ],",
+        "peekOfCode": "crud = FastCRUD(model=User)\n@router.post(\n    \"/\",\n    operation_id=\"create_user\",\n    response_model=UserResponseModel,\n    dependencies=[\n        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),\n        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),\n    ],\n)",
         "detail": "app.routers.users_router",
         "documentation": {}
     },

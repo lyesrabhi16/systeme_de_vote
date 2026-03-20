@@ -187,11 +187,13 @@ class _ENV(BaseModel):
     @classmethod
     def validate_allowed_origins(cls, v: str) -> List[str]:
         """Convert comma-separated string to list"""
+        from loguru import logger
         if isinstance(v, str):
-            return list(
-                filter(lambda x: x != "", [origin.strip() for origin in v.split(",")])
-            )
+            allowed_origins = [origin.strip() for origin in v.split(",")]
+            logger.info(f'Allowed origins set to: {allowed_origins}')
+            return allowed_origins
         elif isinstance(v, list):
+            logger.info(f'Allowed origins set to: {v}')
             return v
         else:
             raise ValueError(

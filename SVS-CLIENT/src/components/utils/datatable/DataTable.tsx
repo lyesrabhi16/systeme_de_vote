@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DataTablePagination } from '@/components/utils/datatable/Pagination';
 import type { PaginatedListResponse } from '@/api/client';
 import { Skeleton } from '@/components/ui/skeleton';
