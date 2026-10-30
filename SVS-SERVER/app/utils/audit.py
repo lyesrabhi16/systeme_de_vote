@@ -24,7 +24,9 @@ from app.utils.vote_utils import InvalidBallot, check_ballot, decryption_is_corr
 
 @dataclass
 class AuditReport:
-    counts: dict[int, int] = field(default_factory=dict)  # recounted from the board: what the result must be, if it is right
+    counts: dict[int, int] = field(
+        default_factory=dict
+    )  # recounted from the board: what the result must be, if it is right
     left_out: list[int] = field(default_factory=list)  # the bulletins that are not valid ballots
     problems: list[str] = field(default_factory=list)
 
@@ -58,11 +60,19 @@ def audit_election(
 
     for candidate_id in sorted(candidate_ids):
         if published_tally.get(candidate_id) != tally[candidate_id]:
-            report.problems.append(f"candidate {candidate_id}: the published encrypted sum is not the product of the valid ballots")
+            report.problems.append(
+                f"candidate {candidate_id}: the published encrypted sum is not the product of the valid ballots"
+            )
             continue
         count, witness = published_counts.get(candidate_id), published_proofs.get(candidate_id)
-        if count is None or witness is None or not decryption_is_correct(public_key, tally[candidate_id], count, witness):
-            report.problems.append(f"candidate {candidate_id}: the published count is not what the encrypted sum decrypts to")
+        if (
+            count is None
+            or witness is None
+            or not decryption_is_correct(public_key, tally[candidate_id], count, witness)
+        ):
+            report.problems.append(
+                f"candidate {candidate_id}: the published count is not what the encrypted sum decrypts to"
+            )
             continue
         report.counts[candidate_id] = count
     return report

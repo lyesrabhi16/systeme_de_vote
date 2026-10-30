@@ -48,13 +48,10 @@ async def paginate(
         )
 
     if transformer:
-
         transformed_items = [await transformer(item) for item in data["data"]]
         data = {
             "data": transformed_items,
             "total_count": data.get("total_count", None),
         }
-    paginated_data = paginated_response(
-        crud_data=data, page=page, items_per_page=per_page
-    )
+    paginated_data = paginated_response(crud_data=data, page=page, items_per_page=per_page)
     return paginated_data

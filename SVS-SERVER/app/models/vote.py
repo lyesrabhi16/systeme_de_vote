@@ -74,9 +74,7 @@ class Vote(SQLModel, table=True):
     )
     # Not loaded with the election: a ballot weighs several kilobytes and every request that reads an election would carry them all.
     # Query them (or count them) when they are needed; reading this raises.
-    bulletins: list["Bulletin"] = Relationship(
-        back_populates="vote", sa_relationship_kwargs={"lazy": "raise"}
-    )
+    bulletins: list["Bulletin"] = Relationship(back_populates="vote", sa_relationship_kwargs={"lazy": "raise"})
     attributed_users: list["AttributedVote"] = Relationship(
         back_populates="vote",
         sa_relationship_kwargs={
@@ -131,7 +129,9 @@ class Vote(SQLModel, table=True):
         content = data.model_dump_json()
         # Every ballot is accepted only with proofs the voter could make because they know the randomness of the encryptions, so a ballot
         # cannot be taken from the bulletin board and changed. It could still be sent again as it is, to count twice somebody else's vote.
-        copy = await db.execute(select(Bulletin.id).where(Bulletin.vote_id == self.id, Bulletin.content == content).limit(1))
+        copy = await db.execute(
+            select(Bulletin.id).where(Bulletin.vote_id == self.id, Bulletin.content == content).limit(1)
+        )
         if copy.first() is not None:
             logger.warning(f"A ballot already on vote {self.id} was sent again")
             raise DuplicateBallot("This ballot is already on the bulletin board.")
@@ -156,11 +156,7 @@ class Vote(SQLModel, table=True):
 
     def is_visible_to(self, user: User) -> bool:
         """Who may read an election: the administrators, the person who created it, and the people on its electoral roll."""
-        return (
-            user.is_admin
-            or self.creator_id == user.id
-            or any(av.user_id == user.id for av in self.attributed_users)
-        )
+        return user.is_admin or self.creator_id == user.id or any(av.user_id == user.id for av in self.attributed_users)
 
     @staticmethod
     @db_session

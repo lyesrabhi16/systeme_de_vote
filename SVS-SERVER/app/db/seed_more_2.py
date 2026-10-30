@@ -29,9 +29,7 @@ def seed(func):
         global _setup
         if not _setup:
             recreate = (
-                input(
-                    "Do you want to recreate the database? This will erase all existing data. (y/n): "
-                )
+                input("Do you want to recreate the database? This will erase all existing data. (y/n): ")
                 .strip()
                 .lower()
                 == "y"
@@ -897,42 +895,18 @@ async def seed_bulletins(db: AsyncSession | None = None):
         return
     # Implement vote seeding logic here
     bulletins = [
-        Bulletin(
-            user_id=1, vote_id=19, content=encrypt_string("61"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=2, vote_id=19, content=encrypt_string("60"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=3, vote_id=19, content=encrypt_string("60"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=2, vote_id=3, content=encrypt_string("5"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=3, vote_id=1, content=encrypt_string("6"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=1, vote_id=4, content=encrypt_string("7"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=2, vote_id=5, content=encrypt_string("8"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=3, vote_id=6, content=encrypt_string("9"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=1, vote_id=7, content=encrypt_string("10"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=2, vote_id=8, content=encrypt_string("11"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=3, vote_id=9, content=encrypt_string("12"), date=datetime.utcnow()
-        ),
-        Bulletin(
-            user_id=1, vote_id=10, content=encrypt_string("13"), date=datetime.utcnow()
-        ),
+        Bulletin(user_id=1, vote_id=19, content=encrypt_string("61"), date=datetime.utcnow()),
+        Bulletin(user_id=2, vote_id=19, content=encrypt_string("60"), date=datetime.utcnow()),
+        Bulletin(user_id=3, vote_id=19, content=encrypt_string("60"), date=datetime.utcnow()),
+        Bulletin(user_id=2, vote_id=3, content=encrypt_string("5"), date=datetime.utcnow()),
+        Bulletin(user_id=3, vote_id=1, content=encrypt_string("6"), date=datetime.utcnow()),
+        Bulletin(user_id=1, vote_id=4, content=encrypt_string("7"), date=datetime.utcnow()),
+        Bulletin(user_id=2, vote_id=5, content=encrypt_string("8"), date=datetime.utcnow()),
+        Bulletin(user_id=3, vote_id=6, content=encrypt_string("9"), date=datetime.utcnow()),
+        Bulletin(user_id=1, vote_id=7, content=encrypt_string("10"), date=datetime.utcnow()),
+        Bulletin(user_id=2, vote_id=8, content=encrypt_string("11"), date=datetime.utcnow()),
+        Bulletin(user_id=3, vote_id=9, content=encrypt_string("12"), date=datetime.utcnow()),
+        Bulletin(user_id=1, vote_id=10, content=encrypt_string("13"), date=datetime.utcnow()),
         Bulletin(
             user_id=2,
             vote_id=1,

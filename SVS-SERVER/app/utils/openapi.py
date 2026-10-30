@@ -24,7 +24,9 @@ def setup_openapi(app: FastAPI):
             routes=app.routes,
         )
         # logo replacement
-        openapi_schema["info"]["x-logo"] = {"url": "/public/logo.png"}  # relative: the description must not depend on where it was written
+        openapi_schema["info"]["x-logo"] = {
+            "url": "/public/logo.png"
+        }  # relative: the description must not depend on where it was written
         app.openapi_schema = openapi_schema
         return app.openapi_schema
 

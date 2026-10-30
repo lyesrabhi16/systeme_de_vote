@@ -17,6 +17,8 @@ def test_openapi_json_is_up_to_date():
 
 def test_the_api_lives_under_api_and_documents_every_operation_once():
     schema = APP.openapi()
-    assert all(path.startswith("/api/") for path in schema["paths"]), [p for p in schema["paths"] if not p.startswith("/api/")]
+    assert all(path.startswith("/api/") for path in schema["paths"]), [
+        p for p in schema["paths"] if not p.startswith("/api/")
+    ]
     operation_ids = [op["operationId"] for item in schema["paths"].values() for op in item.values()]
     assert len(operation_ids) == len(set(operation_ids))

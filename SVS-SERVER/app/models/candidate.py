@@ -11,9 +11,7 @@ class Candidate(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     first_name: str = Field(..., title="Name", max_length=100)
     last_name: str = Field(..., title="Last Name", max_length=100)
-    photo_url: str | None = Field(
-        default=None, title="Photo URL", max_length=500, nullable=True
-    )
+    photo_url: str | None = Field(default=None, title="Photo URL", max_length=500, nullable=True)
 
     # Plaintext result (POST-TALLY ONLY)
     vote_count: int | None = Field(
@@ -21,9 +19,7 @@ class Candidate(SQLModel, table=True):
         title="Final vote count",
         description="Decrypted final count after tally",
     )
-    vote_id: int = Field(
-        ..., title="Vote ID", foreign_key="vote.id", ondelete="CASCADE"
-    )
+    vote_id: int = Field(..., title="Vote ID", foreign_key="vote.id", ondelete="CASCADE")
 
     vote: Vote = Relationship(
         back_populates="candidates",

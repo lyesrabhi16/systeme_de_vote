@@ -32,14 +32,8 @@ async def getParticipationData(db: AsyncSession):
 
     # Users who never participated (all his attributed_votes.user_has_voted are false or he has no attributed votes at all)
     # Subquery: users who have at least one voted attributed_vote
-    subq = (
-        select(AttributedVote.user_id)
-        .where(AttributedVote.user_has_voted.is_(True))
-        .distinct()
-    ).subquery()
-    no_participation_stmt = select(func.count(User.id)).where(
-        ~User.id.in_(select(subq.c.user_id))
-    )
+    subq = (select(AttributedVote.user_id).where(AttributedVote.user_has_voted.is_(True)).distinct()).subquery()
+    no_participation_stmt = select(func.count(User.id)).where(~User.id.in_(select(subq.c.user_id)))
 
     result = await db.execute(no_participation_stmt)
     no_participation = result.scalar() or 0
@@ -62,14 +56,10 @@ async def getVotesStatusPerMonth(db: AsyncSession):
     month_expr = func.to_char(Vote.start_date, "YYYY-MM")
 
     # Upcoming: votes starting in the month
-    upcoming_count = func.count(
-        case((func.to_char(Vote.start_date, "YYYY-MM") == month_expr, 1))
-    )
+    upcoming_count = func.count(case((func.to_char(Vote.start_date, "YYYY-MM") == month_expr, 1)))
 
     # Finished: votes ending in the month
-    finished_count = func.count(
-        case((func.to_char(Vote.end_date, "YYYY-MM") == month_expr, 1))
-    )
+    finished_count = func.count(case((func.to_char(Vote.end_date, "YYYY-MM") == month_expr, 1)))
 
     # Ongoing: votes overlapping the month
     ongoing_count = func.count(
@@ -77,8 +67,7 @@ async def getVotesStatusPerMonth(db: AsyncSession):
             (
                 and_(
                     Vote.start_date
-                    <= func.date_trunc("month", Vote.start_date)
-                    + text("interval '1 month' - interval '1 second'"),
+                    <= func.date_trunc("month", Vote.start_date) + text("interval '1 month' - interval '1 second'"),
                     Vote.end_date >= func.date_trunc("month", Vote.start_date),
                 ),
                 1,
@@ -156,13 +145,7 @@ async def getUserRoleRepartition(db: AsyncSession):
 
 async def getUserActivityRepartition(db: AsyncSession):
     # count is_active true vs false
-    stmt = (
-        select(User.is_active, func.count().label("count"))
-        .group_by(User.is_active)
-        .order_by(User.is_active)
-    )
+    stmt = select(User.is_active, func.count().label("count")).group_by(User.is_active).order_by(User.is_active)
     result = await db.execute(stmt)
-    userActivityRepartition = {
-        "active" if row.is_active else "inactive": row.count for row in result
-    }
+    userActivityRepartition = {"active" if row.is_active else "inactive": row.count for row in result}
     return userActivityRepartition

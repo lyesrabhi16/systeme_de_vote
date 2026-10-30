@@ -106,7 +106,9 @@ class TestTheCandidatesAreFixedWhenTheElectionOpens:
             await client.post(
                 "/api/candidates/", headers=headers, json={"first_name": "Late", "last_name": "X", "vote_id": vote.id}
             ),
-            await client.put(f"/api/candidates/?id={first.id}", headers=headers, json={"first_name": "A", "last_name": "B"}),
+            await client.put(
+                f"/api/candidates/?id={first.id}", headers=headers, json={"first_name": "A", "last_name": "B"}
+            ),
             await client.delete(f"/api/candidates/?id={first.id}", headers=headers),
         ]
         assert [r.status_code for r in refused] == [400, 400, 400]
@@ -210,7 +212,16 @@ class TestTheWebClientAndTheApi:
 
     @pytest.mark.parametrize(
         "path",
-        ["/", "/login", "/login/verify-otp/abc123", "/reset-password", "/vote/12", "/vote/12/", "/admin/votes", "/some/deep/route"],
+        [
+            "/",
+            "/login",
+            "/login/verify-otp/abc123",
+            "/reset-password",
+            "/vote/12",
+            "/vote/12/",
+            "/admin/votes",
+            "/some/deep/route",
+        ],
     )
     async def test_every_route_of_the_web_client_gets_the_page_even_when_it_is_reloaded(self, client, page, path):
         """/vote/12 is the page of an election, /api/vote/12/ is its data: reloading the page used to answer with the JSON of the API."""
@@ -325,4 +336,6 @@ class TestHeaders:
         assert response.headers["x-frame-options"] == "DENY"
 
     async def test_https_is_asked_for_only_in_production(self, client):
-        assert "strict-transport-security" not in (await client.get("/api/vote/")).headers  # testing mode: plain http is fine
+        assert (
+            "strict-transport-security" not in (await client.get("/api/vote/")).headers
+        )  # testing mode: plain http is fine

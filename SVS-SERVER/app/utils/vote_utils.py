@@ -113,7 +113,9 @@ def tally(
     Answers (counts, encrypted tallies, decryption proofs, the ids of the ballots left out).
     """
     n_square = public_key.nsquare
-    encrypted = dict.fromkeys(candidate_ids, 1)  # 1 is the encryption of 0 with randomness 1: nothing secret, and anyone can recompute it
+    encrypted = dict.fromkeys(
+        candidate_ids, 1
+    )  # 1 is the encryption of 0 with randomness 1: nothing secret, and anyone can recompute it
     left_out: list[int] = []
     for bulletin_id, content in ballots:
         try:
@@ -152,7 +154,9 @@ async def get_vote_count(
     if not vote.is_vote_finished():
         raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_NOT_FINISHED)
 
-    bulletins = (await db.execute(select(Bulletin).where(Bulletin.vote_id == vote_id).order_by(Bulletin.id))).scalars().all()
+    bulletins = (
+        (await db.execute(select(Bulletin).where(Bulletin.vote_id == vote_id).order_by(Bulletin.id))).scalars().all()
+    )
     candidates = (await db.execute(select(Candidate).where(Candidate.vote_id == vote_id))).scalars().all()
     public_key = load_public_key(vote.public_key)
     private_key = vote.get_private_key()
@@ -161,7 +165,9 @@ async def get_vote_count(
         tally, public_key, private_key, {c.id for c in candidates}, [(b.id, b.content) for b in bulletins]
     )
 
-    failures = [b.model_dump() for b in bulletins if b.id in left_out]  # before the commit, which expires what was loaded
+    failures = [
+        b.model_dump() for b in bulletins if b.id in left_out
+    ]  # before the commit, which expires what was loaded
     total_bulletins = len(bulletins)
     for candidate in candidates:
         candidate.vote_count = counts[candidate.id]

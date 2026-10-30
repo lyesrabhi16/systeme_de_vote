@@ -25,9 +25,7 @@ crud = FastCRUD(model=User)
     ],
 )
 async def create_user(request: Request, user_data: UserCreationModel):
-    logger.debug(
-        f"Admin {request.state.user.username} is attempting to create a new user."
-    )
+    logger.debug(f"Admin {request.state.user.username} is attempting to create a new user.")
     user = User(
         first_name=user_data.first_name.capitalize().strip(),
         last_name=user_data.last_name.upper().strip(),
@@ -43,9 +41,7 @@ async def create_user(request: Request, user_data: UserCreationModel):
 
     try:
         await user.save()
-        logger.debug(
-            f"User {user.username} created successfully by admin {request.state.user.username}."
-        )
+        logger.debug(f"User {user.username} created successfully by admin {request.state.user.username}.")
         return await UserResponseModel.from_user(user)
     except IntegrityError as e:
         logger.error(f"IntegrityError while creating user: {e}")
@@ -149,9 +145,7 @@ async def admin_delete_user(request: Request, id: int):
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
     await user.delete()
-    logger.info(
-        f"Admin {request.state.user.username} deleted user {user.username} (ID: {user.id})"
-    )
+    logger.info(f"Admin {request.state.user.username} deleted user {user.username} (ID: {user.id})")
     return {"detail": "User deleted successfully"}
 
 
@@ -195,7 +189,5 @@ async def admin_update_user(request: Request, id: int, user_data: UserUpdateMode
         user.set_password(user_data.password)
 
     await user.save()
-    logger.info(
-        f"Admin {request.state.user.username} updated user {user.username} (ID: {user.id})"
-    )
+    logger.info(f"Admin {request.state.user.username} updated user {user.username} (ID: {user.id})")
     return AdminUserResponseModel.from_user(user)

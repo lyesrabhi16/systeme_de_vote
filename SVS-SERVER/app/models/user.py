@@ -43,9 +43,7 @@ class User(SQLModel, table=True):
         index=True,
         description="Authority can be None for regular users, Inscription or Vote",
     )
-    requested_password_reset: bool = Field(
-        default=False, title="Requested Password Reset"
-    )
+    requested_password_reset: bool = Field(default=False, title="Requested Password Reset")
     created_at: datetime = Field(default_factory=utcnow, title="Created At", sa_type=UTCDateTime)
 
     # créer
@@ -55,7 +53,8 @@ class User(SQLModel, table=True):
     )
     # peut_voter
     attributed_votes: list["AttributedVote"] = Relationship(
-        back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+        back_populates="user",
+        sa_relationship_kwargs={"lazy": "selectin"},  # async safe
     )
 
     @db_session
@@ -70,9 +69,7 @@ class User(SQLModel, table=True):
 
     @staticmethod
     @db_session
-    async def get_authenticated_user(
-        request: Request, db: AsyncSession | None = None
-    ) -> "User":
+    async def get_authenticated_user(request: Request, db: AsyncSession | None = None) -> "User":
         """Retrieve the authenticated user from the request."""
         return request.state.user
 
@@ -85,9 +82,7 @@ class User(SQLModel, table=True):
         return user
 
     @db_session
-    async def has_voted_on(
-        self, vote: "Vote", token: str, db: AsyncSession | None = None
-    ) -> bool:
+    async def has_voted_on(self, vote: "Vote", token: str, db: AsyncSession | None = None) -> bool:
         """Check if the user has voted on a specific vote."""
         from app.models import AttributedVote, Bulletin
 

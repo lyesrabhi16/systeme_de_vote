@@ -108,35 +108,21 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db_se
     elif user.authority == AuthorityEnum.Vote:
         return await admin_vote_authority_dashboard(db)
     else:
-        logger.error(
-            f"User {user.username} has invalid authority {user.authority} for admin dashboard access"
-        )
-        raise HTTPException(
-            status_code=403, detail=ERROR_CODES.ADMIN_PRIVILEGES_REQUIRED
-        )
+        logger.error(f"User {user.username} has invalid authority {user.authority} for admin dashboard access")
+        raise HTTPException(status_code=403, detail=ERROR_CODES.ADMIN_PRIVILEGES_REQUIRED)
 
 
 async def admin_inscription_authority_dashboard(db: AsyncSession):
     userGrowthPerMonth = await getUserGrowth(db)
     userRoleRepartition = await getUserRoleRepartition(db)
     userActivityRepartition = await getUserActivityRepartition(db)
-    nbr_users = (
-        await db.execute(select(func.count(User.id)).where(User.is_admin.is_(False)))
-    ).one()[0]
-    nbr_admins = (
-        await db.execute(select(func.count(User.id)).where(User.is_admin.is_(True)))
-    ).one()[0]
+    nbr_users = (await db.execute(select(func.count(User.id)).where(User.is_admin.is_(False)))).one()[0]
+    nbr_admins = (await db.execute(select(func.count(User.id)).where(User.is_admin.is_(True)))).one()[0]
     nbr_inscription_authority = (
-        await db.execute(
-            select(func.count(User.id)).where(
-                User.authority == AuthorityEnum.Inscription
-            )
-        )
+        await db.execute(select(func.count(User.id)).where(User.authority == AuthorityEnum.Inscription))
     ).one()[0]
     nbr_vote_authority = (
-        await db.execute(
-            select(func.count(User.id)).where(User.authority == AuthorityEnum.Vote)
-        )
+        await db.execute(select(func.count(User.id)).where(User.authority == AuthorityEnum.Vote))
     ).one()[0]
     return DashboardResponseModel(
         userGrowthPerMonth=userGrowthPerMonth,
@@ -155,17 +141,9 @@ async def admin_vote_authority_dashboard(db: AsyncSession):
     participationData = await getParticipationData(db)
 
     # Upcoming votes
-    upcoming_votes_stmt = (
-        select(Vote)
-        .where(Vote.start_date > utcnow())
-        .order_by(Vote.start_date.asc())
-        .limit(3)
-    )
+    upcoming_votes_stmt = select(Vote).where(Vote.start_date > utcnow()).order_by(Vote.start_date.asc()).limit(3)
     upcomingVotes = (await db.execute(upcoming_votes_stmt)).scalars().all()
-    upcomingVotes = [
-        await VoteWithCreatorResponseModel.from_vote_id(vote.id)
-        for vote in upcomingVotes
-    ]
+    upcomingVotes = [await VoteWithCreatorResponseModel.from_vote_id(vote.id) for vote in upcomingVotes]
 
     # Ongoing votes
     ongoing_votes_stmt = (
@@ -180,23 +158,13 @@ async def admin_vote_authority_dashboard(db: AsyncSession):
         .limit(3)
     )
     ongoingVotes = (await db.execute(ongoing_votes_stmt)).scalars().all()
-    ongoingVotes = [
-        await VoteWithCreatorResponseModel.from_vote_id(vote.id)
-        for vote in ongoingVotes
-    ]
+    ongoingVotes = [await VoteWithCreatorResponseModel.from_vote_id(vote.id) for vote in ongoingVotes]
 
-    last_finished_vote = (
-        select(Vote)
-        .where(Vote.end_date < utcnow())
-        .order_by(Vote.end_date.desc())
-        .limit(1)
-    )
+    last_finished_vote = select(Vote).where(Vote.end_date < utcnow()).order_by(Vote.end_date.desc()).limit(1)
     last_finished_vote_result = (await db.execute(last_finished_vote)).scalars().first()
     last_vote = None
     if last_finished_vote_result is not None:
-        last_vote = await FullVoteResponseModel.from_vote_id(
-            last_finished_vote_result.id
-        )
+        last_vote = await FullVoteResponseModel.from_vote_id(last_finished_vote_result.id)
     return {
         "lastFinishedVote": last_vote,
         "upcomingVotes": upcomingVotes,

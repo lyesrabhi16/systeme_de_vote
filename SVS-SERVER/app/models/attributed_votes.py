@@ -23,9 +23,7 @@ class AttributedVote(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=utcnow, sa_type=UTCDateTime)
 
-    user_has_voted: bool = Field(
-        default=False, description="Indicates if the user has cast their vote"
-    )
+    user_has_voted: bool = Field(default=False, description="Indicates if the user has cast their vote")
 
     user: "User" = Relationship(
         back_populates="attributed_votes",

@@ -71,9 +71,7 @@ def test_setup_middlewares_mixed():
         "args": {},
     }
 
-    middlewares = setup_middlewares(
-        APP=APP, MIDDLEWARES=[SAMPLEMiddleware, middleware_config]
-    )
+    middlewares = setup_middlewares(APP=APP, MIDDLEWARES=[SAMPLEMiddleware, middleware_config])
 
     assert "SAMPLEMiddleware:custom_middleware" in middlewares
     assert "Test Middleware" in middlewares
@@ -132,9 +130,7 @@ def test_setup_middlewares_non_callable_attribute():
     middlewares = setup_middlewares(APP=APP, MIDDLEWARES=[NonCallableMiddleware])
 
     assert "NonCallableMiddleware:valid_middleware" in middlewares
-    assert all(
-        "some_attribute" not in mw for mw in middlewares
-    )  # Ensure non-callable attribute is not registered
+    assert all("some_attribute" not in mw for mw in middlewares)  # Ensure non-callable attribute is not registered
 
 
 def test_setup_middlewares_multiple_functions():
@@ -187,9 +183,7 @@ def test_setup_middlewares_order():
             response.headers["X-Second-Middleware"] = "Active"
             return response
 
-    middlewares = setup_middlewares(
-        APP=APP, MIDDLEWARES=[FirstMiddleware, SecondMiddleware]
-    )
+    middlewares = setup_middlewares(APP=APP, MIDDLEWARES=[FirstMiddleware, SecondMiddleware])
 
     assert middlewares.index("SecondMiddleware:process") < middlewares.index(
         "FirstMiddleware:process"

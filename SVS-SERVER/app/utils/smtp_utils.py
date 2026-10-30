@@ -77,9 +77,7 @@ async def send_vote_cast_confirmation_email(
     unique_code: str,
 ):
     """Send a vote cast confirmation email."""
-    logger.debug(
-        f"Sending vote cast confirmation email to {to_email} for vote: {vote_title}"
-    )
+    logger.debug(f"Sending vote cast confirmation email to {to_email} for vote: {vote_title}")
     return await send_email(
         to_email=to_email,
         subject="Confirmation de votre vote",

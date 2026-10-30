@@ -100,9 +100,7 @@ async def seed_more_attributed_votes(db=None, n=100):
             await db.commit()
         except Exception:
             await db.rollback()
-            logger.warning(
-                f"Duplicate attributed vote for user {av.user_id} and vote {av.vote_id}, skipping."
-            )
+            logger.warning(f"Duplicate attributed vote for user {av.user_id} and vote {av.vote_id}, skipping.")
             continue
     await db.commit()
     logger.info(f"Seeded {n} additional attributed votes.")
@@ -125,9 +123,7 @@ async def seed_more_bulletins(db=None, n=100):
             await db.commit()
         except Exception:
             await db.rollback()
-            logger.warning(
-                f"Failed to add bulletin for user {b.user_id} and vote {b.vote_id}, skipping."
-            )
+            logger.warning(f"Failed to add bulletin for user {b.user_id} and vote {b.vote_id}, skipping.")
             continue
     await db.commit()
     logger.info(f"Seeded {n} additional bulletins.")

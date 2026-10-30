@@ -44,9 +44,7 @@ class AUTH_MIDDLEWARE:
 
             def handler(request: Request, exc: HTTPException) -> JSONResponse:
                 response: Response = JSONResponse(
-                    response_models.ErrorResponse(
-                        detail=ERROR_CODES.FORBIDDEN
-                    ).model_dump(),
+                    response_models.ErrorResponse(detail=ERROR_CODES.FORBIDDEN).model_dump(),
                     status_code=403,
                 )
                 response.delete_cookie("token")
@@ -59,7 +57,6 @@ class AUTH_MIDDLEWARE:
 
         # Attach user to request state for downstream access
         request.state.user = user
-
 
     @classmethod
     async def RetrieveToken(cls, request: Request):

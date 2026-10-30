@@ -30,5 +30,5 @@ async def get_all_bulletins(
         search_columns=["unique_code"],
         sort_columns=["id"],
         sort_orders=["asc"],
-        **optionals
+        **optionals,
     )

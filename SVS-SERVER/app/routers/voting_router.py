@@ -353,9 +353,7 @@ async def create_vote(
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
 )
-async def check_if_user_voted_on_vote(
-    vote_id: int, data: auth_models.RequiredTokenInput, request: Request
-):
+async def check_if_user_voted_on_vote(vote_id: int, data: auth_models.RequiredTokenInput, request: Request):
     user = await User.get_authenticated_user(request)
     vote = await Vote.get_by_id(vote_id)
 
@@ -388,24 +386,14 @@ async def update_vote(
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
     # check if vote is finished
     if vote.is_vote_finished():
-        logger.warning(
-            f"Vote with id {vote_id} is already finished and cannot be updated."
-        )
-        raise HTTPException(
-            status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_UPDATE
-        )
+        logger.warning(f"Vote with id {vote_id} is already finished and cannot be updated.")
+        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_UPDATE)
     # check if vote has started
     if vote.start_date and vote.start_date < utcnow():
-        logger.warning(
-            f"Vote with id {vote_id} has already started and cannot be updated."
-        )
-        raise HTTPException(
-            status_code=400, detail=ERROR_CODES.VOTE_STARTED_CANNOT_UPDATE
-        )
+        logger.warning(f"Vote with id {vote_id} has already started and cannot be updated.")
+        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_STARTED_CANNOT_UPDATE)
     updated_vote = await data.update(vote.id)
-    logger.debug(
-        f"Updated vote {vote_id} with data: {data.json()} {updated_vote.json()}"
-    )
+    logger.debug(f"Updated vote {vote_id} with data: {data.json()} {updated_vote.json()}")
     return updated_vote
 
 
@@ -427,19 +415,11 @@ async def delete_vote(vote_id: int):
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
     # check if vote is finished
     if vote.is_vote_finished():
-        logger.warning(
-            f"Vote with id {vote_id} is already finished and cannot be deleted."
-        )
-        raise HTTPException(
-            status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_DELETE
-        )
+        logger.warning(f"Vote with id {vote_id} is already finished and cannot be deleted.")
+        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_DELETE)
     # check if vote has started
     if vote.start_date and vote.start_date < utcnow():
-        logger.warning(
-            f"Vote with id {vote_id} has already started and cannot be deleted."
-        )
-        raise HTTPException(
-            status_code=400, detail=ERROR_CODES.VOTE_STARTED_CANNOT_DELETE
-        )
+        logger.warning(f"Vote with id {vote_id} has already started and cannot be deleted.")
+        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_STARTED_CANNOT_DELETE)
     await vote.delete()
     return response_models.MessageResponse(message="Vote deleted successfully.")

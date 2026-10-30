@@ -30,9 +30,7 @@ def seed(func):
         global _setup
         if not _setup:
             recreate = (
-                input(
-                    "Do you want to recreate the database? This will erase all existing data. (y/n): "
-                )
+                input("Do you want to recreate the database? This will erase all existing data. (y/n): ")
                 .strip()
                 .lower()
                 == "y"

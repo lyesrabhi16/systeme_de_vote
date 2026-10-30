@@ -15,9 +15,7 @@ def test_get_real_path_multiple():
     from app.utils import get_real_path
 
     # Test multiple arguments
-    assert get_real_path("dir1", "dir2", "file.txt") == os.path.join(
-        BASE_DIR, "dir1", "dir2", "file.txt"
-    )
+    assert get_real_path("dir1", "dir2", "file.txt") == os.path.join(BASE_DIR, "dir1", "dir2", "file.txt")
 
 
 def test_get_real_path_no_args():

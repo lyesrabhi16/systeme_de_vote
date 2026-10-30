@@ -137,7 +137,9 @@ class TestCasting:
         assert copied.status_code == 400
         assert copied.json()["detail"]["code"] == "INVALID_BALLOT"
         assert len(await bulletins_of(vote.id)) == 1
-        assert (await cast(client, grace, vote, ballot(vote, ids, ids[1]))).status_code == 200  # and grace can still vote
+        assert (
+            await cast(client, grace, vote, ballot(vote, ids, ids[1]))
+        ).status_code == 200  # and grace can still vote
 
 
 class TestRefusedBallots:
@@ -241,7 +243,9 @@ class TestTheProofs:
     def test_a_0_and_a_1_are_proven_and_a_2_is_not(self):
         from ballots import encrypt
 
-        public_key = vote_utils.load_public_key(Vote(title="t", description="", start_date=utcnow(), end_date=utcnow(), creator_id=1).public_key)
+        public_key = vote_utils.load_public_key(
+            Vote(title="t", description="", start_date=utcnow(), end_date=utcnow(), creator_id=1).public_key
+        )
         for value in (0, 1):
             ciphertext, r = encrypt(public_key, value)
             assert prove_binary(public_key, ciphertext, value, r).verify(public_key, ciphertext)
@@ -252,7 +256,9 @@ class TestTheProofs:
     def test_a_proof_is_for_one_ciphertext(self):
         from ballots import encrypt
 
-        public_key = vote_utils.load_public_key(Vote(title="t", description="", start_date=utcnow(), end_date=utcnow(), creator_id=1).public_key)
+        public_key = vote_utils.load_public_key(
+            Vote(title="t", description="", start_date=utcnow(), end_date=utcnow(), creator_id=1).public_key
+        )
         first, r = encrypt(public_key, 1)
         second, _ = encrypt(public_key, 1)
         proof = prove_binary(public_key, first, 1, r)
@@ -263,7 +269,9 @@ class TestTheProofs:
         """Both branches have the same shape: a hash-consistent split of the challenge and a response that checks. Proofs of 0 and 1 are verified by one function."""
         from ballots import encrypt
 
-        public_key = vote_utils.load_public_key(Vote(title="t", description="", start_date=utcnow(), end_date=utcnow(), creator_id=1).public_key)
+        public_key = vote_utils.load_public_key(
+            Vote(title="t", description="", start_date=utcnow(), end_date=utcnow(), creator_id=1).public_key
+        )
         for value in (0, 1):
             ciphertext, r = encrypt(public_key, value)
             proof = prove_binary(public_key, ciphertext, value, r)
@@ -325,7 +333,11 @@ class TestCounting:
 
     @db_session
     async def candidates(self, vote_id, db=None):
-        return (await db.execute(select(Candidate).where(Candidate.vote_id == vote_id).order_by(Candidate.id))).scalars().all()
+        return (
+            (await db.execute(select(Candidate).where(Candidate.vote_id == vote_id).order_by(Candidate.id)))
+            .scalars()
+            .all()
+        )
 
     async def test_a_forged_bulletin_is_left_out_as_a_whole(self, client):
         """Somebody with write access to the database adds a ballot for two candidates: it counts for neither, and is reported."""
@@ -366,7 +378,9 @@ class TestAnybodyCanCheckTheCount:
         counts = {int(k): v for k, v in audit["counts"].items()} | changes.get("counts", {})
         tally = {int(k): int(v) for k, v in audit["encrypted_tally"].items()}
         proofs = {int(k): int(v) for k, v in audit["tally_proof"].items()} | changes.get("proofs", {})
-        return audit_election(audit["public_key"], set(ids), changes.get("board", published_board), counts, tally, proofs)
+        return audit_election(
+            audit["public_key"], set(ids), changes.get("board", published_board), counts, tally, proofs
+        )
 
     async def test_nothing_is_published_before_the_count(self, client):
         _, _, vote, _ = await election()
@@ -394,7 +408,9 @@ class TestAnybodyCanCheckTheCount:
         audit, board = await self.published(client, vote)
         assert not self.check(audit, board, ids, board=board[1:]).ok  # one ballot erased from the board
         extra = make_ballot(vote_utils.load_public_key(vote.public_key), ids, ids[2]).model_dump_json()
-        assert not self.check(audit, [*board, (99, extra)], ids).ok  # one valid ballot added: the encrypted sum no longer matches
+        assert not self.check(
+            audit, [*board, (99, extra)], ids
+        ).ok  # one valid ballot added: the encrypted sum no longer matches
 
     async def test_a_made_up_proof_of_decryption_is_caught(self, client):
         admin, *_, vote, ids = await TestCounting().vote_day(client)
@@ -433,10 +449,14 @@ class TestTheServerDoesNotWaste:
 
         @db_session
         async def counts(db=None):
-            bulletins = (await db.execute(select(func.count(Bulletin.id)).where(Bulletin.vote_id == vote.id))).scalar_one()
+            bulletins = (
+                await db.execute(select(func.count(Bulletin.id)).where(Bulletin.vote_id == vote.id))
+            ).scalar_one()
             voted = (
                 await db.execute(
-                    select(func.count()).select_from(AttributedVote).where(AttributedVote.vote_id == vote.id, AttributedVote.user_has_voted)
+                    select(func.count())
+                    .select_from(AttributedVote)
+                    .where(AttributedVote.vote_id == vote.id, AttributedVote.user_has_voted)
                 )
             ).scalar_one()
             return bulletins, voted

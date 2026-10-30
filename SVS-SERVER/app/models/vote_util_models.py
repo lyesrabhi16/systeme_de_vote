@@ -60,11 +60,7 @@ class FinishedVoteResponseModel(SQLModel):
             await db.execute(select(func.count(Bulletin.id)).where(Bulletin.vote_id == vote_id))
         ).scalar_one()
 
-        user_av = (
-            await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id)
-            if user
-            else None
-        )
+        user_av = await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id) if user else None
 
         vote_with_creator = await VoteWithCreatorResponseModel.from_vote_id(vote_id)
         if vote_with_creator is None:
@@ -75,21 +71,9 @@ class FinishedVoteResponseModel(SQLModel):
             total_bulletins=total_bulletins,
             encrypted_tally=vote.encrypted_tally,
             tally_proof=vote.tally_proof,
-            candidate_results={
-                candidate.id: candidate.vote_count for candidate in vote.candidates
-            },
-            abstention_count=(
-                len(
-                    {
-                        av.user_id
-                        for av in vote.attributed_users
-                        if not av.user_has_voted
-                    }
-                )
-            ),
-            voter_count=len(
-                {av.user_id for av in vote.attributed_users if av.user_has_voted}
-            ),
+            candidate_results={candidate.id: candidate.vote_count for candidate in vote.candidates},
+            abstention_count=(len({av.user_id for av in vote.attributed_users if not av.user_has_voted})),
+            voter_count=len({av.user_id for av in vote.attributed_users if av.user_has_voted}),
             user_has_voted=(user_av.user_has_voted if user_av else False),
             candidates=vote.candidates,
         )
@@ -102,15 +86,11 @@ class FullVoteResponseModel(SQLModel):
 
     @staticmethod
     @db_session
-    async def from_vote_id(
-        vote_id: int, user: User | None = None, db: AsyncSession | None = None
-    ):
+    async def from_vote_id(vote_id: int, user: User | None = None, db: AsyncSession | None = None):
         if db is None:
             raise ValueError("Database session is None")
         vote = await Vote.get_by_id(vote_id)
-        finishedVote: FinishedVoteResponseModel | None = (
-            await FinishedVoteResponseModel.from_vote_id(vote_id, user)
-        )
+        finishedVote: FinishedVoteResponseModel | None = await FinishedVoteResponseModel.from_vote_id(vote_id, user)
         if finishedVote is None or vote is None:
             return None
         return FullVoteResponseModel(
@@ -147,9 +127,7 @@ class VoteCreationModel(SQLModel):
         return self
 
     @db_session
-    async def save(
-        self, creator_id: int, db: AsyncSession | None = None
-    ) -> FullVoteResponseModel | None:
+    async def save(self, creator_id: int, db: AsyncSession | None = None) -> FullVoteResponseModel | None:
         if db is None:
             raise ValueError("Database session is None")
 
@@ -183,13 +161,9 @@ class VoteCreationModel(SQLModel):
 
         excluded_ids = set(self.excluded_user_ids or [])
         final_user_ids = attributed_ids - excluded_ids
-        logger.info(
-            f"Vote {vote.id} attributed to users: {final_user_ids} (excluded: {excluded_ids})"
-        )
+        logger.info(f"Vote {vote.id} attributed to users: {final_user_ids} (excluded: {excluded_ids})")
         if final_user_ids:
-            db.add_all(
-                [AttributedVote(user_id=_id, vote_id=vote.id) for _id in final_user_ids]
-            )
+            db.add_all([AttributedVote(user_id=_id, vote_id=vote.id) for _id in final_user_ids])
         await db.commit()
         await db.refresh(vote)
 
@@ -207,9 +181,7 @@ class VoteUpdateModel(SQLModel):
     excluded_user_ids: list[int] | None = None
 
     @db_session
-    async def update(
-        self, vote_id: int, db: AsyncSession | None = None
-    ) -> FullVoteResponseModel | None:
+    async def update(self, vote_id: int, db: AsyncSession | None = None) -> FullVoteResponseModel | None:
         logger.debug(f"Updating vote {vote_id} with data: {self.json()}")
         if db is None:
             raise ValueError("Database session is None")
@@ -250,9 +222,7 @@ class VoteUpdateModel(SQLModel):
             if self.excluded_user_ids is not None:
                 new_attributed_ids -= set(self.excluded_user_ids)
             # Get current attributed user ids
-            result = await db.execute(
-                select(AttributedVote.user_id).where(AttributedVote.vote_id == vote_id)
-            )
+            result = await db.execute(select(AttributedVote.user_id).where(AttributedVote.vote_id == vote_id))
             current_attributed_ids = {row[0] for row in result.fetchall()}
             # Calculate ids to add and remove
             to_add = new_attributed_ids - current_attributed_ids

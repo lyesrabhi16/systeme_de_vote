@@ -34,7 +34,9 @@ async def get_candidate_by_id(request: Request, id: int):
     candidate = await Candidate.get_by_id(id)
     vote = await Vote.get_by_id(candidate.vote_id) if candidate else None
     if not candidate or not vote or not vote.is_visible_to(request.state.user):
-        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)  # the same answer: it is not said which exist
+        raise HTTPException(
+            status_code=404, detail=ERROR_CODES.NOT_FOUND
+        )  # the same answer: it is not said which exist
     return candidate
 
 
