@@ -63,3 +63,6 @@ seed-more-db: ## Seed the database with additional data.
 	@echo "Seeding the database with more data..."
 	@python -m app.db.seed_more_2
 	@echo "\033[32mAdditional database seeding complete.\033[0m"
+openapi: ## Write openapi.json (the web client's typed SDK is generated from it; a test checks it is up to date).
+	python -m app.utils.openapi
+	@echo "openapi.json written. Now: cd ../SVS-CLIENT && bun run generate-API-CLIENT"

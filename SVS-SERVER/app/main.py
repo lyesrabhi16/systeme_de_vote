@@ -65,7 +65,7 @@ if os.path.isdir(DIST_DIR):
 
 
 # Route to serve the main SPA page
-@APP.get("/", response_class=FileResponse, operation_id="serve_spa")
+@APP.get("/", response_class=FileResponse, operation_id="serve_spa", include_in_schema=False)
 async def serve_spa():
     index_file_path = os.path.join(DIST_DIR, "index.html")
     if not os.path.isfile(index_file_path):

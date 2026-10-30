@@ -5,22 +5,11 @@
         "description": "API documentation for the SVS Server application.",
         "version": "1.0.0",
         "x-logo": {
-            "url": "https://svs-server.localhost/public/logo.png"
+            "url": "/public/logo.png"
         }
     },
     "paths": {
-        "/": {
-            "get": {
-                "summary": "Serve Spa",
-                "operationId": "serve_spa",
-                "responses": {
-                    "200": {
-                        "description": "Successful Response"
-                    }
-                }
-            }
-        },
-        "/auth/login": {
+        "/api/auth/login": {
             "post": {
                 "tags": [
                     "auth"
@@ -61,7 +50,7 @@
                 }
             }
         },
-        "/auth/verify-otp": {
+        "/api/auth/verify-otp": {
             "post": {
                 "tags": [
                     "auth"
@@ -102,7 +91,7 @@
                 }
             }
         },
-        "/auth/resend-otp": {
+        "/api/auth/resend-otp": {
             "post": {
                 "tags": [
                     "auth"
@@ -144,7 +133,7 @@
                 }
             }
         },
-        "/auth/logout": {
+        "/api/auth/logout": {
             "post": {
                 "tags": [
                     "auth"
@@ -165,7 +154,7 @@
                 }
             }
         },
-        "/auth/user/me": {
+        "/api/auth/user/me": {
             "post": {
                 "tags": [
                     "auth"
@@ -188,8 +177,7 @@
                                 "title": "Data"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "responses": {
                     "200": {
@@ -215,13 +203,13 @@
                 }
             }
         },
-        "/auth/password-reset": {
+        "/api/auth/password-reset": {
             "post": {
                 "tags": [
                     "auth"
                 ],
                 "summary": "Password Reset Request",
-                "description": "Request password reset by sending OTP to user email",
+                "description": "Request password reset by sending OTP to user email.\nThe answer is the same whether the address belongs to somebody or not, so that it cannot be used to find out who has an account.",
                 "operationId": "password_reset_request",
                 "requestBody": {
                     "content": {
@@ -257,7 +245,7 @@
                 }
             }
         },
-        "/auth/password-reset/validate": {
+        "/api/auth/password-reset/validate": {
             "post": {
                 "tags": [
                     "auth"
@@ -298,7 +286,7 @@
                 }
             }
         },
-        "/vote/attributed": {
+        "/api/vote/attributed": {
             "get": {
                 "tags": [
                     "vote"
@@ -312,7 +300,7 @@
                             "application/json": {
                                 "schema": {
                                     "items": {
-                                        "$ref": "#/components/schemas/Vote"
+                                        "$ref": "#/components/schemas/VoteResponseModel"
                                     },
                                     "type": "array",
                                     "title": "Response Get Attributed Votes"
@@ -323,7 +311,7 @@
                 }
             }
         },
-        "/vote/created": {
+        "/api/vote/created": {
             "get": {
                 "tags": [
                     "vote"
@@ -337,7 +325,7 @@
                             "application/json": {
                                 "schema": {
                                     "items": {
-                                        "$ref": "#/components/schemas/Vote"
+                                        "$ref": "#/components/schemas/VoteResponseModel"
                                     },
                                     "type": "array",
                                     "title": "Response Get Created Votes"
@@ -348,7 +336,7 @@
                 }
             }
         },
-        "/vote/voted": {
+        "/api/vote/voted": {
             "get": {
                 "tags": [
                     "vote"
@@ -362,7 +350,7 @@
                             "application/json": {
                                 "schema": {
                                     "items": {
-                                        "$ref": "#/components/schemas/Vote"
+                                        "$ref": "#/components/schemas/VoteResponseModel"
                                     },
                                     "type": "array",
                                     "title": "Response Get Already Voted On Votes"
@@ -373,7 +361,7 @@
                 }
             }
         },
-        "/vote/available": {
+        "/api/vote/available": {
             "get": {
                 "tags": [
                     "vote"
@@ -387,7 +375,7 @@
                             "application/json": {
                                 "schema": {
                                     "items": {
-                                        "$ref": "#/components/schemas/Vote"
+                                        "$ref": "#/components/schemas/VoteResponseModel"
                                     },
                                     "type": "array",
                                     "title": "Response Get Available Votes"
@@ -398,7 +386,7 @@
                 }
             }
         },
-        "/vote/finishedVotes": {
+        "/api/vote/finishedVotes": {
             "get": {
                 "tags": [
                     "vote"
@@ -423,7 +411,7 @@
                 }
             }
         },
-        "/vote/{vote_id}/": {
+        "/api/vote/{vote_id}/": {
             "get": {
                 "tags": [
                     "vote"
@@ -555,7 +543,7 @@
                 }
             }
         },
-        "/vote/": {
+        "/api/vote/": {
             "get": {
                 "tags": [
                     "vote"
@@ -569,6 +557,7 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
+                            "minimum": 1,
                             "default": 1,
                             "title": "Page"
                         }
@@ -579,6 +568,8 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
                             "default": 10,
                             "title": "Per Page"
                         }
@@ -606,18 +597,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
-                                            "$ref": "#/components/schemas/PaginatedListResponse_Vote_"
-                                        },
-                                        {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Vote"
-                                            }
-                                        }
-                                    ],
-                                    "title": "Response Get All Votes"
+                                    "$ref": "#/components/schemas/PaginatedListResponse_VoteResponseModel_"
                                 }
                             }
                         }
@@ -674,7 +654,7 @@
                 }
             }
         },
-        "/vote/cast/{vote_id}": {
+        "/api/vote/cast/{vote_id}": {
             "post": {
                 "tags": [
                     "vote"
@@ -726,12 +706,13 @@
                 }
             }
         },
-        "/vote/bulletins/{vote_id}/": {
+        "/api/vote/bulletins/{vote_id}/": {
             "get": {
                 "tags": [
                     "vote"
                 ],
                 "summary": "Get Public Vote Bulletins",
+                "description": "The bulletin board: every ballot of the election, public, so that anyone can check them (see app/utils/audit.py).",
                 "operationId": "get_vote_bulletins",
                 "parameters": [
                     {
@@ -760,6 +741,7 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
+                            "maximum": 100,
                             "minimum": 1,
                             "default": 10,
                             "title": "Items Per Page"
@@ -790,7 +772,50 @@
                 }
             }
         },
-        "/vote/result/{vote_id}/": {
+        "/api/vote/audit/{vote_id}/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Vote Audit",
+                "description": "What is needed to check the count of a finished election against the bulletin board. Public, like the board.",
+                "operationId": "get_vote_audit",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VoteAuditModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/vote/result/{vote_id}/": {
             "get": {
                 "tags": [
                     "vote"
@@ -832,12 +857,13 @@
                 }
             }
         },
-        "/vote/count/{vote_id}/": {
+        "/api/vote/count/{vote_id}/": {
             "get": {
                 "tags": [
                     "vote"
                 ],
                 "summary": "Get Vote Count",
+                "description": "Counts an election that is finished (the cron does it too, every minute): the same result each time.",
                 "operationId": "get_vote_count",
                 "parameters": [
                     {
@@ -874,7 +900,7 @@
                 }
             }
         },
-        "/vote/check/{vote_id}/user-voted": {
+        "/api/vote/check/{vote_id}/user-voted": {
             "post": {
                 "tags": [
                     "vote"
@@ -926,7 +952,7 @@
                 }
             }
         },
-        "/users/": {
+        "/api/users/": {
             "post": {
                 "tags": [
                     "users"
@@ -1036,7 +1062,7 @@
                 }
             }
         },
-        "/users/admin/:id": {
+        "/api/users/admin/{id}": {
             "get": {
                 "tags": [
                     "users"
@@ -1046,7 +1072,7 @@
                 "parameters": [
                     {
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -1060,7 +1086,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User"
+                                    "$ref": "#/components/schemas/AdminUserResponseModel"
                                 }
                             }
                         }
@@ -1086,7 +1112,7 @@
                 "parameters": [
                     {
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -1128,7 +1154,7 @@
                 "parameters": [
                     {
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -1152,7 +1178,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/User"
+                                    "$ref": "#/components/schemas/AdminUserResponseModel"
                                 }
                             }
                         }
@@ -1170,17 +1196,18 @@
                 }
             }
         },
-        "/users/:id": {
+        "/api/users/{id}": {
             "get": {
                 "tags": [
                     "users"
                 ],
                 "summary": "Get User By Id",
+                "description": "The account of somebody (an administrator), or one's own: an email address and a phone number are not for everyone.",
                 "operationId": "get_user_by_id",
                 "parameters": [
                     {
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -1212,7 +1239,7 @@
                 }
             }
         },
-        "/candidates/": {
+        "/api/candidates/": {
             "get": {
                 "tags": [
                     "candidates"
@@ -1381,7 +1408,7 @@
                 }
             }
         },
-        "/bulletins/": {
+        "/api/bulletins/": {
             "get": {
                 "tags": [
                     "bulletins"
@@ -1469,7 +1496,7 @@
                 }
             }
         },
-        "/admin/": {
+        "/api/admin/": {
             "get": {
                 "tags": [
                     "admin"
@@ -1540,7 +1567,7 @@
                 }
             }
         },
-        "/admin/send-verification-email": {
+        "/api/admin/send-verification-email": {
             "post": {
                 "tags": [
                     "admin"
@@ -1580,7 +1607,7 @@
                 }
             }
         },
-        "/admin/dashboard": {
+        "/api/admin/dashboard": {
             "get": {
                 "tags": [
                     "admin"
@@ -1600,74 +1627,125 @@
                     }
                 }
             }
-        },
-        "/{path}": {
-            "get": {
-                "summary": "Serve Spa Fallback",
-                "operationId": "spa_fallback",
-                "parameters": [
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "title": "Path"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful Response"
-                    },
-                    "422": {
-                        "description": "Validation Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HTTPValidationError"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
     },
     "components": {
         "schemas": {
-            "AuthorityEnum": {
-                "type": "string",
-                "enum": [
-                    "Inscription",
-                    "Vote"
+            "AdminUserResponseModel": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "title": "First Name"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "Last Name"
+                    },
+                    "email": {
+                        "type": "string",
+                        "title": "Email"
+                    },
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "title": "Phone Number"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Is Active"
+                    },
+                    "is_admin": {
+                        "type": "boolean",
+                        "title": "Is Admin"
+                    },
+                    "authority": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "Inscription",
+                                    "Vote"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Authority"
+                    },
+                    "verified_email": {
+                        "type": "boolean",
+                        "title": "Verified Email"
+                    },
+                    "verified_phone_number": {
+                        "type": "boolean",
+                        "title": "Verified Phone Number"
+                    },
+                    "requested_password_reset": {
+                        "type": "boolean",
+                        "title": "Requested Password Reset"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "username",
+                    "phone_number",
+                    "is_active",
+                    "is_admin",
+                    "verified_email",
+                    "verified_phone_number",
+                    "requested_password_reset",
+                    "created_at"
                 ],
-                "title": "AuthorityEnum"
+                "title": "AdminUserResponseModel",
+                "description": "What the administrators of the users see of an account (never the password hash)."
             },
             "BinaryZKProofModel": {
                 "properties": {
                     "a0": {
                         "type": "string",
+                        "maxLength": 5000,
                         "title": "A0"
                     },
                     "a1": {
                         "type": "string",
+                        "maxLength": 5000,
                         "title": "A1"
                     },
                     "e0": {
                         "type": "string",
+                        "maxLength": 5000,
                         "title": "E0"
                     },
                     "e1": {
                         "type": "string",
+                        "maxLength": 5000,
                         "title": "E1"
                     },
                     "z0": {
                         "type": "string",
+                        "maxLength": 5000,
                         "title": "Z0"
                     },
                     "z1": {
                         "type": "string",
+                        "maxLength": 5000,
                         "title": "Z1"
                     }
                 },
@@ -1680,7 +1758,8 @@
                     "z0",
                     "z1"
                 ],
-                "title": "BinaryZKProofModel"
+                "title": "BinaryZKProofModel",
+                "description": "A non-interactive zero-knowledge proof (Cramer\u2013Damg\u00e5rd\u2013Schoenmakers OR proof, Fiat\u2013Shamir) that a Paillier ciphertext\nencrypts 0 or 1, without saying which. Numbers are decimal strings, because they do not fit a JSON number."
             },
             "BooleanResponse": {
                 "properties": {
@@ -1721,9 +1800,8 @@
                     },
                     "content": {
                         "type": "string",
-                        "maxLength": 100000,
                         "title": "Content",
-                        "description": "Homomorphically encrypted ballot"
+                        "description": "Homomorphically encrypted ballot, with its proofs (JSON)"
                     },
                     "date": {
                         "type": "string",
@@ -2398,11 +2476,11 @@
                 ],
                 "title": "PaginatedListResponse[UserResponseModel]"
             },
-            "PaginatedListResponse_Vote_": {
+            "PaginatedListResponse_VoteResponseModel_": {
                 "properties": {
                     "data": {
                         "items": {
-                            "$ref": "#/components/schemas/Vote"
+                            "$ref": "#/components/schemas/VoteResponseModel"
                         },
                         "type": "array",
                         "title": "Data"
@@ -2444,7 +2522,7 @@
                     "total_count",
                     "has_more"
                 ],
-                "title": "PaginatedListResponse[Vote]"
+                "title": "PaginatedListResponse[VoteResponseModel]"
             },
             "ParticipationDataResponseModel": {
                 "properties": {
@@ -2481,6 +2559,8 @@
                     },
                     "password": {
                         "type": "string",
+                        "maxLength": 128,
+                        "minLength": 8,
                         "title": "Password"
                     }
                 },
@@ -2570,109 +2650,6 @@
                     "token"
                 ],
                 "title": "TokenResponse"
-            },
-            "User": {
-                "properties": {
-                    "id": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Id"
-                    },
-                    "first_name": {
-                        "type": "string",
-                        "maxLength": 100,
-                        "title": "First Name"
-                    },
-                    "last_name": {
-                        "type": "string",
-                        "maxLength": 100,
-                        "title": "Last Name"
-                    },
-                    "email": {
-                        "type": "string",
-                        "maxLength": 256,
-                        "title": "Email"
-                    },
-                    "verified_email": {
-                        "type": "boolean",
-                        "title": "Verified Email",
-                        "default": false
-                    },
-                    "username": {
-                        "type": "string",
-                        "maxLength": 100,
-                        "title": "Username"
-                    },
-                    "password": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Password"
-                    },
-                    "phone_number": {
-                        "type": "string",
-                        "maxLength": 100,
-                        "title": "Phone Number"
-                    },
-                    "verified_phone_number": {
-                        "type": "boolean",
-                        "title": "Verified Phone Number",
-                        "default": false
-                    },
-                    "is_active": {
-                        "type": "boolean",
-                        "title": "Is Active",
-                        "default": true
-                    },
-                    "is_admin": {
-                        "type": "boolean",
-                        "title": "Is Admin"
-                    },
-                    "authority": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/AuthorityEnum",
-                                "maxLength": 20
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Authority",
-                        "description": "Authority can be None for regular users, Inscription or Vote"
-                    },
-                    "requested_password_reset": {
-                        "type": "boolean",
-                        "title": "Requested Password Reset",
-                        "default": false
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Created At"
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "first_name",
-                    "last_name",
-                    "email",
-                    "username",
-                    "phone_number",
-                    "is_admin"
-                ],
-                "title": "User"
             },
             "UserCreationModel": {
                 "properties": {
@@ -3028,99 +3005,43 @@
                 ],
                 "title": "ValidationError"
             },
-            "Vote": {
+            "VoteAuditModel": {
                 "properties": {
-                    "id": {
-                        "anyOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Id"
-                    },
-                    "title": {
-                        "type": "string",
-                        "maxLength": 200,
-                        "title": "Titre"
-                    },
-                    "description": {
-                        "type": "string",
-                        "maxLength": 1000,
-                        "title": "Description"
-                    },
-                    "start_date": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "Start Date"
-                    },
-                    "end_date": {
-                        "type": "string",
-                        "format": "date-time",
-                        "title": "End Date"
-                    },
                     "public_key": {
                         "type": "string",
-                        "maxLength": 10000,
-                        "title": "Public Key",
-                        "description": "The public key used for vote encryption generated automatically when the vote is created"
+                        "title": "Public Key"
                     },
-                    "encrypted_private_key": {
-                        "type": "string",
-                        "maxLength": 20000,
-                        "title": "Encrypted Private Key",
-                        "description": "The private key encrypted with the system's master key"
-                    },
-                    "has_been_counted": {
-                        "type": "boolean",
-                        "title": "Has Been Counted",
-                        "description": "Indicates if the vote has been counted",
-                        "default": false
+                    "counts": {
+                        "additionalProperties": {
+                            "type": "integer"
+                        },
+                        "type": "object",
+                        "title": "Counts"
                     },
                     "encrypted_tally": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "maxLength": 20000
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Encrypted Tally",
-                        "description": "Homomorphically encrypted tally of the votes"
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": "object",
+                        "title": "Encrypted Tally"
                     },
                     "tally_proof": {
-                        "anyOf": [
-                            {
-                                "type": "string",
-                                "maxLength": 20000
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Tally Proof",
-                        "description": "Zero-knowledge proof that the tally was computed correctly"
-                    },
-                    "creator_id": {
-                        "type": "integer",
-                        "title": "Creator User ID"
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": "object",
+                        "title": "Tally Proof"
                     }
                 },
                 "type": "object",
                 "required": [
-                    "title",
-                    "description",
-                    "start_date",
-                    "end_date",
                     "public_key",
-                    "encrypted_private_key",
-                    "creator_id"
+                    "counts",
+                    "encrypted_tally",
+                    "tally_proof"
                 ],
-                "title": "Vote"
+                "title": "VoteAuditModel",
+                "description": "What anyone needs to check the count of an election with the bulletin board (see app/utils/audit.py)."
             },
             "VoteCastContentModel": {
                 "properties": {
@@ -3130,6 +3051,7 @@
                     },
                     "encrypted_value": {
                         "type": "string",
+                        "maxLength": 5000,
                         "title": "Encrypted Value"
                     },
                     "proof": {
@@ -3151,14 +3073,20 @@
                             "$ref": "#/components/schemas/VoteCastContentModel"
                         },
                         "type": "array",
+                        "maxItems": 500,
                         "title": "Content"
+                    },
+                    "sum_proof": {
+                        "$ref": "#/components/schemas/BinaryZKProofModel"
                     }
                 },
                 "type": "object",
                 "required": [
-                    "content"
+                    "content",
+                    "sum_proof"
                 ],
-                "title": "VoteCastData"
+                "title": "VoteCastData",
+                "description": "A ballot: for each candidate, an encryption of 0 or 1 with the proof that it is one of the two, and a proof that\nthe sum of all of them (the product of the ciphertexts) is 0 or 1 too: at most one candidate. Without that second proof,\na voter could encrypt a 1 for every candidate, and each one would pass."
             },
             "VoteCastResponseModel": {
                 "properties": {
@@ -3243,6 +3171,57 @@
                     "candidates"
                 ],
                 "title": "VoteCreationModel"
+            },
+            "VoteResponseModel": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Start Date"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "End Date"
+                    },
+                    "has_been_counted": {
+                        "type": "boolean",
+                        "title": "Has Been Counted"
+                    },
+                    "public_key": {
+                        "type": "string",
+                        "title": "Public Key"
+                    },
+                    "creator_id": {
+                        "type": "integer",
+                        "title": "Creator Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "start_date",
+                    "end_date",
+                    "has_been_counted",
+                    "public_key",
+                    "creator_id"
+                ],
+                "title": "VoteResponseModel",
+                "description": "An election as the API shows it. The table model must never be a response: it holds the encrypted private key of the election\n(and would hold anything added to the table later)."
             },
             "VoteResultsModel": {
                 "properties": {
@@ -3368,28 +3347,6 @@
                         ],
                         "title": "Candidates"
                     },
-                    "public_key": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Public Key"
-                    },
-                    "private_key": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "Private Key"
-                    },
                     "open_to_all": {
                         "anyOf": [
                             {
@@ -3505,8 +3462,7 @@
                 "enum": [
                     "email",
                     "username",
-                    "phone_number",
-                    "ssn"
+                    "phone_number"
                 ],
                 "title": "identifierType"
             }
