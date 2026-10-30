@@ -1,16 +1,19 @@
 import apiClient from "@/api/client";
-import { CurrentUserResponseModelAuthorityEnum, type CurrentUserResponseModel, type UserResponseModel } from "@/api/sdk";
+import { CurrentUserResponseModelAuthorityEnum, type UserResponseModel } from "@/api/sdk";
 import { toast } from "sonner";
 
 
-export const getUserName = (user?: CurrentUserResponseModel | UserResponseModel | null) => {
+/** What is needed to name somebody: an account, or the creator of an election (who is shown by name only, never by email address). */
+export type NamedUser = { username?: string; first_name: string; last_name: string; email?: string };
+
+export const getUserName = (user?: NamedUser | null) => {
     if (!user) return '';
     if (user.username) return user.username;
     if (user.first_name !== '' && user.last_name !== '') return `${user.first_name} ${user.last_name}`;
-    return user.email;
+    return user.email ?? '';
 };
 
-export const getUserInitials = (user?: CurrentUserResponseModel | UserResponseModel | null) => {
+export const getUserInitials = (user?: NamedUser | null) => {
     if (user === undefined || user?.first_name === undefined || user?.last_name === undefined) {
         return "U"; // Default initials if no name is available
     }

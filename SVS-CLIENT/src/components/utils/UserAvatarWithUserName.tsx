@@ -1,11 +1,10 @@
-import type { UserResponseModel } from '@/api/sdk';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { getUserInitials, getUserName } from '@/utils/user.utils';
+import { getUserInitials, getUserName, type NamedUser } from '@/utils/user.utils';
 import { useEffect } from 'react';
 
 const UserAvatarWithUserName = (props: {
-  user: UserResponseModel;
+  user: NamedUser;
   containerClassName?: string;
   avatarClassName?: string;
 }) => {

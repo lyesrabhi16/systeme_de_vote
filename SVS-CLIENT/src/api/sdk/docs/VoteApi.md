@@ -466,6 +466,7 @@ No authorization required
 # **getFinishedVotes**
 > Array<FinishedVoteResponseModel> getFinishedVotes()
 
+The elections that are over and the ones the user voted in, with the user\'s own situation in each.
 
 ### Example
 

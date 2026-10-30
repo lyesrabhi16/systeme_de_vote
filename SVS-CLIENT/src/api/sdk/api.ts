@@ -337,6 +337,15 @@ export interface VoteCreationModel {
     'excluded_user_ids'?: Array<number> | null;
 }
 /**
+ * Who created an election, as the voters see it: a name, never an email address or a phone number.
+ */
+export interface VoteCreatorModel {
+    'id': number;
+    'first_name': string;
+    'last_name': string;
+    'username': string;
+}
+/**
  * An election as the API shows it. The table model must never be a response: it holds the encrypted private key of the election (and would hold anything added to the table later).
  */
 export interface VoteResponseModel {
@@ -379,7 +388,7 @@ export interface VoteWithCreatorResponseModel {
     'end_date': string;
     'has_been_counted': boolean;
     'public_key': string;
-    'creator': UserResponseModel;
+    'creator': VoteCreatorModel;
 }
 export interface VotesPerMonthResponseModel {
     'month': string;
@@ -2389,7 +2398,7 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
+         * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
          * @summary Get Finished Votes
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2765,7 +2774,7 @@ export const VoteApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
          * @summary Get Finished Votes
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2957,7 +2966,7 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getCreatedVotes(options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
          * @summary Get Finished Votes
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3135,7 +3144,7 @@ export class VoteApi extends BaseAPI {
     }
 
     /**
-     * 
+     * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
      * @summary Get Finished Votes
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

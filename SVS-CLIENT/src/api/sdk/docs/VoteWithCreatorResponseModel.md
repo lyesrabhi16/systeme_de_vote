@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 **end_date** | **string** |  | [default to undefined]
 **has_been_counted** | **boolean** |  | [default to undefined]
 **public_key** | **string** |  | [default to undefined]
-**creator** | [**UserResponseModel**](UserResponseModel.md) |  | [default to undefined]
+**creator** | [**VoteCreatorModel**](VoteCreatorModel.md) |  | [default to undefined]
 
 ## Example
 

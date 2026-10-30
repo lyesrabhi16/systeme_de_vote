@@ -143,12 +143,8 @@ const VotingCard = (props: {
         creator: {
           id: user?.id as number,
           username: user?.username as string,
-          email: user?.email as string,
           first_name: user?.first_name as string,
           last_name: user?.last_name as string,
-          is_active: user?.is_active as boolean,
-          is_admin: user?.is_admin as boolean,
-          phone_number: user?.phone_number as string,
         },
       },
     },
