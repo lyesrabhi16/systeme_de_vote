@@ -1,4 +1,6 @@
-import apiClient, { ERROR_CODES } from '@/api/client';
+import { formatDate } from '@/utils/dates';
+import { interpretCastError } from '@/services/voting/errors';
+import apiClient from '@/api/client';
 import type {
   Candidate,
   FullVoteResponseModel,
@@ -99,15 +101,6 @@ const EditableComponent = (props: {
   return <>{props.children}</>;
 };
 
-const CAST_ERRORS: Record<string, string> = {
-  [ERROR_CODES.ALREADY_VOTED]: 'Vous avez déjà voté dans cette élection.',
-  [ERROR_CODES.VOTE_FINISHED]: 'Cette élection est terminée.',
-  [ERROR_CODES.VOTE_NOT_STARTED]: "Cette élection n'est pas encore ouverte.",
-  [ERROR_CODES.NOT_ELIGIBLE]: "Vous n'êtes pas inscrit sur la liste électorale de cette élection.",
-  [ERROR_CODES.INVALID_BALLOT]: "Votre bulletin n'a pas pu être validé. Rechargez la page et réessayez.",
-  default: "Une erreur est survenue lors de l'enregistrement de votre vote. Veuillez réessayer.",
-};
-
 const VotingCard = (props: {
   fullVote?: FullVoteResponseModel;
   flat?: boolean;
@@ -154,8 +147,8 @@ const VotingCard = (props: {
   );
   const [showAddCandidateModal, setShowAddCandidateModal] = useState(false);
 
-  const start_date = new Date(vote.vote.vote.start_date).toLocaleDateString();
-  const end_date = new Date(vote.vote.vote.end_date).toLocaleDateString();
+  const start_date = formatDate(vote.vote.vote.start_date);
+  const end_date = formatDate(vote.vote.vote.end_date);
   const [reste, setReste] = useState({
     message: '',
     isEndingSoon: false,
@@ -1083,13 +1076,12 @@ const VotingCard = (props: {
                       })
                       .catch((err) => {
                         console.error('Error while voting:', err);
-                        const code = err?.response?.data?.detail?.code;
-                        toast.error(CAST_ERRORS[code] ?? CAST_ERRORS.default, {
+                        const failure = interpretCastError(err);
+                        toast.error(failure.message, {
                           id: 'vote_cast_error',
                         });
-                        // the vote is not (or no longer) possible after these ones: the button stays off
-                        const final = [ERROR_CODES.ALREADY_VOTED, ERROR_CODES.VOTE_FINISHED, ERROR_CODES.VOTE_NOT_STARTED, ERROR_CODES.NOT_ELIGIBLE];
-                        setIsVotingDisabled((p) => ({ ...p, value: final.includes(code) }));
+                        // the vote is not (or no longer) possible after some refusals: the button stays off
+                        setIsVotingDisabled((p) => ({ ...p, value: failure.final }));
                       });
                   }}
                 >

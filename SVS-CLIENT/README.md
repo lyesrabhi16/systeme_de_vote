@@ -9,6 +9,9 @@ src/
   services/voting/         makes the ballot in the browser: Paillier encryption and the zero-knowledge proofs
   services/auth.ts         sign-in steps; the session is an HttpOnly cookie, the client never holds the token
   pages/, components/      the pages (home, vote, administration) and their components
+    components/vote/ElectionView.tsx   the voter's page of an election: the ballot, the confirmation and the receipt, the waiting
+                           state, the result and the verification panel (the administrators' form is VotingCard.tsx)
+  index.css                the design tokens (colours, radius, shadows, fonts), light and dark: components use the tokens only
   schemas/                 Zod schemas of the forms
 tests/, src/**/*.test.ts   Vitest
 scripts/interop-fixture.ts ballots made here, for the server's tests to verify
@@ -25,6 +28,10 @@ bun run build                  # type-check and production build into dist/ (the
 bun run generate-API-CLIENT    # regenerate src/api/sdk after `make openapi` in ../SVS-SERVER (needs a JRE; the generator is pinned)
 bun run interop-fixture        # rewrite ../SVS-SERVER/app/tests/fixtures/ts_ballots.json
 ```
+
+## The look
+
+The colours, the radius and the shadows are tokens in `src/index.css` with a second set for the dark theme (`next-themes`, system first, a toggle in the header); the components use the tokens and never a colour of their own, so changing the look is changing the tokens. Inter (text) and Fraunces (titles) are self-hosted from `@fontsource-variable`. A state is always a word and an icon, never a colour alone (`VoteBadge`).
 
 ## The ballot
 

@@ -33,10 +33,10 @@ This stack is for looking at the project (`ENV_MODE=development`, plain http); s
 
 - **Two-step sign-in**: password (Argon2), then a one-time password by email (6 characters, valid 5 minutes, single use, 3 tries). An account an administrator creates without a password signs in with the one-time password alone, until its owner chooses one with the password reset by email link.
 - **Two kinds of administrators**: the *inscription authority* manages accounts; the *vote authority* creates elections (dates, candidates, electoral roll), changes them until they open, and counts them. Voters see the elections they are on the roll of.
-- **Voting**: the browser encrypts the choice with the election's public key and proves, in zero knowledge, that the ballot is valid. The server checks the proofs, records the ballot, marks the voter as having voted, and emails a **receipt** (the code of the bulletin on the public board).
+- **Voting**: a candidate or a blank ballot, a confirmation step, then the browser encrypts the choice with the election's public key and proves, in zero knowledge, that the ballot is valid. The server checks the proofs, records the ballot, marks the voter as having voted, and emails a **receipt** (the code of the bulletin on the public board).
 - **Counting** when an election ends, by a scheduled job (or by the vote authority): the ciphertexts are *added*, and only the sums are decrypted.
 - **Verification**: the bulletin board (every ballot, no names), the encrypted sums and a proof that each decrypts to the published count are public. [`app/utils/audit.py`](SVS-SERVER/app/utils/audit.py) checks them all from the public routes alone.
-- A typed web client generated from the server's OpenAPI description.
+- A web client with a light and a dark theme, usable with the keyboard and on a phone (ballot choices are native radio buttons), and typed from the server's OpenAPI description. Once the vote is cast, a voter can look their receipt up on the board from the election's page.
 
 ## How it works
 

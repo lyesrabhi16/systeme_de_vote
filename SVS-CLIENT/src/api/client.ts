@@ -1,6 +1,6 @@
 
 import { routes } from '@/services/routing';
-import { Configuration, AuthApi, VoteApi, UsersApi, AdminApi, CandidatesApi, type ConfigurationParameters } from '@api/sdk';
+import { Configuration, AuthApi, VoteApi, UsersApi, AdminApi, CandidatesApi, BulletinsApi, type ConfigurationParameters } from '@api/sdk';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -118,6 +118,7 @@ export const apiClient = (options?: { quiet?: boolean }) => {
         users: new UsersApi(config, undefined, instance),
         admin: new AdminApi(config, undefined, instance),
         candidates: new CandidatesApi(config, undefined, instance),
+        bulletins: new BulletinsApi(config, undefined, instance),
     };
 }
 

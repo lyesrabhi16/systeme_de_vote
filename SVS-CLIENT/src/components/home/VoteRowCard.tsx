@@ -1,58 +1,49 @@
 import type { VoteWithCreatorResponseModel } from '@/api/sdk';
 import VoteBadge from '@/components/home/VoteBadge';
-import { Button } from '@/components/ui/button';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import { routesBuilders } from '@/services/routing';
+import { formatDate } from '@/utils/dates';
 import { getBadgeType } from '@/utils/vote.utils';
-import { LucideArrowRightFromLine } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { LucideChevronRight, LucideTrophy } from 'lucide-react';
+import { Link } from 'react-router';
 
+/** A line of the history: an election that is over, who won, and the way to its result. */
 const VoteRowCard = (props: {
   vote: VoteWithCreatorResponseModel;
   userHasVoted?: boolean;
   winner?: string;
 }) => {
   const { vote } = props;
-  const navigate = useNavigate();
-  const start = new Date(vote.start_date).toLocaleDateString();
-  const end = new Date(vote.end_date).toLocaleDateString();
-
+  const counted = props.winner && props.winner !== 'N/A';
   return (
-    <Card className='w-full flex items-start gap-4 p-4 rounded-lg shadow-sm hover:scale-105 transition-transform duration-200'>
-      <CardTitle className='font-semibold text-base truncate flex flex-row flex-wrap justify-start items-center w-full'>
-        <p>{vote.title}</p>
-        <div className='ml-auto'>
+    <Link
+      to={routesBuilders.getVoteRoute(vote.id)}
+      className='group flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-xs transition-shadow hover:shadow-md'
+    >
+      <div className='min-w-0 flex-1'>
+        <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
+          <h4 className='truncate font-display text-lg font-semibold'>{vote.title}</h4>
           <VoteBadge
-            type={getBadgeType(
-              { ...vote, creator_id: vote.creator.id },
-              props.userHasVoted,
-            )}
-            userAlreadyVoted={props.userHasVoted ?? false}
+            type={getBadgeType({ ...vote, creator_id: vote.creator.id }, props.userHasVoted)}
+            userAlreadyVoted={props.userHasVoted}
           />
         </div>
-      </CardTitle>
-      <CardDescription className='max-w-full text-wrap text-sm text-muted-foreground truncate mt-1'>
-        <div className='hidden sm:block text-sm text-muted-foreground whitespace-nowrap'>
-          {start} — {end}
-        </div>
-        {vote.description}
-      </CardDescription>
-
-      <div className='flex flex-row justify-between items-center w-full mt-4'>
-        <p className='text-sm text-muted-foreground mb-2 hidden sm:block'>
-          Élu : {props.winner ?? 'N/A'}
+        <p className='mt-1 text-sm text-muted-foreground'>
+          {formatDate(vote.start_date)} → {formatDate(vote.end_date)}
         </p>
-        <Button
-          onClick={() =>
-            vote.id && navigate(routesBuilders.getVoteRoute(vote.id))
-          }
-          variant='default'
-        >
-          Détails
-          <LucideArrowRightFromLine className='w-4 h-4 mr-2' />
-        </Button>
+        <p className='mt-2 flex items-center gap-1.5 text-sm'>
+          <LucideTrophy className='size-4 text-warning' />
+          {counted ? (
+            <span>
+              <span className='text-muted-foreground'>Élu : </span>
+              <strong className='font-semibold'>{props.winner}</strong>
+            </span>
+          ) : (
+            <span className='text-muted-foreground'>Résultat pas encore publié</span>
+          )}
+        </p>
       </div>
-    </Card>
+      <LucideChevronRight className='size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5' />
+    </Link>
   );
 };
 

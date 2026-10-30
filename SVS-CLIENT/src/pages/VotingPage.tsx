@@ -2,7 +2,7 @@ import apiClient from '@/api/client';
 import type { FullVoteResponseModel } from '@/api/sdk';
 import { Spinner } from '@/components/ui/spinner';
 import AppContainer from '@/components/utils/AppContainer';
-import VotingCard from '@/components/vote/VotingCard';
+import ElectionView from '@/components/vote/ElectionView';
 import { useBreadCrumbs } from '@/hooks/useBreadCrumbs';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -37,13 +37,13 @@ const VotingPage = () => {
   return (
     <AppContainer noBreadcrumbs>
       <Breadcrumbs />
-      <div className='w-full p-8 flex flex-col gap-6 items-center justify-center'>
+      <div className='flex w-full flex-col items-center justify-center gap-6 py-4'>
         {vote ? (
-          <VotingCard fullVote={vote} />
+          <ElectionView fullVote={vote} />
         ) : failed ? (
-          <p>Echec de chargement des détails du vote.</p>
+          <p className='text-muted-foreground'>Impossible de charger cette élection. Elle n'existe pas, ou vous n'y êtes pas inscrit.</p>
         ) : (
-          <Spinner>Loading vote details...</Spinner>
+          <Spinner>Chargement de l'élection…</Spinner>
         )}
       </div>
     </AppContainer>

@@ -1,3 +1,4 @@
+import { formatDate } from '@/utils/dates';
 import apiClient from '@/api/client';
 import type { PaginatedListResponseVoteResponseModel, VoteResponseModel } from '@/api/sdk';
 import AppContainer from '@/components/utils/AppContainer';
@@ -114,8 +115,8 @@ const VotesAdministrationPage = () => {
             <div>
               <p className='font-medium'>{title}</p>
               <p className='text-sm text-muted-foreground'>
-                {new Date(start_date).toLocaleDateString()} —{' '}
-                {new Date(end_date).toLocaleDateString()}
+                {formatDate(start_date)} —{' '}
+                {formatDate(end_date)}
               </p>
             </div>
           );

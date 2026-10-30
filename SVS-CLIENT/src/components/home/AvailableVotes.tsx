@@ -1,88 +1,76 @@
 import apiClient from '@/api/client';
 import type { VoteResponseModel } from '@/api/sdk';
+import Section, { EmptyState } from '@/components/home/Section';
 import VoteCard from '@/components/home/VoteCard';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getBadgeType, VoteBadgeType } from '@/utils/vote.utils';
+import { LucideInbox } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+const VISIBLE = 6;
+
 const AvailableVotes = () => {
-  const [votes, setVotes] = useState<VoteResponseModel[]>([]);
+  const [votes, setVotes] = useState<VoteResponseModel[] | null>(null);
+  const [all, setAll] = useState(false);
 
   useEffect(() => {
-    // Fetch available votes from API or service
-    const fetchAvailableVotes = async () => {
-      apiClient()
-        .vote.getAvailableVotes()
-        .then((response) => {
-          setVotes(response.data);
-        })
-        .catch((error) => {
-          console.error('Error fetching available votes:', error);
-          toast.error('Erreur lors de la récupération des votes disponibles.', {
-            id: 'fetch_available_votes_error',
-          });
+    apiClient()
+      .vote.getAvailableVotes()
+      .then((response) => setVotes(response.data))
+      .catch((error) => {
+        console.error('Error fetching available votes:', error);
+        setVotes([]);
+        toast.error('Erreur lors de la récupération des votes disponibles.', {
+          id: 'fetch_available_votes_error',
         });
-    };
-
-    fetchAvailableVotes();
+      });
   }, []);
 
-  return (
-    <div className='w-full p-2'>
-      <h3 className='text-2xl font-semibold mb-2'>Vos votes disponibles</h3>
-      <div className='p-4'>
-        {votes.length === 0 && (
-          <p>Vous n'avez pas de votes disponibles pour le moment.</p>
-        )}
-        {votes.length > 0 && (
-          <>
-            <div className='flex flex-row flex-wrap gap-8 justify-center items-start scroll-smooth py-4 w-full group'>
-              {votes
-                .sort(
-                  (a, b) =>
-                    new Date(a.end_date).getTime() -
-                    new Date(b.end_date).getTime(),
-                )
-                .slice(0, 3)
-                .map((vote, index) => (
-                  <div key={vote.id} className='max-w-sm flex-1'>
-                    <VoteCard key={vote.id} vote={vote} index={index} />
-                  </div>
-                ))}
-            </div>
+  // those that can be voted in now first (the one that ends first at the top), then those to come
+  const sorted = [...(votes ?? [])].sort((a, b) => {
+    const open = (v: VoteResponseModel) => (getBadgeType(v) === VoteBadgeType.Ongoing ? 0 : 1);
+    return open(a) - open(b) || new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+  });
+  const toVote = sorted.filter((v) => getBadgeType(v) === VoteBadgeType.Ongoing).length;
+  const shown = all ? sorted : sorted.slice(0, VISIBLE);
 
-            {votes.length > 3 && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <div className='mt-2 flex items-center justify-end'>
-                    <Button variant='ghost'>
-                      Voir plus ({votes.length - 3})
-                    </Button>
-                  </div>
-                </DialogTrigger>
-                <DialogContent className='max-w-4xl px-8 py-4 m-4 overflow-y-scroll max-h-[80vh]'>
-                  <div className='flex flex-col justify-center items-center gap-4'>
-                    <h1 className='text-2xl font-semibold mb-4 self-start'>
-                      Votes disponibles
-                    </h1>
-                    {votes
-                      .sort(
-                        (a, b) =>
-                          new Date(b.end_date).getTime() -
-                          new Date(a.end_date).getTime(),
-                      )
-                      .map((vote) => (
-                        <VoteCard key={vote.id} vote={vote} />
-                      ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+  return (
+    <Section
+      id='available'
+      title='À voter'
+      hint={
+        votes && votes.length > 0
+          ? `${toVote} en cours${votes.length - toVote > 0 ? `, ${votes.length - toVote} à venir` : ''}`
+          : undefined
+      }
+    >
+      {votes === null ? (
+        <div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className='h-56 rounded-2xl' />
+          ))}
+        </div>
+      ) : votes.length === 0 ? (
+        <EmptyState icon={<LucideInbox />} title='Rien à voter pour le moment'>
+          Les élections auxquelles vous êtes inscrit apparaîtront ici dès qu'elles seront créées.
+        </EmptyState>
+      ) : (
+        <>
+          <div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+            {shown.map((vote, index) => (
+              <VoteCard key={vote.id} vote={vote} index={index} />
+            ))}
+          </div>
+          {sorted.length > VISIBLE && (
+            <Button variant='ghost' className='self-center' onClick={() => setAll((v) => !v)}>
+              {all ? 'Voir moins' : `Voir les ${sorted.length - VISIBLE} autres`}
+            </Button>
+          )}
+        </>
+      )}
+    </Section>
   );
 };
 
