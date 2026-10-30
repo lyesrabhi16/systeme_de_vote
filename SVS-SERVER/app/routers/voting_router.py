@@ -64,10 +64,7 @@ async def get_created_votes(request: Request):
 )
 async def get_already_voted_on_votes(request: Request):
     user = await User.get_authenticated_user(request)
-    voted_votes = map(
-        lambda b: b.vote, {av for av in user.attributed_votes if av.user_has_voted}
-    )
-    return list(voted_votes)
+    return [av.vote for av in user.attributed_votes if av.user_has_voted]
 
 
 @router.get(
@@ -103,31 +100,11 @@ async def get_available_votes(request: Request):
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthenticated)],
 )
 async def get_finished_votes(request: Request):
+    """The elections that are over and the ones the user voted in, with the user's own situation in each."""
     user = await User.get_authenticated_user(request)
-    voted_vote_ids = {av.vote_id for av in user.attributed_votes if av.user_has_voted}
-    logger.debug(f"User {user.username} voted vote IDs: {voted_vote_ids}")
-    finished_votes = set()
-    for id in voted_vote_ids:
-        finished_vote: FinishedVoteResponseModel | None = (
-            await FinishedVoteResponseModel.from_vote_id(id, user)
-        )
-        if finished_vote:
-            finished_vote.user_has_voted = True
-            finished_votes.add(finished_vote)
-    for av in user.attributed_votes:
-        if av.vote.is_vote_finished():
-            finished_vote = await FinishedVoteResponseModel.from_vote_id(
-                av.vote.id, user
-            )
-            if finished_vote and av.vote.id in voted_vote_ids:
-                continue  # Already added
-            finished_votes.add(finished_vote)
-
-    logger.debug(
-        f"User {user.username} has {len(finished_votes)} finished votes. {finished_votes}"
-    )
-
-    return finished_votes
+    wanted = sorted({av.vote_id for av in user.attributed_votes if av.user_has_voted or av.vote.is_vote_finished()})
+    finished = [await FinishedVoteResponseModel.from_vote_id(vote_id, user) for vote_id in wanted]
+    return [f for f in finished if f is not None]
 
 
 @router.get(
@@ -140,23 +117,14 @@ async def get_finished_votes(request: Request):
 )
 async def get_vote_by_id(vote_id: int, request: Request):
     user = await User.get_authenticated_user(request)
-    fullVote = await FullVoteResponseModel.from_vote_id(vote_id, user)
-    if not fullVote:
+    vote = await Vote.get_by_id(vote_id)
+    if vote is None:
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
-
-    finishedVote: FinishedVoteResponseModel = fullVote.vote
-    if (
-        user.is_admin is False
-        and finishedVote.vote not in user.created_votes
-        and finishedVote.vote.id
-        not in map(lambda av: av.vote.id, user.attributed_votes)
-    ):
-        logger.warning(
-            f"User {user.username} tried to access vote {vote_id} without permission."
-        )
+    if not vote.is_visible_to(user):
+        logger.warning(f"User {user.id} tried to access vote {vote_id} without permission.")
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
-    return fullVote
+    return await FullVoteResponseModel.from_vote_id(vote_id, user)
 
 
 @router.get(
@@ -320,19 +288,14 @@ async def get_vote_audit(vote_id: int):
 )
 async def get_vote_result(vote_id: int, request: Request):
     user = await User.get_authenticated_user(request)
-    finishedVote = await FinishedVoteResponseModel.from_vote_id(vote_id, user)
-    if not finishedVote:
+    vote = await Vote.get_by_id(vote_id)
+    if vote is None:
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
-
-    if finishedVote.vote not in user.created_votes and finishedVote.vote.id not in map(
-        lambda av: av.vote.id, user.attributed_votes
-    ):
-        logger.warning(
-            f"User {user.username} tried to access vote result {vote_id} without permission."
-        )
+    if not vote.is_visible_to(user):
+        logger.warning(f"User {user.id} tried to access vote result {vote_id} without permission.")
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
-    return finishedVote
+    return await FinishedVoteResponseModel.from_vote_id(vote_id, user)
 
 
 @router.get(

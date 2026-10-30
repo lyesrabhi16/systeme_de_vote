@@ -392,6 +392,7 @@
                     "vote"
                 ],
                 "summary": "Get Finished Votes",
+                "description": "The elections that are over and the ones the user voted in, with the user's own situation in each.",
                 "operationId": "get_finished_votes",
                 "responses": {
                     "200": {
@@ -3172,6 +3173,35 @@
                 ],
                 "title": "VoteCreationModel"
             },
+            "VoteCreatorModel": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "title": "First Name"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "Last Name"
+                    },
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "first_name",
+                    "last_name",
+                    "username"
+                ],
+                "title": "VoteCreatorModel",
+                "description": "Who created an election, as the voters see it: a name, never an email address or a phone number."
+            },
             "VoteResponseModel": {
                 "properties": {
                     "id": {
@@ -3423,7 +3453,7 @@
                         "title": "Public Key"
                     },
                     "creator": {
-                        "$ref": "#/components/schemas/UserResponseModel"
+                        "$ref": "#/components/schemas/VoteCreatorModel"
                     }
                 },
                 "type": "object",

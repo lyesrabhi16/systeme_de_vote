@@ -5,7 +5,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from app.db.db import db_session
 from datetime import datetime
 from app.models.types import UTCDateTime, utcnow
-from app.models.user import User, UserResponseModel
+from app.models.user import User
 from app.models.voting_models import VoteCastData
 from loguru import logger
 from phe import PaillierPublicKey, PaillierPrivateKey, paillier
@@ -141,11 +141,20 @@ class Vote(SQLModel, table=True):
         logger.info(f"A ballot was cast on vote {self.id}")  # whose is not logged
         return unique_code
 
-    def has_started(self) -> bool:
-        return self.start_date <= utcnow()
+    def has_started(self, now: datetime | None = None) -> bool:
+        return self.start_date <= (now or utcnow())
 
-    def is_vote_finished(self) -> bool:
-        return self.end_date <= utcnow()
+    def is_vote_finished(self, now: datetime | None = None) -> bool:
+        """The end is excluded: at the very instant of end_date, it is over."""
+        return self.end_date <= (now or utcnow())
+
+    def is_visible_to(self, user: User) -> bool:
+        """Who may read an election: the administrators, the person who created it, and the people on its electoral roll."""
+        return (
+            user.is_admin
+            or self.creator_id == user.id
+            or any(av.user_id == user.id for av in self.attributed_users)
+        )
 
     @staticmethod
     @db_session
@@ -206,6 +215,15 @@ class VoteResponseModel(SQLModel):
     creator_id: int
 
 
+class VoteCreatorModel(SQLModel):
+    """Who created an election, as the voters see it: a name, never an email address or a phone number."""
+
+    id: int
+    first_name: str
+    last_name: str
+    username: str
+
+
 class VoteWithCreatorResponseModel(SQLModel):
     id: int
     title: str
@@ -214,7 +232,7 @@ class VoteWithCreatorResponseModel(SQLModel):
     end_date: datetime
     has_been_counted: bool
     public_key: str
-    creator: UserResponseModel
+    creator: VoteCreatorModel
 
     @staticmethod
     @db_session
@@ -238,14 +256,10 @@ class VoteWithCreatorResponseModel(SQLModel):
             end_date=vote.end_date,
             has_been_counted=vote.has_been_counted,
             public_key=vote.public_key,
-            creator=UserResponseModel(
+            creator=VoteCreatorModel(
                 id=creator.id,
                 first_name=creator.first_name,
                 last_name=creator.last_name,
-                email=creator.email,
                 username=creator.username,
-                phone_number=creator.phone_number,
-                is_active=creator.is_active,
-                is_admin=creator.is_admin,
             ),
         )
