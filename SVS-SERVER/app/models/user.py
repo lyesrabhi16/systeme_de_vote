@@ -1,17 +1,23 @@
 from datetime import datetime
-from sqlmodel import SQLModel, Field, Relationship, select
+from enum import StrEnum
+from typing import TYPE_CHECKING, Literal
+
+from fastapi import Request
+from loguru import logger
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import Field, Relationship, SQLModel, select
+
 from app.db.db import db_session
 from app.models.types import UTCDateTime, utcnow
 from app.utils import auth_utils
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Request
-from loguru import logger
-from typing import Literal
-from enum import Enum
+
+if TYPE_CHECKING:
+    from app.models.attributed_votes import AttributedVote
+    from app.models.vote import Vote
 
 
-class AuthorityEnum(str, Enum):
+class AuthorityEnum(StrEnum):
     Inscription = "Inscription"
     Vote = "Vote"
 
@@ -83,7 +89,7 @@ class User(SQLModel, table=True):
         self, vote: "Vote", token: str, db: AsyncSession | None = None
     ) -> bool:
         """Check if the user has voted on a specific vote."""
-        from app.models import Bulletin, AttributedVote
+        from app.models import AttributedVote, Bulletin
 
         if db is None:
             raise ValueError("Database session is None")

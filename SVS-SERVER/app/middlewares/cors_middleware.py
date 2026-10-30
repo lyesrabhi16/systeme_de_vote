@@ -1,4 +1,5 @@
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config.env import env
 
 CORS_MIDDLEWARE = {

@@ -1,31 +1,30 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, Request
-from sqlmodel import select
-from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
-from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
-from app.models.messages import Messages
-from app.models.user import AuthorityEnum, UserResponseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastcrud import FastCRUD, PaginatedListResponse
-from app.models import User, response_models, Vote
-from app.models.vote_util_models import VoteWithCreatorResponseModel
-from app.utils.response_utils import paginate
-from app.utils import transformers
-from app.models.error_codes import ERROR_CODES
-from app.utils import auth_utils, smtp_utils
-from app.db.db import get_db_session
-from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 from sqlalchemy import and_, func
-from app.models.types import utcnow
-from app.models.vote_util_models import FullVoteResponseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
+
+from app.db.db import get_db_session
+from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
+from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
+from app.models import User, Vote, response_models
 from app.models.admin_util_models import DashboardResponseModel
+from app.models.error_codes import ERROR_CODES
+from app.models.messages import Messages
+from app.models.types import utcnow
+from app.models.user import AuthorityEnum, UserResponseModel
+from app.models.vote_util_models import FullVoteResponseModel, VoteWithCreatorResponseModel
+from app.utils import auth_utils, smtp_utils, transformers
 from app.utils.admin_utils import (
     getParticipationData,
+    getUserActivityRepartition,
+    getUserGrowth,
     getUserRoleRepartition,
     getVotesPerMonth,
-    getUserGrowth,
     getVotesStatusPerMonth,
-    getUserActivityRepartition,
 )
-from loguru import logger
+from app.utils.response_utils import paginate
 
 router = APIRouter()
 crud = FastCRUD(model=User)
@@ -122,10 +121,10 @@ async def admin_inscription_authority_dashboard(db: AsyncSession):
     userRoleRepartition = await getUserRoleRepartition(db)
     userActivityRepartition = await getUserActivityRepartition(db)
     nbr_users = (
-        await db.execute(select(func.count(User.id)).where(User.is_admin == False))
+        await db.execute(select(func.count(User.id)).where(User.is_admin.is_(False)))
     ).one()[0]
     nbr_admins = (
-        await db.execute(select(func.count(User.id)).where(User.is_admin == True))
+        await db.execute(select(func.count(User.id)).where(User.is_admin.is_(True)))
     ).one()[0]
     nbr_inscription_authority = (
         await db.execute(

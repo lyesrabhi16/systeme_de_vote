@@ -1,17 +1,19 @@
+from datetime import datetime
 from typing import Any
+
+from loguru import logger
 from pydantic import model_validator
 from sqlalchemy import func
-from sqlmodel import SQLModel, select, delete
-from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import SQLModel, delete, select
 
+from app.db.db import db_session
+from app.models.attributed_votes import AttributedVote
 from app.models.bulletin import Bulletin
 from app.models.user import User
-from app.models.attributed_votes import AttributedVote
-from .vote import Vote, VoteWithCreatorResponseModel
+
 from .candidate import Candidate, CandidateCreateModel
-from datetime import datetime
-from loguru import logger
+from .vote import Vote, VoteWithCreatorResponseModel
 
 
 class FinishedVoteResponseModel(SQLModel):

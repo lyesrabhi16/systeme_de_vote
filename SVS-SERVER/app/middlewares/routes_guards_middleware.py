@@ -1,5 +1,6 @@
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 from loguru import logger
+
 from app.models.error_codes import ERROR_CODES
 
 

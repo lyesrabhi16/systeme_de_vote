@@ -1,4 +1,5 @@
 import os
+
 from fastapi_mail import ConnectionConfig
 from pydantic import SecretStr
 

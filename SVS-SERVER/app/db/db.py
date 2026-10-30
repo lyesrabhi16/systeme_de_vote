@@ -1,5 +1,5 @@
-from functools import wraps
 from collections.abc import AsyncGenerator
+from functools import wraps
 from typing import Any
 
 from loguru import logger
@@ -69,7 +69,7 @@ def db_session(func):
     return wrapper
 
 
-async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_db_session() -> AsyncGenerator[AsyncSession]:
     """Get a new database session."""
     Session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=True)
     async with Session() as session:
@@ -129,10 +129,3 @@ async def init_db(recreate: bool = False, db: AsyncSession | None = None):
             await conn.run_sync(SQLModel.metadata.drop_all)
         await conn.run_sync(SQLModel.metadata.create_all)
     logger.info("Database initialized")
-
-
-async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Get a new database session (a FastAPI dependency)."""
-    Session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=True)
-    async with Session() as session:
-        yield session

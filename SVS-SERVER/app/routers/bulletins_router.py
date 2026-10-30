@@ -1,7 +1,8 @@
+from fastapi import APIRouter, Query
 from fastcrud import FastCRUD, PaginatedListResponse
+
 from app.models.bulletin import Bulletin
 from app.utils.response_utils import paginate
-from fastapi import APIRouter, Query
 
 router = APIRouter()
 crud = FastCRUD(model=Bulletin)

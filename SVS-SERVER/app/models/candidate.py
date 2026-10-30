@@ -1,8 +1,10 @@
-from sqlmodel import SQLModel, Field, Relationship
-from app.db.db import db_session
-from sqlalchemy.ext.asyncio import AsyncSession
-from .vote import Vote
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import Field, Relationship, SQLModel
+
+from app.db.db import db_session
+
+from .vote import Vote
 
 
 class Candidate(SQLModel, table=True):

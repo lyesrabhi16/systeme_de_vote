@@ -5,7 +5,6 @@ from fastapi.openapi.utils import get_openapi
 from loguru import logger
 
 
-
 def setup_openapi(app: FastAPI):
     """
     Setup OpenAPI documentation for the FastAPI app.

@@ -1,9 +1,10 @@
-from sqlalchemy import func, case, and_, text, select
+from sqlalchemy import and_, case, func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.attributed_votes import AttributedVote
+from app.models.bulletin import Bulletin
 from app.models.user import User
 from app.models.vote import Vote
-from app.models.bulletin import Bulletin
-from app.models.attributed_votes import AttributedVote
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def getParticipationData(db: AsyncSession):

@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
-from app.models.error_codes import ERROR_CODES
-from app.models.vote import Vote
+from fastapi import APIRouter, Depends, HTTPException, Request
+
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
-from app.models.candidate import Candidate, CandidateUpdateModel, CandidateCreateModel
-from app.models.response_models import MessageResponse
+from app.models.candidate import Candidate, CandidateCreateModel, CandidateUpdateModel
+from app.models.error_codes import ERROR_CODES
 from app.models.messages import Messages
+from app.models.response_models import MessageResponse
+from app.models.vote import Vote
 
 router = APIRouter()
 

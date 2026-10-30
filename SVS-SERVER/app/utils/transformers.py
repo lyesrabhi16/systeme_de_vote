@@ -1,6 +1,6 @@
-from typing import Dict
-from app.models.user import UserResponseModel, User
+
+from app.models.user import User, UserResponseModel
 
 
-async def User_to_UserResponseModel(user_data: Dict) -> UserResponseModel:
+async def User_to_UserResponseModel(user_data: dict) -> UserResponseModel:
     return await UserResponseModel.from_user(User(**user_data))

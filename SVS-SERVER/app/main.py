@@ -1,28 +1,29 @@
 import os
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from loguru import logger
+
 from app.config.env import env
-from app.models.error_codes import ERROR_CODES
-from app.utils import get_real_path
-from app.utils.middlewares import setup_middlewares, register_http_exception_handler
-from app.middlewares.http_middleware import HTTP_MIDDLEWARE
+from app.crons import start_crons
+from app.db import init_db, test_db_connection, test_redis_cache_connection
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
+from app.middlewares.http_middleware import HTTP_MIDDLEWARE
+from app.models.error_codes import ERROR_CODES
 from app.routers import (
+    admin_router,
     auth_router,
     bulletins_router,
-    voting_router,
-    users_router,
     candidates_router,
-    admin_router,
+    users_router,
+    voting_router,
 )
-from app.db import test_db_connection, init_db, test_redis_cache_connection
-
-from app.utils.logging import setup_logging, intercept_standard_logging
-from loguru import logger
+from app.utils import get_real_path
+from app.utils.logging import intercept_standard_logging, setup_logging
+from app.utils.middlewares import register_http_exception_handler, setup_middlewares
 from app.utils.openapi import setup_openapi
-from app.crons import start_crons
 
 # Setup logging BEFORE creating the FastAPI app
 setup_logging()

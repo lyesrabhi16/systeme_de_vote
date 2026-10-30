@@ -1,26 +1,26 @@
 import asyncio
 import json
 
-from fastapi import APIRouter, Query, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastcrud import FastCRUD, PaginatedListResponse, paginated_response
+from loguru import logger
+
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
-from app.models import User, Vote, Bulletin, response_models
+from app.models import Bulletin, User, Vote, auth_models, response_models
 from app.models.attributed_votes import AttributedVote
-from app.models.vote import AlreadyVoted, DuplicateBallot, VoteResponseModel
+from app.models.error_codes import ERROR_CODES
 from app.models.types import utcnow
-from app.models import auth_models
+from app.models.vote import AlreadyVoted, DuplicateBallot, VoteResponseModel
 from app.models.vote_util_models import (
-    FullVoteResponseModel,
-    VoteResultsModel,
     FinishedVoteResponseModel,
+    FullVoteResponseModel,
     VoteCreationModel,
+    VoteResultsModel,
     VoteUpdateModel,
 )
 from app.models.voting_models import VoteAuditModel, VoteCastData, VoteCastResponseModel
-from loguru import logger
-from app.models.error_codes import ERROR_CODES
-from app.utils import vote_utils, response_utils, smtp_utils
+from app.utils import response_utils, smtp_utils, vote_utils
 
 router = APIRouter()
 crud = FastCRUD(model=Vote)
@@ -213,14 +213,14 @@ async def cast_vote(
         )
     except vote_utils.InvalidBallot as e:
         logger.warning(f"A ballot on vote {vote_id} was refused: {e}")
-        raise HTTPException(status_code=400, detail=ERROR_CODES.INVALID_BALLOT)
+        raise HTTPException(status_code=400, detail=ERROR_CODES.INVALID_BALLOT) from None
 
     try:
         unique_code = await vote.register_vote(user, data)
     except AlreadyVoted:
-        raise HTTPException(status_code=409, detail=ERROR_CODES.ALREADY_VOTED)
+        raise HTTPException(status_code=409, detail=ERROR_CODES.ALREADY_VOTED) from None
     except DuplicateBallot:
-        raise HTTPException(status_code=400, detail=ERROR_CODES.INVALID_BALLOT)
+        raise HTTPException(status_code=400, detail=ERROR_CODES.INVALID_BALLOT) from None
     # send the receipt by email to the user
     smtp_utils.send_in_thread(smtp_utils.send_vote_cast_confirmation_email)(
         to_email=[user.email],

@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta
-import app.config.env
-from app.models import Candidate, Vote, User, AttributedVote, Bulletin
-from app.utils.auth_utils import hash_string
-from app.db import db_session, init_db, test_db_connection
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
+
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db import db_session, init_db, test_db_connection
+from app.models import AttributedVote, Bulletin, Candidate, User, Vote
+from app.utils.auth_utils import hash_string
 
 hashed_password = hash_string("0000")
 

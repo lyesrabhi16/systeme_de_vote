@@ -1,17 +1,23 @@
-from typing import Any
+import json
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
+
+from loguru import logger
+from phe import PaillierPrivateKey, PaillierPublicKey, paillier
 from sqlalchemy import Text, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.db.db import db_session
-from datetime import datetime
 from app.models.types import UTCDateTime, utcnow
 from app.models.user import User
 from app.models.voting_models import VoteCastData
-from loguru import logger
-from phe import PaillierPublicKey, PaillierPrivateKey, paillier
-import json
-
 from app.utils import auth_utils
+
+if TYPE_CHECKING:
+    from app.models.attributed_votes import AttributedVote
+    from app.models.bulletin import Bulletin
+    from app.models.candidate import Candidate
 
 
 class Vote(SQLModel, table=True):
@@ -82,7 +88,7 @@ class Vote(SQLModel, table=True):
     def __init__(self, **data: Any):
         super().__init__(**data)
         if "public_key" not in data or data["public_key"] is None:
-            from app.utils import vote_utils, auth_utils
+            from app.utils import auth_utils, vote_utils
 
             keys = vote_utils.gen_encryption_key_pair()
             self.public_key = keys["PUBLIC_KEY"]

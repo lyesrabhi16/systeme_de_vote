@@ -18,8 +18,8 @@ from dataclasses import dataclass, field
 
 from pydantic import ValidationError
 
-from app.utils.vote_utils import InvalidBallot, check_ballot, decryption_is_correct, load_public_key
 from app.models.voting_models import VoteCastData
+from app.utils.vote_utils import InvalidBallot, check_ballot, decryption_is_correct, load_public_key
 
 
 @dataclass

@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Query, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastcrud import FastCRUD, PaginatedListResponse
+from loguru import logger
+from sqlalchemy.exc import IntegrityError
+
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
 from app.models import User
-from app.models.user import AdminUserResponseModel, UserCreationModel, UserResponseModel, UserUpdateModel
-from loguru import logger
 from app.models.error_codes import ERROR_CODES
-from fastcrud import FastCRUD, PaginatedListResponse
+from app.models.user import AdminUserResponseModel, UserCreationModel, UserResponseModel, UserUpdateModel
 from app.utils import transformers
 from app.utils.response_utils import paginate
-from sqlalchemy.exc import IntegrityError
 
 router = APIRouter()
 crud = FastCRUD(model=User)
@@ -52,22 +53,22 @@ async def create_user(request: Request, user_data: UserCreationModel):
             raise HTTPException(
                 status_code=409,
                 detail=ERROR_CODES.EMAIL_ALREADY_EXISTS,
-            )
+            ) from e
         elif "user_phone_number_key" in str(e.orig):
             raise HTTPException(
                 status_code=409,
                 detail=ERROR_CODES.PHONE_NUMBER_ALREADY_EXISTS,
-            )
+            ) from e
         elif "user_username_key" in str(e.orig):
             raise HTTPException(
                 status_code=409,
                 detail=ERROR_CODES.USERNAME_ALREADY_EXISTS,
-            )
+            ) from e
         else:
             raise HTTPException(
                 status_code=500,
                 detail=ERROR_CODES.INTERNAL_SERVER_ERROR,
-            )
+            ) from e
 
 
 @router.get(

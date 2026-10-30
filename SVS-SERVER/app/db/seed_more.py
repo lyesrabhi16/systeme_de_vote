@@ -1,11 +1,12 @@
-from datetime import timedelta
 import random
+from datetime import timedelta
+
 from faker import Faker
-from sqlalchemy import insert
-from app.models import Candidate, Vote, User, AttributedVote, Bulletin
-from app.utils.auth_utils import hash_string, encrypt_string
-from app.db import db_session
 from loguru import logger
+
+from app.db import db_session
+from app.models import AttributedVote, Bulletin, Candidate, User, Vote
+from app.utils.auth_utils import encrypt_string, hash_string
 
 fake = Faker()
 hashed_password = hash_string("0000")

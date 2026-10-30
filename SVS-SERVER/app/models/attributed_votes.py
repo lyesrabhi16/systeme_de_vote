@@ -1,8 +1,15 @@
-from sqlmodel import SQLModel, Field, Relationship, select
 from datetime import datetime
-from app.models.types import UTCDateTime, utcnow
-from app.db.db import db_session
+from typing import TYPE_CHECKING
+
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import Field, Relationship, SQLModel, select
+
+from app.db.db import db_session
+from app.models.types import UTCDateTime, utcnow
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.vote import Vote
 
 
 class AttributedVote(SQLModel, table=True):

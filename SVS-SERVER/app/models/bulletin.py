@@ -1,13 +1,16 @@
 import secrets
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Text
-from sqlmodel import SQLModel, Field
-from app.models.types import UTCDateTime
-from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from sqlmodel import Field, Relationship, SQLModel
 
-from sqlmodel import Relationship
+from app.db.db import db_session
+from app.models.types import UTCDateTime
+
+if TYPE_CHECKING:
+    from app.models.vote import Vote
 
 
 class Bulletin(SQLModel, table=True):

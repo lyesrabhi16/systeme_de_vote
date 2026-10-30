@@ -1,0 +1,13 @@
+# The style of the server. `make lint` checks it, `make format` applies it, CI refuses a change that does not pass.
+line-length = 120
+target-version = "py313"
+extend-exclude = ["app/dist"]
+
+[lint]
+# pycodestyle, pyflakes, import order, bugbear (likely bugs), pyupgrade (modern syntax)
+select = ["E", "F", "I", "B", "UP"]
+ignore = [
+    "B008",  # FastAPI's `Depends(...)` in a default argument is how it works
+    "E501",  # long comments and docstrings: the formatter wraps code, nobody rewraps prose
+]
+

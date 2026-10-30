@@ -1,9 +1,10 @@
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
+
 from fastcrud import FastCRUD, paginated_response
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.db import db_session
-from app.models import User
-from sqlalchemy import or_
 
 
 @db_session
@@ -11,7 +12,7 @@ async def paginate(
     crud: FastCRUD,
     page: int,
     per_page: int,
-    transformer: Callable[[Dict], Any] | None = None,
+    transformer: Callable[[dict], Any] | None = None,
     db: AsyncSession | None = None,
     sort_orders: list | None = None,
     sort_columns: list | None = None,

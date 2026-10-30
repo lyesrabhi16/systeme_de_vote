@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+
 from app.models.vote_util_models import (
     FullVoteResponseModel,
     VoteWithCreatorResponseModel,

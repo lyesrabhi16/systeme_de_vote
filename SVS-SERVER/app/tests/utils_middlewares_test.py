@@ -1,8 +1,8 @@
 def test_setup_middlewares():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -19,9 +19,10 @@ def test_setup_middlewares():
 
 
 def test_setup_middlewares_dict():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.middleware.base import BaseHTTPMiddleware
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -43,11 +44,11 @@ def test_setup_middlewares_dict():
 
 
 def test_setup_middlewares_mixed():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
-    from starlette.requests import Request
-    from starlette.responses import Response
     from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.requests import Request
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -79,8 +80,9 @@ def test_setup_middlewares_mixed():
 
 
 def test_setup_middlewares_no_middlewares():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -91,8 +93,9 @@ def test_setup_middlewares_no_middlewares():
 
 
 def test_setup_middlewares_invalid_dict():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -110,10 +113,10 @@ def test_setup_middlewares_invalid_dict():
 
 
 def test_setup_middlewares_non_callable_attribute():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -135,10 +138,10 @@ def test_setup_middlewares_non_callable_attribute():
 
 
 def test_setup_middlewares_multiple_functions():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -163,10 +166,10 @@ def test_setup_middlewares_multiple_functions():
 
 
 def test_setup_middlewares_order():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -195,8 +198,9 @@ def test_setup_middlewares_order():
 
 
 def test_setup_middlewares_empty_middleware_class():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -214,9 +218,10 @@ def test_setup_middlewares_empty_middleware_class():
 
 
 def test_setup_middlewares_dict_with_predefined_middleware_class():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -237,8 +242,9 @@ def test_setup_middlewares_dict_with_predefined_middleware_class():
 
 
 def test_setup_middlewares_no_callable_methods():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
