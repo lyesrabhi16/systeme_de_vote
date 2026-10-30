@@ -8,7 +8,7 @@ import { buildBallot } from "./paillier_encryption_utils";
  * Nothing that identifies the choice leaves the browser: the server and the network only see numbers it cannot read without the
  * private key of the election.
  */
-export const castVote = async (vote: VoteResponseModel, candidates: Candidate[], choiceId: number) => {
+export const castVote = async (vote: Pick<VoteResponseModel, 'id' | 'public_key'>, candidates: Candidate[], choiceId: number) => {
     const { n, g } = JSON.parse(vote.public_key);
     const publicKey = new PaillierPublicKey(BigInt(n), BigInt(g));
     const ballot = await buildBallot(

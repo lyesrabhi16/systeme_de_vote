@@ -25,17 +25,25 @@ export enum ERROR_CODES {
     EMAIL_ALREADY_EXISTS = "EMAIL_ALREADY_EXISTS",
     PHONE_NUMBER_ALREADY_EXISTS = "PHONE_NUMBER_ALREADY_EXISTS",
     USERNAME_ALREADY_EXISTS = "USERNAME_ALREADY_EXISTS",
+    VOTE_NOT_STARTED = "VOTE_NOT_STARTED",
+    VOTE_NOT_FINISHED = "VOTE_NOT_FINISHED",
+    NOT_ELIGIBLE = "NOT_ELIGIBLE",
+    INVALID_BALLOT = "INVALID_BALLOT",
 }
 
 
 export type PaginatedListResponse = {
-    data: any[];
+    data: unknown[];
     total_count: number;
     has_more: boolean;
     page?: number | null | undefined;
     items_per_page?: number | null | undefined;
 }
-const AxiosInstance = axios.create({});
+// The session is the HttpOnly cookie the server sets at sign-in: this code never holds the token, so a script that runs in the page
+// (an injected one included) cannot read it. The API is on the same origin as the page, under /api.
+const AxiosInstance = axios.create({ withCredentials: true });
+// For the requests whose failure is an answer, not an error to tell the user about ("am I signed in?")
+const QuietAxiosInstance = axios.create({ withCredentials: true });
 
 let AUTHENTICATION_REQUIRED_DETECTED = false;
 AxiosInstance.interceptors.response.use(
@@ -58,7 +66,7 @@ AxiosInstance.interceptors.response.use(
                 ERROR_CODES.TOKEN_INVALID,
                 ERROR_CODES.INVALID_CREDENTIALS,
             ]
-            if (error.response.status === 401 && login_required_codes.includes(error.response.data?.detail?.code) && !AUTHENTICATION_REQUIRED_DETECTED) {
+            if (error.response.status === 401 && !String(error.config?.url ?? '').includes('/api/auth/') && login_required_codes.includes(error.response.data?.detail?.code) && !AUTHENTICATION_REQUIRED_DETECTED) {
                 // Optionally, you can redirect to login or show a message
                 AUTHENTICATION_REQUIRED_DETECTED = true;
                 toast.getToasts().forEach(t => toast.dismiss(t.id));
@@ -66,7 +74,6 @@ AxiosInstance.interceptors.response.use(
                     id: 'session_expired_error',
                 });
                 const onClose = () => {
-                    localStorage.removeItem("token");
                     AUTHENTICATION_REQUIRED_DETECTED = false;
                     if (!window.location.href.includes(routes.LOGIN)) {
                         window.location.href = window.location.origin + routes.LOGIN;
@@ -91,28 +98,26 @@ AxiosInstance.interceptors.response.use(
     }
 )
 
-const getConfigParams = (): ConfigurationParameters => {
-    return {
-        //basePath: 'http://localhost:8000',
-        basePath: 'https://svs-server.localdev',
-        baseOptions: {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem("token")}` : undefined,
-            }
-        }
-    };
-};
+// The paths of the SDK already start with /api: relative to the page.
+const getConfigParams = (): ConfigurationParameters => ({
+    basePath: '',
+    baseOptions: {
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+    },
+});
 
-export const apiClient = () => {
+export const apiClient = (options?: { quiet?: boolean }) => {
     const config = new Configuration(getConfigParams());
+    const instance = options?.quiet ? QuietAxiosInstance : AxiosInstance;
     return {
-        auth: new AuthApi(config, undefined, AxiosInstance),
-        vote: new VoteApi(config, undefined, AxiosInstance),
-        users: new UsersApi(config, undefined, AxiosInstance),
-        admin: new AdminApi(config, undefined, AxiosInstance),
-        candidates: new CandidatesApi(config, undefined, AxiosInstance),
+        auth: new AuthApi(config, undefined, instance),
+        vote: new VoteApi(config, undefined, instance),
+        users: new UsersApi(config, undefined, instance),
+        admin: new AdminApi(config, undefined, instance),
+        candidates: new CandidatesApi(config, undefined, instance),
     };
 }
 

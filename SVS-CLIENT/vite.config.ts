@@ -18,4 +18,8 @@ export default defineConfig({
     },
   },
   plugins: [react(), tailwindcss()],
+  server: {
+    // the API is on the same origin as the page (under /api), also while developing: the session cookie needs it
+    proxy: { '/api': process.env.VITE_API_URL ?? 'http://localhost:8000' },
+  },
 })

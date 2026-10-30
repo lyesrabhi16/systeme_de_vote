@@ -5,36 +5,36 @@ import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 
 export const AuthRequiredRoutes = () => {
-  const { user, token } = useGlobalStore();
+  const { user } = useGlobalStore();
   const navigate = useNavigate();
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (user === null || token === null) {
-      //console.log('not authenticated redirecting to login', user, token);
+    if (user === null) {
+      //console.log('not authenticated redirecting to login', user);
       navigate(routes.LOGIN, { replace: true });
     } else {
-      //console.log('authenticated proceeding to protected route', user, token);
+      //console.log('authenticated proceeding to protected route', user);
     }
-  }, [user, token]);
+  }, [user]);
 
   // Render children if authenticated
   return <Outlet />;
 };
 
 export const AdminOnlyRoutes = () => {
-  const { user, token } = useGlobalStore();
+  const { user } = useGlobalStore();
   const navigate = useNavigate();
 
   // Redirect to Not Allowed Page if not admin
   useEffect(() => {
-    if (user === null || token === null || !user.is_admin) {
-      //console.log('not authorized redirecting to not allowed page', user, token);
+    if (user === null || !user.is_admin) {
+      //console.log('not authorized redirecting to not allowed page', user);
       navigate(routes.NOT_ALLOWED, { replace: true });
     } else {
-      //console.log('authorized proceeding to admin route', user, token);
+      //console.log('authorized proceeding to admin route', user);
     }
-  }, [user, token]);
+  }, [user]);
 
   // Render children if authorized
   return <Outlet />;
@@ -43,22 +43,21 @@ export const AdminOnlyRoutes = () => {
 export const WithAuthorityOnlyRoutes = (props: {
   requiredAuthority: UserCreationModelAuthorityEnum;
 }) => {
-  const { user, token } = useGlobalStore();
+  const { user } = useGlobalStore();
   const navigate = useNavigate();
 
   // Redirect to Not Allowed Page if not admin
   useEffect(() => {
     if (
       user === null ||
-      token === null ||
       user.authority !== props.requiredAuthority
     ) {
-      //console.log('not authorized redirecting to not allowed page', user, token);
+      //console.log('not authorized redirecting to not allowed page', user);
       navigate(routes.NOT_ALLOWED, { replace: true });
     } else {
-      //console.log('authorized proceeding to admin route', user, token);
+      //console.log('authorized proceeding to admin route', user);
     }
-  }, [user, token]);
+  }, [user]);
 
   // Render children if authorized
   return <Outlet />;

@@ -1,4 +1,4 @@
-import apiClient from '@/api/client';
+import apiClient, { ERROR_CODES } from '@/api/client';
 import type {
   Candidate,
   FullVoteResponseModel,
@@ -97,6 +97,15 @@ const EditableComponent = (props: {
     );
   }
   return <>{props.children}</>;
+};
+
+const CAST_ERRORS: Record<string, string> = {
+  [ERROR_CODES.ALREADY_VOTED]: 'Vous avez déjà voté dans cette élection.',
+  [ERROR_CODES.VOTE_FINISHED]: 'Cette élection est terminée.',
+  [ERROR_CODES.VOTE_NOT_STARTED]: "Cette élection n'est pas encore ouverte.",
+  [ERROR_CODES.NOT_ELIGIBLE]: "Vous n'êtes pas inscrit sur la liste électorale de cette élection.",
+  [ERROR_CODES.INVALID_BALLOT]: "Votre bulletin n'a pas pu être validé. Rechargez la page et réessayez.",
+  default: "Une erreur est survenue lors de l'enregistrement de votre vote. Veuillez réessayer.",
 };
 
 const VotingCard = (props: {
@@ -436,7 +445,11 @@ const VotingCard = (props: {
               description: data.description,
               start_date: start_date_utc.toISOString(),
               end_date: end_date_utc.toISOString(),
-              candidates: data.candidates as any,
+              candidates: data.candidates.map((c) => ({
+                ...c,
+                first_name: c.first_name ?? '',
+                last_name: c.last_name ?? '',
+              })),
               open_to_all: data.open_to_all,
               attributed_user_ids: participants.map((p) => p.id),
               excluded_user_ids: excludedUsers.map((u) => u.id),
@@ -449,7 +462,7 @@ const VotingCard = (props: {
                   toast.success('Vote mis à jour avec succès', {
                     id: 'vote_updated',
                   });
-                  setVote((_p) => ({
+                  setVote(() => ({
                     ...res.data,
                   }));
                   //console.log('Vote updated:', res.data);
@@ -464,7 +477,7 @@ const VotingCard = (props: {
               console.log('Creating vote with data:', voteData);
               apiClient()
                 .vote.createVote(voteData)
-                .then((_res) => {
+                .then(() => {
                   toast.success('Vote Créé avec succès', {
                     id: 'vote_created',
                   });
@@ -478,7 +491,7 @@ const VotingCard = (props: {
                 });
             }
           },
-          (_errors) => {
+          () => {
             updateFormFieldStates();
             toast.error('Corriger les erreurs dans le formulaire du vote', {
               id: 'form_validation_error',
@@ -721,13 +734,13 @@ const VotingCard = (props: {
                         form
                           .getValues('candidates')
                           .map((cand) =>
-                            cand === candidate ? (c as any) : cand,
+                            cand === candidate ? (c as Candidate) : cand,
                           ),
                       );
                       setVote((p) => ({
                         ...p,
                         candidates: p.candidates.map((cand) =>
-                          cand === candidate ? (c as any) : cand,
+                          cand === candidate ? (c as Candidate) : cand,
                         ),
                       }));
                       updateFormFieldStates();
@@ -1060,7 +1073,7 @@ const VotingCard = (props: {
                     if (selectedCandidate === null) return;
                     setIsVotingDisabled((p) => ({ ...p, value: true }));
                     castVote(
-                      vote.vote.vote as any,
+                      vote.vote.vote,
                       vote.candidates,
                       selectedCandidate.id as number,
                     )
@@ -1072,15 +1085,15 @@ const VotingCard = (props: {
                         setBulletinCode(r.data.unique_code);
                         setShowVoteCastingResult(true);
                       })
-                      .catch((err: Error) => {
+                      .catch((err) => {
                         console.error('Error while voting:', err);
-                        toast.error(
-                          "Une erreur est survenue lors de l'enregistrement de votre vote. Veuillez réessayer.",
-                          {
-                            id: 'vote_cast_error',
-                          },
-                        );
-                        setIsVotingDisabled((p) => ({ ...p, value: false }));
+                        const code = err?.response?.data?.detail?.code;
+                        toast.error(CAST_ERRORS[code] ?? CAST_ERRORS.default, {
+                          id: 'vote_cast_error',
+                        });
+                        // the vote is not (or no longer) possible after these ones: the button stays off
+                        const final = [ERROR_CODES.ALREADY_VOTED, ERROR_CODES.VOTE_FINISHED, ERROR_CODES.VOTE_NOT_STARTED, ERROR_CODES.NOT_ELIGIBLE];
+                        setIsVotingDisabled((p) => ({ ...p, value: final.includes(code) }));
                       });
                   }}
                 >

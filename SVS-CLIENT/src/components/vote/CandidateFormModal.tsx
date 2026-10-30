@@ -51,7 +51,7 @@ export default function CandidateFormModal({
     }
   };
 
-  const handleError = (_errors: any) => {
+  const handleError = () => {
     //console.log('Form errors:', errors);
     toast.error('Corriger les erreurs dans le formulaire', {
       id: 'form_validation_error',

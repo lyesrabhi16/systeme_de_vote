@@ -73,7 +73,7 @@ export const useAuthActions = (init_data?: {
                 }
                 );
             })
-            .catch((_err) => {
+            .catch(() => {
                 //console.log('Login OTP verification step failed:', err);
                 toast.error("Echec de l'authentification : code OTP invalide", {
                     id: 'otp_verification_failed',
@@ -85,7 +85,7 @@ export const useAuthActions = (init_data?: {
             .resend_otp_email({
                 id: data.id,
             })
-            .then((_res) => {
+            .then(() => {
                 //console.log('otp email resent: ', res);
                 toast.success('Code OTP renvoyé avec succès par e-mail', {
                     id: 'otp_resent_success',

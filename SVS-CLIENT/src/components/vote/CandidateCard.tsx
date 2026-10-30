@@ -111,7 +111,7 @@ const CandidateCard = (props: {
             props.onUpdated(updatedCandidate as Candidate);
           }
         }}
-        initialData={{ ...candidate } as any}
+        initialData={{ ...candidate, photo_url: candidate.photo_url ?? undefined }}
       />
 
       <CardHeader className='w-full p-0'>
