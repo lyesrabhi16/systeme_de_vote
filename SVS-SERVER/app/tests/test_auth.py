@@ -7,7 +7,7 @@ import pytest
 from helpers import PASSWORD, bearer, make_user
 from loguru import logger
 
-from app.models.user import SuccessfulUserLoginResponseModel
+from app.models.user import SuccessfulUserLoginResponseModel, User
 from app.utils import auth_utils, rate_limit
 
 
@@ -245,7 +245,9 @@ class TestPasswordReset:
         return query["uid"], query["otp"]
 
     async def test_a_reset_link_lets_somebody_choose_a_new_password(self, client, outbox):
-        await make_user("ada")
+        ada = await make_user("ada")
+        ada.requested_password_reset = True  # an administrator asked for it
+        await ada.save()
         uid, otp = await self.request_reset(client, outbox)
         done = await client.post(
             "/api/auth/password-reset/validate", json={"id": uid, "otp": otp, "password": "a brand new one"}
@@ -253,6 +255,7 @@ class TestPasswordReset:
         assert done.status_code == 200
         assert (await password_step(client, password="a brand new one")).status_code == 200
         assert (await password_step(client, password=PASSWORD)).status_code == 401
+        assert (await User.get_user_by_id(ada.id)).requested_password_reset is False
 
     async def test_the_answer_is_the_same_for_an_address_nobody_has(self, client, outbox):
         await make_user("ada")

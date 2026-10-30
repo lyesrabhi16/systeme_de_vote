@@ -215,6 +215,7 @@ async def validate_password_reset_otp(data: PasswordResetOTPModel, request: Requ
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
 
     user.password = auth_utils.hash_string(data.password)
+    user.requested_password_reset = False  # an account an administrator made, or asked to reset, is now settled
     await user.save()
     logger.info(f"Password reset for user {user.id}")
     return response_models.MessageResponse(message=Messages.PASSWORD_RESET_SUCCESS)
