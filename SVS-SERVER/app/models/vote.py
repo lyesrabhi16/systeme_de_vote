@@ -138,7 +138,8 @@ class Vote(SQLModel, table=True):
         bulletin = Bulletin(
             vote_id=self.id,
             content=content,
-            date=utcnow(),
+            # the bulletin board is public: to the hour, not the second, so that it cannot be matched with an access log or an email
+            date=utcnow().replace(minute=0, second=0, microsecond=0),
             unique_code=auth_utils.generate_unique_code(),
         )
         db.add(bulletin)

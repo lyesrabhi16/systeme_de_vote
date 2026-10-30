@@ -55,6 +55,7 @@ class TestCasting:
         assert "vote_content" not in mail  # what was sent is not in the email
         (stored,) = await bulletins_of(vote.id)
         assert stored.unique_code == code
+        assert (stored.date.minute, stored.date.second, stored.date.microsecond) == (0, 0, 0)  # public: to the hour only
         # the board is public, and does not say whose ballot it is
         board = await client.get(f"/api/vote/bulletins/{vote.id}/")
         assert [b["unique_code"] for b in board.json()["data"]] == [code]
