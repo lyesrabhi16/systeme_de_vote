@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class Messages(str, Enum):
+class Messages(StrEnum):
     LOGOUT_SUCCESS = "Logout successful"
     LOGIN_SUCCESS = "Login successful"
     OTP_RESENT_SUCCESS = "OTP resent successfully"

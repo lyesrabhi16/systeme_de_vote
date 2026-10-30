@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class JWT_DATA(BaseModel):
@@ -41,4 +41,4 @@ class PasswordResetRequestModel(BaseModel):
 class PasswordResetOTPModel(BaseModel):
     id: str
     otp: str
-    password: str
+    password: str = Field(min_length=8, max_length=128)

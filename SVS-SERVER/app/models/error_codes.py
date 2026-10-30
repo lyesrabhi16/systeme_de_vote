@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from enum import Enum
+
+from pydantic import BaseModel
 
 
 class ErrorCodeModel(BaseModel):
@@ -119,4 +120,20 @@ class ERROR_CODES(dict, Enum):
     VOTE_STARTED_CANNOT_DELETE = ErrorCodeModel(
         code="VOTE_STARTED_CANNOT_DELETE",
         message="Vote has already started and cannot be deleted",
+    )
+    VOTE_NOT_STARTED = ErrorCodeModel(
+        code="VOTE_NOT_STARTED",
+        message="Vote has not started yet",
+    )
+    VOTE_NOT_FINISHED = ErrorCodeModel(
+        code="VOTE_NOT_FINISHED",
+        message="Vote is not finished yet",
+    )
+    NOT_ELIGIBLE = ErrorCodeModel(
+        code="NOT_ELIGIBLE",
+        message="User is not allowed to vote on this vote",
+    )
+    INVALID_CANDIDATE = ErrorCodeModel(
+        code="INVALID_CANDIDATE",
+        message="This is not a candidate of this vote",
     )

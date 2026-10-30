@@ -1,29 +1,36 @@
-from typing import Optional
-from fastapi import APIRouter, HTTPException, Request, Response, Depends
-from app.models.user_login_model import UserLoginModel
-from app.models.user import (
-    CurrentUserResponseModel,
-    User,
-    SuccessfulUserLoginResponseModel,
-)
-from app.utils import auth_utils, smtp_utils
-from app.config.env import env, ENV_MODES
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from loguru import logger
+
+from app.config.env import ENV_MODES, env
+from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
+from app.models import response_models
 from app.models.auth_models import (
     JWT_DATA,
+    OTPResendRequestModel,
+    OTPVerificationModel,
     PasswordResetOTPModel,
+    PasswordResetRequestModel,
     TokenInput,
     TokenResponse,
-    OTPVerificationModel,
-    OTPResendRequestModel,
-    PasswordResetRequestModel,
 )
-from loguru import logger
-from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.models.error_codes import ERROR_CODES
 from app.models.messages import Messages
-from app.models import response_models
+from app.models.user import (
+    CurrentUserResponseModel,
+    SuccessfulUserLoginResponseModel,
+    User,
+)
+from app.models.user_login_model import UserLoginModel
+from app.utils import auth_utils, rate_limit, smtp_utils
 
 router = APIRouter()
+
+WINDOW = 15 * 60  # seconds: how long a failure is remembered
+LOGIN_FAILURES = 5  # per account, in the window
+LOGIN_FAILURES_PER_ADDRESS = 30
+OTP_FAILURES_PER_ADDRESS = 20
+EMAILS_PER_ACCOUNT = 3  # one-time passwords or reset links a person can ask for, in the window
+EMAILS_PER_ADDRESS = 10
 
 
 @router.post(
@@ -32,17 +39,16 @@ router = APIRouter()
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="login",
 )
-async def login(data: UserLoginModel, response: Response):
+async def login(data: UserLoginModel, request: Request, response: Response):
+    await rate_limit.ensure_below(request, "login", data.identifier, LOGIN_FAILURES, LOGIN_FAILURES_PER_ADDRESS)
     # check credentials
     user = await UserLoginModel.authenticate(
         identifier=data.identifier,
         password=data.password,
         identifier_type=data.identifier_type,
     )
-    logger.debug(
-        f"Login attempt for user: {data.identifier} using {data.identifier_type}, Success: {user is not None}"
-    )
-    if not user:
+    if not user or user.id is None:
+        await rate_limit.count_attempt(request, "login", data.identifier, WINDOW)
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_CREDENTIALS)
     # generate OTP
     otp = await auth_utils.create_otp(user.id)
@@ -62,18 +68,23 @@ async def login(data: UserLoginModel, response: Response):
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="verifyOTP",
 )
-async def verify_otp(data: OTPVerificationModel, response: Response):
-    user_email = auth_utils.decrypt_string(
-        await auth_utils.retrieve_string_from_temp_url_safe_string(data.id)
-    )
+async def verify_otp(data: OTPVerificationModel, request: Request, response: Response):
+    await rate_limit.ensure_below(request, "otp", None, 0, OTP_FAILURES_PER_ADDRESS)
+    user_email = auth_utils.decrypt_string(await auth_utils.retrieve_string_from_temp_url_safe_string(data.id))
     user = await UserLoginModel.get_user_by_email(user_email)
-    if not user:
+    if not user or user.id is None:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
-    if not await auth_utils.verify_otp(user.id, data.otp):
+    try:
+        verified = await auth_utils.verify_otp(user.id, data.otp)
+    except HTTPException:
+        await rate_limit.count_attempt(request, "otp", None, WINDOW)
+        raise
+    if not verified:
+        await rate_limit.count_attempt(request, "otp", None, WINDOW)
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_OTP)
 
     # generate token
-    if not user.is_active or (user.id is None):
+    if not user.is_active:
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
     token = auth_utils.generate_token(
         JWT_DATA(id=user.id),
@@ -99,16 +110,16 @@ async def verify_otp(data: OTPVerificationModel, response: Response):
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireUnauthenticated)],
     operation_id="resend_otp",
 )
-async def resend_otp(data: OTPResendRequestModel):
+async def resend_otp(data: OTPResendRequestModel, request: Request):
     """Resend OTP to user email"""
-    user_email = auth_utils.decrypt_string(
-        await auth_utils.retrieve_string_from_temp_url_safe_string(data.id)
-    )
+    user_email = auth_utils.decrypt_string(await auth_utils.retrieve_string_from_temp_url_safe_string(data.id))
+    await rate_limit.ensure_below(request, "resend", user_email, EMAILS_PER_ACCOUNT, EMAILS_PER_ADDRESS)
     user: User | None = await UserLoginModel.get_user_by_email(user_email)
     if user is None:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
     if user.id is None:
         raise HTTPException(status_code=500, detail=ERROR_CODES.INTERNAL_SERVER_ERROR)
+    await rate_limit.count_attempt(request, "resend", user_email, WINDOW)
     # destroy previous OTPs
     await auth_utils.remove_otp(user.id)
     # create new OTP and re-send email
@@ -136,10 +147,12 @@ async def logout(response: Response):
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthenticated)],
     operation_id="get_current_user",
 )
-async def get_current_user(request: Request, data: Optional[TokenInput]):
+async def get_current_user(request: Request, data: TokenInput | None = None):
     """Get the current user information"""
 
-    token = data.token if data else request.state.token
+    token = (
+        data.token if data and data.token else request.state.token
+    )  # the one in the body, else the cookie or the header
     user: User | None = await UserLoginModel.get_current_user(token)
     if user is None:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
@@ -153,16 +166,20 @@ async def get_current_user(request: Request, data: Optional[TokenInput]):
     operation_id="password_reset_request",
     response_model=response_models.MessageResponse,
 )
-async def password_reset_request(data: PasswordResetRequestModel):
-    """Request password reset by sending OTP to user email"""
+async def password_reset_request(data: PasswordResetRequestModel, request: Request):
+    """
+    Request password reset by sending OTP to user email.
+    The answer is the same whether the address belongs to somebody or not, so that it cannot be used to find out who has an account.
+    """
     user_email = data.email
+    await rate_limit.ensure_below(request, "reset", user_email, EMAILS_PER_ACCOUNT, EMAILS_PER_ADDRESS)
+    await rate_limit.count_attempt(request, "reset", user_email, WINDOW)
     user: User | None = await UserLoginModel.get_user_by_email(user_email)
-    if user is not None:
-
+    if user is not None and user.id is not None:
         # destroy previous OTPs
-        await auth_utils.remove_otp(user.id)
-        # create new OTP and re-send email
-        otp = await auth_utils.create_otp(user.id)
+        await auth_utils.remove_otp(user.id, "reset")
+        # create new OTP and send the email
+        otp = await auth_utils.create_otp(user.id, "reset")
         encrypted_email = auth_utils.encrypt_string(user.email)
 
         url = f"{env.FRONTEND_URL}/reset-password?uid={await auth_utils.generate_temp_url_safe_string(encrypted_email)}&otp={otp}"
@@ -178,20 +195,26 @@ async def password_reset_request(data: PasswordResetRequestModel):
     response_model=response_models.MessageResponse,
     operation_id="validate_password_reset",
 )
-async def validate_password_reset_otp(data: PasswordResetOTPModel, response: Response):
-    url_safe_string = await auth_utils.retrieve_string_from_temp_url_safe_string(
-        data.id
-    )
+async def validate_password_reset_otp(data: PasswordResetOTPModel, request: Request, response: Response):
+    await rate_limit.ensure_below(request, "otp", None, 0, OTP_FAILURES_PER_ADDRESS)
+    url_safe_string = await auth_utils.retrieve_string_from_temp_url_safe_string(data.id)
     user_email = auth_utils.decrypt_string(url_safe_string)
     user: User | None = await UserLoginModel.get_user_by_email(user_email)
-    if not user:
+    if not user or user.id is None:
         raise HTTPException(status_code=404, detail=ERROR_CODES.USER_NOT_FOUND)
-    if not await auth_utils.verify_otp(user.id, data.otp):
+    try:
+        verified = await auth_utils.verify_otp(user.id, data.otp, "reset")
+    except HTTPException:
+        await rate_limit.count_attempt(request, "otp", None, WINDOW)
+        raise
+    if not verified:
+        await rate_limit.count_attempt(request, "otp", None, WINDOW)
         raise HTTPException(status_code=401, detail=ERROR_CODES.INVALID_OTP)
 
-    if not user.is_active or (user.id is None):
+    if not user.is_active:
         raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
 
     user.password = auth_utils.hash_string(data.password)
     await user.save()
+    logger.info(f"Password reset for user {user.id}")
     return response_models.MessageResponse(message=Messages.PASSWORD_RESET_SUCCESS)

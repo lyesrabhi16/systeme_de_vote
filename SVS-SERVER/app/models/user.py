@@ -250,8 +250,12 @@ class SuccessfulUserLoginResponseModel(BaseModel):
 
     @staticmethod
     def mask_email(email: str) -> str:
-        """Mask the email address for privacy."""
-        local_part, domain = email.split("@")
-        masked_local = local_part[0] + "*" * (len(local_part) - 2) + local_part[-1]
-        masked_domain = domain[0] + "*" * (len(domain) - 2) + domain[-1]
-        return f"{masked_local}@{masked_domain}"
+        """Mask the email address for privacy ("a***e@e*****e.com")."""
+
+        def mask(part: str) -> str:
+            if len(part) <= 2:
+                return part[:1] + "*" * (len(part) - 1)
+            return part[0] + "*" * (len(part) - 2) + part[-1]
+
+        local_part, _, domain = email.rpartition("@")
+        return f"{mask(local_part)}@{mask(domain)}"
