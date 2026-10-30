@@ -28,7 +28,7 @@ const PasswordResetRequestCard = () => {
     },
   });
   return (
-    <Card className='w-full max-w-sm'>
+    <Card className='w-full max-w-md border-0 bg-transparent shadow-none sm:border sm:bg-card sm:shadow-sm'>
       <CardHeader>
         <CardTitle> Réinitialiser Votre Mot de Passe </CardTitle>
         <CardDescription>

@@ -75,9 +75,9 @@ const VerifyOTPCard = (props: { id: string }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Verifier le code OTP</CardTitle>
+        <CardTitle>Vérifier le code</CardTitle>
         <CardDescription>
-          Entrez le code à 6 chiffres envoyé à votre e-mail :{' '}
+          Entrez le code à 6 caractères (lettres et chiffres) envoyé à votre e-mail :{' '}
           <p className='text-primary font-medium block text-center mt-2'>
             {maskedEmail}
           </p>
@@ -119,7 +119,7 @@ const VerifyOTPCard = (props: { id: string }) => {
 
           <div className='flex flex-col items-center justify-between mt-4'>
             <Button type='submit' ref={submitButton}>
-              Verifier
+              Vérifier
             </Button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+import AuthLayout from '@/components/auth/AuthLayout';
 import LoginCard from '@/components/auth/LoginCard';
 import useAuth from '@/hooks/useAuth';
 import { useNavigate } from 'react-router';
@@ -14,9 +15,9 @@ const LoginPage = () => {
   }, [auth]);
 
   return (
-    <div className='w-full flex min-h-screen items-center justify-center'>
+    <AuthLayout>
       <LoginCard />
-    </div>
+    </AuthLayout>
   );
 };
 
