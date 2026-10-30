@@ -13,6 +13,7 @@ def production(**overrides):
         "ENCRYPTION_KEY": Fernet.generate_key().decode(),
         "ALLOWED_ORIGINS": "https://vote.example.org",
         "SMTP_HOST": "smtp.example.org",
+        "SMTP_SENDER_EMAIL": "vote@example.org",
         **overrides,
     }
 
@@ -36,6 +37,7 @@ class TestProduction:
             ({"ALLOWED_ORIGINS": "https://a.example, *"}, "ALLOWED_ORIGINS"),
             ({"ALLOWED_ORIGINS": ""}, "ALLOWED_ORIGINS"),
             ({"SMTP_HOST": ""}, "SMTP_HOST is not set"),
+            ({"SMTP_SENDER_EMAIL": ""}, "SMTP_SENDER_EMAIL is not set"),
         ],
     )
     def test_refuses_what_would_leave_it_unprotected(self, overrides, mentions):

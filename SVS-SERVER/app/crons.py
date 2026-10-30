@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlalchemy.future import select
 from loguru import logger
 from fastapi import FastAPI
-from app.utils.db_utils import get_async_redis_connection
+from app.utils.db_utils import get_redis_connection
 
 
 class CronsInstance:
@@ -78,7 +78,7 @@ class CronsInstance:
 
 async def start_crons(app: FastAPI):
     logger.info("Starting cron jobs...")
-    redis = await get_async_redis_connection()
+    redis = await get_redis_connection()
     redis_state_backend = RedisStateBackend(redis_client=redis)
     crons_instance = CronsInstance(app=app, state_backend=redis_state_backend)
     crons_instance.register_cron_jobs()

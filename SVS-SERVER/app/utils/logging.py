@@ -1,8 +1,10 @@
-from loguru import logger
+import logging
 import sys
 from pathlib import Path
-from app.config.env import env, ENV_MODES
-import logging
+
+from loguru import logger
+
+from app.config.env import ENV_MODES, env
 
 
 def setup_logging():
@@ -88,9 +90,7 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 def intercept_standard_logging():
@@ -106,10 +106,11 @@ def intercept_standard_logging():
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
 
-    # Intercept uvicorn loggers
-    logging.getLogger("uvicorn").handlers = [InterceptHandler()]
-    logging.getLogger("uvicorn.access").handlers = [InterceptHandler()]
-    logging.getLogger("uvicorn.error").handlers = [InterceptHandler()]
+    # Intercept uvicorn loggers (and do not hand their records to the root logger too: each line would be written twice)
+    for name in ("uvicorn", "uvicorn.access", "uvicorn.error"):
+        uvicorn_logger = logging.getLogger(name)
+        uvicorn_logger.handlers = [InterceptHandler()]
+        uvicorn_logger.propagate = False
 
     # Silence uvicorn's file watcher logs
     logging.getLogger("watchfiles").setLevel(logging.WARNING)

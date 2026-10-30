@@ -269,6 +269,8 @@ class _ENV(BaseModel):
 
         if production and not self.SMTP_HOST:
             problems.append("SMTP_HOST is not set (the one-time passwords are sent by email)")
+        if production and not self.SMTP_SENDER_EMAIL:
+            problems.append("SMTP_SENDER_EMAIL is not set")
 
         if production and ("*" in self.ALLOWED_ORIGINS or not self.ALLOWED_ORIGINS):
             problems.append(
