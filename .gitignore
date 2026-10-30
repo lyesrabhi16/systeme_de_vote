@@ -155,3 +155,10 @@ data
 *.db
 *.db-journal
 *.db*
+# Build output: the client is built into SVS-CLIENT/dist, then copied to SVS-SERVER/app/dist (make deploy, or the Dockerfile)
+SVS-CLIENT/dist/
+SVS-SERVER/app/dist/
+
+# virtual environments, editor caches
+.venv/
+.vscode/
