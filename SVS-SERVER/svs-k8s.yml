@@ -58,8 +58,10 @@ metadata:
   name: svs-config
   namespace: svs
 data:
-  # Add key=value from your compose.env
-  EXAMPLE_VAR: "value"
+  # What is not secret (see .env.example for all of them; in production the application refuses to start without the secrets).
+  ENV_MODE: "production"
+  DB_HOST: "svs-db"
+  REDIS_HOST: "svs-redis"
 
 ---
 # ==========================================
@@ -82,9 +84,14 @@ spec:
     spec:
       containers:
         - name: svs-server
-          image: svs-server:latest # built inside Minikube
+          # built from the root of the repository (the Dockerfile builds the web client and the API together):
+          #   minikube image build -t svs-server:latest .
+          image: svs-server:latest
           imagePullPolicy: Never
-          command: ["make", "run-production"]
+          # the image starts uvicorn by itself. Behind Traefik (the only way in), the visitor's address is read from X-Forwarded-For:
+          env:
+            - name: FORWARDED_ALLOW_IPS
+              value: "*"
           envFrom:
             - configMapRef:
                 name: svs-config

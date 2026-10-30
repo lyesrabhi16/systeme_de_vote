@@ -68,6 +68,7 @@ web_modules/
 # dotenv environment variable files
 .env
 .env.*
+!.env.example
 *.env
 !.env.example
 !.env.*.example
@@ -162,3 +163,5 @@ SVS-SERVER/app/dist/
 # virtual environments, editor caches
 .venv/
 .vscode/
+
+.ruff_cache/
