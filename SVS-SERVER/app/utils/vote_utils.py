@@ -11,13 +11,14 @@ from loguru import logger
 from app.models.vote import Vote
 from app.models.candidate import Candidate
 from phe import paillier
+from app.config.env import env
 from app.models.voting_models import VoteCastContentModel
 
 
 # --- Paillier Key Generation ---
 def gen_encryption_key_pair():  # -> dict[str, Any]:
     """Generate a Paillier public/private key pair."""
-    public_key, private_key = paillier.generate_paillier_keypair(n_length=2048)
+    public_key, private_key = paillier.generate_paillier_keypair(n_length=env.PAILLIER_KEY_BITS)
     return {
         "PUBLIC_KEY": json.dumps({"n": str(public_key.n), "g": str(public_key.g)}),
         "PRIVATE_KEY": json.dumps({"p": str(private_key.p), "q": str(private_key.q)}),

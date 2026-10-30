@@ -37,7 +37,7 @@ build-client: ## Build the SVS-CLIENT application.
 
 deploy: update-requirements build-client ## Deploy the built SVS-CLIENT application to the server's app directory.
 	@echo "Deploying application..."
-	@cp -r ../SVS-CLIENT/dist ./app/
+	@rm -rf ./app/dist && cp -r ../SVS-CLIENT/dist ./app/dist
 	@echo "Recreating Docker containers..."
 	@docker compose -f docker-compose.yml down
 	@docker compose -f docker-compose.yml up -d --build
