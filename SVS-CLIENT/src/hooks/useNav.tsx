@@ -43,16 +43,16 @@ export const useNav: (props?: { admin?: boolean }) => {
 } = (props?: { admin?: boolean }) => {
   const { user } = useGlobalStore();
   const _navItems = [
-    { label: 'Home', links: [routes.HOME], hidden: false },
-    { label: 'About', links: [routes.ABOUT], hidden: false },
+    { label: 'Accueil', links: [routes.HOME], hidden: false },
+    { label: 'À propos', links: [routes.ABOUT], hidden: false },
     { label: 'Contact', links: [routes.CONTACT], hidden: false },
-    { label: 'Vote', links: [routes.VOTE], hidden: true },
+    { label: 'Élection', links: [routes.VOTE], hidden: true },
   ];
 
   const AdminNavItems = [
-    { label: 'Dashboard', links: [routes.ADMIN], hidden: false },
+    { label: 'Tableau de bord', links: [routes.ADMIN], hidden: false },
     {
-      label: 'Users',
+      label: 'Utilisateurs',
       links: [
         routes.PICK_USERS_ADMINISTRATION,
         routes.USERS_ADMINISTRATION,
@@ -61,7 +61,7 @@ export const useNav: (props?: { admin?: boolean }) => {
       hidden: user?.authority !== UserCreationModelAuthorityEnum.Inscription,
     },
     {
-      label: 'Votes',
+      label: 'Élections',
       links: [routes.VOTES_ADMINISTRATION, routes.VOTE_ADMINISTRATION],
       hidden: user?.authority !== UserCreationModelAuthorityEnum.Vote,
     },

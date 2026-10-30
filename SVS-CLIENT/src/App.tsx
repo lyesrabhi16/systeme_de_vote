@@ -11,7 +11,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppWrapper />;
+      <AppWrapper />
     </QueryClientProvider>
   );
 }

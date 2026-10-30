@@ -2,80 +2,85 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { LucideMenu, LucideX } from 'lucide-react';
 import { Link } from 'react-router';
-import logo from '/logo.png';
 import { Button } from '@/components/ui/button';
 import { useNav } from '@/hooks/useNav';
+import { cn } from '@/lib/utils';
+import Brand from '@/components/nav/Brand';
 
+/** The links of the site: a row on a wide screen, a drawer on a narrow one. */
 const NavMenu = (props: { admin?: boolean }) => {
-  const { navItems: menuItems, currentNavItem } = useNav({
-    admin: props.admin,
-  });
+  const { navItems, currentNavItem } = useNav({ admin: props.admin });
+  const items = navItems.filter((item) => !item.hidden);
+  const isCurrent = (item: (typeof navItems)[number]) =>
+    currentNavItem?.links[0] === item.links[0];
 
   return (
-    <div>
-      <div className='block sm:hidden'>
+    <>
+      <div className='order-1 md:hidden'>
         <Drawer direction='left'>
           <DrawerTrigger asChild>
-            <LucideMenu className='w-6 h-6' />
+            <Button variant='ghost' size='icon' aria-label='Ouvrir le menu'>
+              <LucideMenu />
+            </Button>
           </DrawerTrigger>
-
           <DrawerContent>
-            <DrawerTitle className='flex flex-col flex-nowrap justify-center items-center'>
-              <img src={logo} alt='logo' className='w-16 h-16 mt-2' />
-              <div className='font-bold w-full font-monospace text-lg mb-4 p-2 flex flex-row justify-between items-center'>
-                <p>Menu</p>
-                <DrawerClose>
-                  <Button variant='ghost' className='p-0 hover:bg-destructive'>
-                    <span className='sr-only'>Close</span>
-                    <LucideX className='w-6 h-6' />
-                  </Button>
-                </DrawerClose>
-              </div>
-            </DrawerTitle>
-            <div className='flex flex-col gap-4 p-4'>
-              {menuItems.map((item) => (
-                <Link
-                  key={item.links[0]}
-                  to={item.links[0]}
-                  className='text-sm font-medium hover:underline'
-                  hidden={item.hidden}
-                >
-                  <Button
-                    variant='ghost'
-                    className={`w-full justify-start ${
-                      currentNavItem?.links[0] === item.links[0]
-                        ? 'bg-primary text-primary-foreground'
-                        : ''
-                    }`}
+            <div className='flex items-center justify-between p-4'>
+              <DrawerTitle asChild>
+                <Brand admin={props.admin} />
+              </DrawerTitle>
+              <DrawerDescription className='sr-only'>
+                Navigation
+              </DrawerDescription>
+              <DrawerClose asChild>
+                <Button variant='ghost' size='icon' aria-label='Fermer'>
+                  <LucideX />
+                </Button>
+              </DrawerClose>
+            </div>
+            <nav className='flex flex-col gap-1 p-4' aria-label='Navigation'>
+              {items.map((item) => (
+                <DrawerClose asChild key={item.links[0]}>
+                  <Link
+                    to={item.links[0]}
+                    aria-current={isCurrent(item) ? 'page' : undefined}
+                    className={cn(
+                      'rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent',
+                      isCurrent(item) && 'bg-accent text-accent-foreground',
+                    )}
                   >
                     {item.label}
-                  </Button>
-                </Link>
+                  </Link>
+                </DrawerClose>
               ))}
-            </div>
+            </nav>
           </DrawerContent>
         </Drawer>
       </div>
-      <div className='hidden sm:flex flex-row gap-6'>
-        {menuItems.map((item) => (
+      <nav
+        className='order-3 hidden items-center gap-1 md:flex'
+        aria-label='Navigation'
+      >
+        {items.map((item) => (
           <Link
             key={item.links[0]}
             to={item.links[0]}
-            hidden={item.hidden}
-            className={`text-sm font-medium hover:underline ${
-              currentNavItem?.links[0] === item.links[0] ? 'text-primary' : ''
-            }`}
+            aria-current={isCurrent(item) ? 'page' : undefined}
+            className={cn(
+              'rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+              isCurrent(item) && 'bg-accent text-accent-foreground',
+            )}
           >
-            <Button variant='ghost'>{item.label}</Button>
+            {item.label}
           </Link>
         ))}
-      </div>
-    </div>
+      </nav>
+    </>
   );
 };
 

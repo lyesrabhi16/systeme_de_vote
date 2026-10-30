@@ -31,7 +31,7 @@ export const useBreadCrumbs = (props?: {
   const component = () => {
     //console.log('breadCrumbs:', breadCrumbs);
     return (
-      <Breadcrumb className='w-full px-4 py-2 text-muted-foreground rounded-md'>
+      <Breadcrumb className='w-full py-3 text-muted-foreground'>
         <BreadcrumbList>
           {breadCrumbs.map((item, index) => {
             //console.log(item);
