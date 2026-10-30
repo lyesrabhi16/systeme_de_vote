@@ -74,7 +74,6 @@ async def send_vote_cast_confirmation_email(
     to_email: list[NameEmail] | list[str],
     vote_title: str,
     vote_id: int,
-    vote_content: str,
     unique_code: str,
 ):
     """Send a vote cast confirmation email."""
@@ -88,7 +87,6 @@ async def send_vote_cast_confirmation_email(
         context={
             "VOTE_TITLE": vote_title,
             "VOTE_ID": vote_id,
-            "VOTE_CONTENT": vote_content,
             "UNIQUE_CODE": unique_code,
         },
     )

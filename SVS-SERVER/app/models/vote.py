@@ -1,9 +1,10 @@
 from typing import Any
-from pydantic.v1 import BaseModel
+from sqlalchemy import Text, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel, Field, Relationship
 from app.db.db import db_session
 from datetime import datetime
+from app.models.types import UTCDateTime, utcnow
 from app.models.user import User, UserResponseModel
 from app.models.voting_models import VoteCastData
 from loguru import logger
@@ -17,8 +18,8 @@ class Vote(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     title: str = Field(..., title="Titre", max_length=200)
     description: str = Field(..., title="Description", max_length=1000)
-    start_date: datetime = Field(..., title="Start Date")
-    end_date: datetime = Field(..., title="End Date")
+    start_date: datetime = Field(..., title="Start Date", sa_type=UTCDateTime)
+    end_date: datetime = Field(..., title="End Date", sa_type=UTCDateTime)
     public_key: str = Field(
         ...,
         title="Public Key",
@@ -42,14 +43,14 @@ class Vote(SQLModel, table=True):
     encrypted_tally: str | None = Field(
         default=None,
         title="Encrypted Tally",
-        max_length=20000,
-        description="Homomorphically encrypted tally of the votes",
+        sa_type=Text,
+        description="For each candidate, the product of the ciphertexts of the valid ballots (JSON): anyone can recompute it from the bulletin board",
     )
     tally_proof: str | None = Field(
         default=None,
         title="Tally Proof",
-        max_length=20000,
-        description="Zero-knowledge proof that the tally was computed correctly",
+        sa_type=Text,
+        description="For each candidate, the n-th root that proves the encrypted tally decrypts to the published count (JSON): anyone can check it with the public key",
     )
     creator_id: int = Field(..., title="Creator User ID", foreign_key="user.id")
 
@@ -65,8 +66,10 @@ class Vote(SQLModel, table=True):
             "cascade": "all, delete-orphan",
         },  # async safe
     )
+    # Not loaded with the election: a ballot weighs several kilobytes and every request that reads an election would carry them all.
+    # Query them (or count them) when they are needed; reading this raises.
     bulletins: list["Bulletin"] = Relationship(
-        back_populates="vote", sa_relationship_kwargs={"lazy": "selectin"}  # async safe
+        back_populates="vote", sa_relationship_kwargs={"lazy": "raise"}
     )
     attributed_users: list["AttributedVote"] = Relationship(
         back_populates="vote",
@@ -94,38 +97,55 @@ class Vote(SQLModel, table=True):
         await db.commit()
 
     @db_session
-    async def register_vote(
-        self, user: User, data: VoteCastData, db: AsyncSession | None = None
-    ):
-        """Vote on a vote."""
+    async def register_vote(self, user: User, data: VoteCastData, db: AsyncSession | None = None) -> str:
+        """
+        Records the ballot of a voter and that they have voted, in one transaction, and answers the receipt (the code of the bulletin).
+        The right to vote is taken with a single UPDATE that only succeeds if it has not been taken: two requests of the same voter
+        at the same time cannot both get it (the second waits for the first, then finds it taken), where "read the flag, then write it"
+        let both through. If anything fails the transaction is rolled back and the voter can try again.
+        """
         from app.models.attributed_votes import AttributedVote
         from app.models.bulletin import Bulletin
         from app.utils import auth_utils
 
         if db is None:
             raise ValueError("Database session is None")
+        taken = await db.execute(
+            update(AttributedVote)
+            .where(
+                AttributedVote.user_id == user.id,
+                AttributedVote.vote_id == self.id,
+                AttributedVote.user_has_voted == False,  # noqa: E712
+            )
+            .values(user_has_voted=True)
+        )
+        if taken.rowcount != 1:
+            logger.warning(f"User {user.id} has already voted on vote {self.id}, or may not.")
+            raise AlreadyVoted("User has already voted on this vote.")
+        content = data.model_dump_json()
+        # Every ballot is accepted only with proofs the voter could make because they know the randomness of the encryptions, so a ballot
+        # cannot be taken from the bulletin board and changed. It could still be sent again as it is, to count twice somebody else's vote.
+        copy = await db.execute(select(Bulletin.id).where(Bulletin.vote_id == self.id, Bulletin.content == content).limit(1))
+        if copy.first() is not None:
+            logger.warning(f"A ballot already on vote {self.id} was sent again")
+            raise DuplicateBallot("This ballot is already on the bulletin board.")
         bulletin = Bulletin(
             vote_id=self.id,
-            content=json.dumps(list(d.model_dump() for d in data.content)),
-            date=datetime.now(),
-            unique_code=auth_utils.generate_unique_code(),  # Generate a unique code for the bulletin
+            content=content,
+            date=utcnow(),
+            unique_code=auth_utils.generate_unique_code(),
         )
         db.add(bulletin)
-        av = await AttributedVote.get_by_ids(user_id=user.id, vote_id=self.id)
-        if av is None or av.user_has_voted:
-            logger.warning(f"User {user.username} has already voted on vote {self.id}.")
-            raise ValueError("User has already voted on this vote.")
-        if av:
-            av.user_has_voted = True
-            db.add(av)
         unique_code = bulletin.unique_code
         await db.commit()
-
-        logger.debug(f"User {user.username} voted on vote {self.id}")
+        logger.info(f"A ballot was cast on vote {self.id}")  # whose is not logged
         return unique_code
 
+    def has_started(self) -> bool:
+        return self.start_date <= utcnow()
+
     def is_vote_finished(self) -> bool:
-        return self.end_date < datetime.utcnow()
+        return self.end_date <= utcnow()
 
     @staticmethod
     @db_session
@@ -160,6 +180,14 @@ class Vote(SQLModel, table=True):
             p=int(decrypted_key_data["p"]),
             q=int(decrypted_key_data["q"]),
         )
+
+
+class AlreadyVoted(ValueError):
+    """The voter has already voted on this election (or is not on its electoral roll)."""
+
+
+class DuplicateBallot(ValueError):
+    """The same ballot, character for character, is already on the bulletin board."""
 
 
 class VoteResponseModel(SQLModel):

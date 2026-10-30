@@ -14,7 +14,7 @@ from app.utils import auth_utils, smtp_utils
 from app.db.db import get_db_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, func
-from datetime import datetime
+from app.models.types import utcnow
 from app.models.vote_util_models import FullVoteResponseModel
 from app.models.admin_util_models import DashboardResponseModel
 from app.utils.admin_utils import (
@@ -158,7 +158,7 @@ async def admin_vote_authority_dashboard(db: AsyncSession):
     # Upcoming votes
     upcoming_votes_stmt = (
         select(Vote)
-        .where(Vote.start_date > datetime.utcnow())
+        .where(Vote.start_date > utcnow())
         .order_by(Vote.start_date.asc())
         .limit(3)
     )
@@ -173,8 +173,8 @@ async def admin_vote_authority_dashboard(db: AsyncSession):
         select(Vote)
         .where(
             and_(
-                Vote.start_date <= datetime.utcnow(),
-                Vote.end_date >= datetime.utcnow(),
+                Vote.start_date <= utcnow(),
+                Vote.end_date >= utcnow(),
             )
         )
         .order_by(Vote.start_date.asc())
@@ -188,7 +188,7 @@ async def admin_vote_authority_dashboard(db: AsyncSession):
 
     last_finished_vote = (
         select(Vote)
-        .where(Vote.end_date < datetime.utcnow())
+        .where(Vote.end_date < utcnow())
         .order_by(Vote.end_date.desc())
         .limit(1)
     )

@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship, select
 from datetime import datetime
+from app.models.types import UTCDateTime, utcnow
 from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +14,7 @@ class AttributedVote(SQLModel, table=True):
         ondelete="CASCADE",
     )
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow, sa_type=UTCDateTime)
 
     user_has_voted: bool = Field(
         default=False, description="Indicates if the user has cast their vote"

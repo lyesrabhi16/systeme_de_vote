@@ -26,8 +26,8 @@ async def get_all_bulletins(
         page=page,
         per_page=per_page,
         search=search,
-        search_columns=["id", "vote_id", "date", "unique_code"],
-        sort_columns=["date"],
+        search_columns=["unique_code"],
+        sort_columns=["id"],
         sort_orders=["asc"],
         **optionals
     )

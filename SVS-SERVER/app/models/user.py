@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship, select
 from pydantic import BaseModel
 from app.db.db import db_session
+from app.models.types import UTCDateTime, utcnow
 from app.utils import auth_utils
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request
@@ -39,9 +40,7 @@ class User(SQLModel, table=True):
     requested_password_reset: bool = Field(
         default=False, title="Requested Password Reset"
     )
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.utcnow(), title="Created At"
-    )
+    created_at: datetime = Field(default_factory=utcnow, title="Created At", sa_type=UTCDateTime)
 
     # créer
     created_votes: list["Vote"] = Relationship(
@@ -101,7 +100,7 @@ class User(SQLModel, table=True):
         result = await db.execute(
             select(Bulletin).where(
                 Bulletin.vote_id == vote.id,
-                Bulletin.voting_token == token,
+                Bulletin.unique_code == token,
             )
         )
         bulletin = result.scalars().first()

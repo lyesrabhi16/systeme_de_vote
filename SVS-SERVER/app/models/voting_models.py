@@ -1,95 +1,98 @@
-from pydantic import BaseModel
+import hashlib
+from math import gcd
+
+from pydantic import BaseModel, Field
+
+# 128 bits of challenge: the soundness of the proofs, and the same constant in the web client (paillier_encryption_utils.ts)
+CHALLENGE_MASK = (1 << 128) - 1
+# a decimal number of at most 4096 bits squared: bigger is not an encryption under any key this project makes
+MAX_NUMBER_DIGITS = 5000
+# what the challenge is bound to, so that this proof cannot be taken for a proof of anything else
+PROOF_TAG = "svs-paillier-binary-proof-v1|"
+
+
+def fs_hash(values: list[int], n: int) -> int:
+    """
+    The Fiat–Shamir challenge: SHA-256 of a tag and of the numbers written in hexadecimal, each padded to the width of n²,
+    truncated to 128 bits. A fixed width keeps (c, a0, a1) from being cut differently into the same text.
+    The web client computes exactly the same thing (fsHash in paillier_encryption_utils.ts).
+    """
+    width = 2 * ((n.bit_length() + 3) // 4)
+    combined = PROOF_TAG + "".join(format(v, "x").zfill(width) for v in values)
+    return int(hashlib.sha256(combined.encode("utf-8")).hexdigest(), 16) & CHALLENGE_MASK
 
 
 class BinaryZKProofModel(BaseModel):
-    a0: str
-    a1: str
-    e0: str
-    e1: str
-    z0: str
-    z1: str
+    """
+    A non-interactive zero-knowledge proof (Cramer–Damgård–Schoenmakers OR proof, Fiat–Shamir) that a Paillier ciphertext
+    encrypts 0 or 1, without saying which. Numbers are decimal strings, because they do not fit a JSON number.
+    """
 
-    def _fs_hash(self, values: list[int], challenge_mask: int) -> int:
-        import hashlib
-
-        combined = ""
-        for v in values:
-            # v.toString(16) in JS is hex(v)[2:] in Python
-            # padStart(512, "0") ensures each number occupies 512 chars
-            hex_val = hex(v)[2:].lower().zfill(512)
-            combined += hex_val
-
-        # TextEncoder.encode() defaults to UTF-8
-        data = combined.encode("utf-8")
-
-        # SHA-256
-        hash_hex = hashlib.sha256(data).hexdigest()
-
-        # Convert to BigInt and apply the same CHALLENGE_MASK
-        return int(hash_hex, 16) & challenge_mask
-
-    # Replace this with your actual CHALLENGE_MASK value from TypeScript
+    a0: str = Field(max_length=MAX_NUMBER_DIGITS)
+    a1: str = Field(max_length=MAX_NUMBER_DIGITS)
+    e0: str = Field(max_length=MAX_NUMBER_DIGITS)
+    e1: str = Field(max_length=MAX_NUMBER_DIGITS)
+    z0: str = Field(max_length=MAX_NUMBER_DIGITS)
+    z1: str = Field(max_length=MAX_NUMBER_DIGITS)
 
     def verify(self, public_key, ciphertext: int) -> bool:
-        from loguru import logger
-
-        logger.debug(
-            f"Verifying ZK Proof with public key n={public_key.n}, g={public_key.g}, ciphertext={ciphertext}"
-        )
-        # e.g., (1 << 128) - 1
-        CHALLENGE_MASK = (1 << 128) - 1
-
-        n = public_key.n
-        g = public_key.g
-        n_sq = n**2
-
-        # Extract integer values
-        a0, a1 = int(self.a0), int(self.a1)
-        e0, e1 = int(self.e0), int(self.e1)
-        z0, z1 = int(self.z0), int(self.z1)
-
-        # 1. Recompute the Total Challenge 'e' exactly like the frontend
-        # Order matters: n, g, ciphertext, a0, a1
-        e_total = self._fs_hash([n, g, ciphertext, a0, a1], CHALLENGE_MASK)
-
-        # 2. Verify Challenge Split: e == (e0 XOR e1) & MASK
-        if (e0 ^ e1) != e_total:
-            logger.error(
-                f"Challenge mismatch: e0 XOR e1 = {e0 ^ e1} does not equal total challenge {e_total}"
-            )
+        """
+        Checks, for the public key (n, g = n + 1) and the ciphertext c:
+          1. e0 XOR e1 equals the challenge e = H(n, g, c, a0, a1);
+          2. z0^n = a0 * c^e0       (mod n²)   [c encrypts 0, or this branch was simulated]
+          3. z1^n = a1 * (c/g)^e1   (mod n²)   [c encrypts 1, or this branch was simulated]
+        Only one of the two branches can be simulated by a prover who does not know the randomness of c, and the challenge, fixed
+        by the hash of the commitments, is split between them: so c encrypts 0 or 1.
+        Anything malformed (not a number, out of range, not invertible) is simply not a valid proof.
+        """
+        try:
+            n = public_key.n
+            g = public_key.g
+            n_sq = n * n
+            a0, a1, e0, e1, z0, z1 = (int(x) for x in (self.a0, self.a1, self.e0, self.e1, self.z0, self.z1))
+        except ValueError:
             return False
 
-        # 3. Verify Branch 0: z0^n ≡ a0 * c^e0 (mod n^2)
-        left0 = pow(z0, n, n_sq)
-        right0 = (a0 * pow(ciphertext, e0, n_sq)) % n_sq
-        if left0 != right0:
-            logger.error(
-                f"Branch 0 verification failed: left = {left0}, right = {right0}"
-            )
+        # the values live in Z*_n² (commitments, responses, ciphertext) and in [0, 2^128) (challenges)
+        for unit in (ciphertext, a0, a1, z0, z1):
+            if not 0 < unit < n_sq or gcd(unit, n) != 1:
+                return False
+        if not (0 <= e0 <= CHALLENGE_MASK and 0 <= e1 <= CHALLENGE_MASK):
             return False
 
-        # 4. Verify Branch 1: z1^n ≡ a1 * (c/g)^e1 (mod n^2)
-        g_inv = pow(g, -1, n_sq)
-        c_over_g = (ciphertext * g_inv) % n_sq
-        left1 = pow(z1, n, n_sq)
-        right1 = (a1 * pow(c_over_g, e1, n_sq)) % n_sq
-        if left1 != right1:
-            logger.error(
-                f"Branch 1 verification failed: left = {left1}, right = {right1}"
-            )
+        if (e0 ^ e1) != fs_hash([n, g, ciphertext, a0, a1], n):
             return False
-        return left1 == right1
+        if pow(z0, n, n_sq) != (a0 * pow(ciphertext, e0, n_sq)) % n_sq:
+            return False
+        c_over_g = (ciphertext * pow(g, -1, n_sq)) % n_sq
+        return pow(z1, n, n_sq) == (a1 * pow(c_over_g, e1, n_sq)) % n_sq
 
 
 class VoteCastContentModel(BaseModel):
     candidate_id: int
-    encrypted_value: str
+    encrypted_value: str = Field(max_length=MAX_NUMBER_DIGITS)
     proof: BinaryZKProofModel
 
 
 class VoteCastData(BaseModel):
-    content: list[VoteCastContentModel]
+    """
+    A ballot: for each candidate, an encryption of 0 or 1 with the proof that it is one of the two, and a proof that
+    the sum of all of them (the product of the ciphertexts) is 0 or 1 too: at most one candidate. Without that second proof,
+    a voter could encrypt a 1 for every candidate, and each one would pass.
+    """
+
+    content: list[VoteCastContentModel] = Field(max_length=500)
+    sum_proof: BinaryZKProofModel
 
 
 class VoteCastResponseModel(BaseModel):
     unique_code: str
+
+
+class VoteAuditModel(BaseModel):
+    """What anyone needs to check the count of an election with the bulletin board (see app/utils/audit.py)."""
+
+    public_key: str
+    counts: dict[int, int]
+    encrypted_tally: dict[int, str]
+    tally_proof: dict[int, str]

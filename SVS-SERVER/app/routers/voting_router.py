@@ -1,4 +1,5 @@
-from datetime import datetime
+import asyncio
+import json
 
 from fastapi import APIRouter, Query, Request, Depends, HTTPException
 from fastcrud import FastCRUD, PaginatedListResponse, paginated_response
@@ -6,7 +7,8 @@ from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
 from app.models import User, Vote, Bulletin, response_models
 from app.models.attributed_votes import AttributedVote
-from app.models.vote import VoteResponseModel
+from app.models.vote import AlreadyVoted, DuplicateBallot, VoteResponseModel
+from app.models.types import utcnow
 from app.models import auth_models
 from app.models.vote_util_models import (
     FullVoteResponseModel,
@@ -15,7 +17,7 @@ from app.models.vote_util_models import (
     VoteCreationModel,
     VoteUpdateModel,
 )
-from app.models.voting_models import VoteCastData, VoteCastResponseModel
+from app.models.voting_models import VoteAuditModel, VoteCastData, VoteCastResponseModel
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
 from app.utils import vote_utils, response_utils, smtp_utils
@@ -221,22 +223,42 @@ async def cast_vote(
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
     av = await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id)
     if av is None:
-        logger.warning(f"User {user.username} is not attributed to vote {vote_id}.")
-        raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
+        logger.warning(f"User {user.id} is not attributed to vote {vote_id}.")
+        raise HTTPException(status_code=403, detail=ERROR_CODES.NOT_ELIGIBLE)
 
+    if not vote.has_started():
+        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_NOT_STARTED)
     if vote.is_vote_finished():
         logger.warning(f"Vote with id {vote_id} is already finished.")
         raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_FINISHED)
+    if av.user_has_voted:
+        raise HTTPException(status_code=409, detail=ERROR_CODES.ALREADY_VOTED)
 
-    # register the vote
-    unique_code = await vote.register_vote(user, data)
-    # send the unique code by email to the user
+    # The whole ballot is checked before anything is recorded: a refused ballot does not use up the right to vote.
+    # (A few modular exponentiations per candidate: in a thread, or every other request would wait.)
+    try:
+        await asyncio.to_thread(
+            vote_utils.check_ballot,
+            vote_utils.load_public_key(vote.public_key),
+            {candidate.id for candidate in vote.candidates},
+            data,
+        )
+    except vote_utils.InvalidBallot as e:
+        logger.warning(f"A ballot on vote {vote_id} was refused: {e}")
+        raise HTTPException(status_code=400, detail=ERROR_CODES.INVALID_BALLOT)
+
+    try:
+        unique_code = await vote.register_vote(user, data)
+    except AlreadyVoted:
+        raise HTTPException(status_code=409, detail=ERROR_CODES.ALREADY_VOTED)
+    except DuplicateBallot:
+        raise HTTPException(status_code=400, detail=ERROR_CODES.INVALID_BALLOT)
+    # send the receipt by email to the user
     smtp_utils.send_in_thread(smtp_utils.send_vote_cast_confirmation_email)(
         to_email=[user.email],
         unique_code=unique_code,
         vote_title=vote.title,
         vote_id=vote.id,
-        vote_content=data.content,
     )
     return VoteCastResponseModel(unique_code=unique_code)
 
@@ -250,8 +272,9 @@ async def cast_vote(
 async def get_public_vote_bulletins(
     vote_id: int,
     page: int = Query(1, ge=1),
-    items_per_page: int = Query(10, ge=1),
+    items_per_page: int = Query(10, ge=1, le=100),
 ):
+    """The bulletin board: every ballot of the election, public, so that anyone can check them (see app/utils/audit.py)."""
     vote = await Vote.get_by_id(vote_id)
     if not vote:
         logger.warning(f"Vote with id {vote_id} not found.")
@@ -264,6 +287,26 @@ async def get_public_vote_bulletins(
         sort_columns=["id"],
         sort_orders=["asc"],
         vote_id=vote_id,
+    )
+
+
+@router.get(
+    "/audit/{vote_id}/",
+    operation_id="get_vote_audit",
+    response_model=VoteAuditModel,
+)
+async def get_vote_audit(vote_id: int):
+    """What is needed to check the count of a finished election against the bulletin board. Public, like the board."""
+    vote = await Vote.get_by_id(vote_id)
+    if not vote:
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+    if not vote.has_been_counted or not vote.encrypted_tally or not vote.tally_proof:
+        raise HTTPException(status_code=400, detail=ERROR_CODES.VOTE_NOT_FINISHED)
+    return VoteAuditModel(
+        public_key=vote.public_key,
+        counts={candidate.id: candidate.vote_count or 0 for candidate in vote.candidates},
+        encrypted_tally=json.loads(vote.encrypted_tally),
+        tally_proof=json.loads(vote.tally_proof),
     )
 
 
@@ -302,20 +345,21 @@ async def get_vote_result(vote_id: int, request: Request):
         Depends(ROUTES_GUARDS_MIDDLEWARE.VoteAuthorityOnly),
     ],
 )
-async def get_vote_count(vote_id: int, request: Request):
-    user = await User.get_authenticated_user(request)
+async def get_vote_count(vote_id: int):
+    """Counts an election that is finished (the cron does it too, every minute): the same result each time."""
     vote = await Vote.get_by_id(vote_id)
 
     if not vote:
         logger.warning(f"Vote with id {vote_id} not found.")
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
 
-    count, failures = await vote_utils.get_vote_count(vote_id)
+    count, failures = await vote_utils.get_vote_count(vote_id)  # 400 if it is not finished
+    voted = sum(1 for av in vote.attributed_users if av.user_has_voted)
     return VoteResultsModel(
         candidate_results=count,
         count_failures=failures,
-        abstention_count=len(vote.attributed_users) - sum(count.values()),
-        voter_count=len(vote.bulletins),
+        abstention_count=len(vote.attributed_users) - voted,
+        voter_count=voted,
     )
 
 
@@ -388,7 +432,7 @@ async def update_vote(
             status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_UPDATE
         )
     # check if vote has started
-    if vote.start_date and vote.start_date < datetime.utcnow():
+    if vote.start_date and vote.start_date < utcnow():
         logger.warning(
             f"Vote with id {vote_id} has already started and cannot be updated."
         )
@@ -427,7 +471,7 @@ async def delete_vote(vote_id: int):
             status_code=400, detail=ERROR_CODES.VOTE_FINISHED_CANNOT_DELETE
         )
     # check if vote has started
-    if vote.start_date and vote.start_date < datetime.utcnow():
+    if vote.start_date and vote.start_date < utcnow():
         logger.warning(
             f"Vote with id {vote_id} has already started and cannot be deleted."
         )

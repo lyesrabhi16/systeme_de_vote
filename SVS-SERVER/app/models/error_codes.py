@@ -137,3 +137,7 @@ class ERROR_CODES(dict, Enum):
         code="INVALID_CANDIDATE",
         message="This is not a candidate of this vote",
     )
+    INVALID_BALLOT = ErrorCodeModel(
+        code="INVALID_BALLOT",
+        message="This ballot cannot be counted: it must have one proven 0-or-1 entry for each candidate, and at most one 1",
+    )

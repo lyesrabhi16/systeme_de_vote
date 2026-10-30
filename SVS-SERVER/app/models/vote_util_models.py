@@ -1,4 +1,6 @@
 from typing import Any
+from pydantic import model_validator
+from sqlalchemy import func
 from sqlmodel import SQLModel, select, delete
 from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,6 +54,9 @@ class FinishedVoteResponseModel(SQLModel):
         vote = await Vote.get_by_id(vote_id)
         if vote is None:
             return None
+        total_bulletins = (
+            await db.execute(select(func.count(Bulletin.id)).where(Bulletin.vote_id == vote_id))
+        ).scalar_one()
 
         user_av = (
             await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id)
@@ -65,7 +70,7 @@ class FinishedVoteResponseModel(SQLModel):
 
         return FinishedVoteResponseModel(
             vote=vote_with_creator,
-            total_bulletins=len(vote.bulletins),
+            total_bulletins=total_bulletins,
             encrypted_tally=vote.encrypted_tally,
             tally_proof=vote.tally_proof,
             candidate_results={
@@ -109,7 +114,7 @@ class FullVoteResponseModel(SQLModel):
         return FullVoteResponseModel(
             vote=finishedVote,
             candidates=vote.candidates,
-            total_bulletins=len(vote.bulletins),
+            total_bulletins=finishedVote.total_bulletins,
         )
 
 
@@ -130,6 +135,15 @@ class VoteCreationModel(SQLModel):
     attributed_user_ids: list[int] | None = None
     excluded_user_ids: list[int] | None = None
 
+    @model_validator(mode="after")
+    def check_dates_and_candidates(self) -> "VoteCreationModel":
+        """An election that ends before it starts could never be voted on, and one with no candidate has nothing to choose."""
+        if self.end_date <= self.start_date:
+            raise ValueError("end_date must be after start_date")
+        if not self.candidates:
+            raise ValueError("an election needs at least one candidate")
+        return self
+
     @db_session
     async def save(
         self, creator_id: int, db: AsyncSession | None = None
@@ -140,8 +154,8 @@ class VoteCreationModel(SQLModel):
         vote = Vote(
             title=self.title,
             description=self.description,
-            start_date=self.start_date.replace(tzinfo=None),
-            end_date=self.end_date.replace(tzinfo=None),
+            start_date=self.start_date,
+            end_date=self.end_date,
             creator_id=creator_id,
         )
         db.add(vote)
@@ -207,9 +221,9 @@ class VoteUpdateModel(SQLModel):
         if self.description is not None:
             vote.description = self.description
         if self.start_date is not None:
-            vote.start_date = self.start_date.replace(tzinfo=None)
+            vote.start_date = self.start_date
         if self.end_date is not None:
-            vote.end_date = self.end_date.replace(tzinfo=None)
+            vote.end_date = self.end_date
             vote.has_been_counted = False  # reset counting status if end date changes
         if self.candidates is not None:
             # Delete existing candidates

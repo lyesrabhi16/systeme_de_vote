@@ -1,6 +1,8 @@
 import secrets
 
+from sqlalchemy import Text
 from sqlmodel import SQLModel, Field
+from app.models.types import UTCDateTime
 from app.db.db import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
@@ -15,10 +17,10 @@ class Bulletin(SQLModel, table=True):
     content: str = Field(
         ...,
         title="Content",
-        max_length=100000,
-        description="Homomorphically encrypted ballot",
+        sa_type=Text,
+        description="Homomorphically encrypted ballot, with its proofs (JSON)",
     )
-    date: datetime = Field(..., title="Date")
+    date: datetime = Field(..., title="Date", sa_type=UTCDateTime)
 
     unique_code: str = Field(
         ...,
