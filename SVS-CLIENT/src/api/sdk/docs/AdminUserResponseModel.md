@@ -1,43 +1,42 @@
-# User
+# AdminUserResponseModel
 
+What the administrators of the users see of an account (never the password hash).
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **number** |  | [optional] [default to undefined]
+**id** | **number** |  | [default to undefined]
 **first_name** | **string** |  | [default to undefined]
 **last_name** | **string** |  | [default to undefined]
 **email** | **string** |  | [default to undefined]
-**verified_email** | **boolean** |  | [optional] [default to false]
 **username** | **string** |  | [default to undefined]
-**password** | **string** |  | [optional] [default to undefined]
 **phone_number** | **string** |  | [default to undefined]
-**verified_phone_number** | **boolean** |  | [optional] [default to false]
-**is_active** | **boolean** |  | [optional] [default to true]
+**is_active** | **boolean** |  | [default to undefined]
 **is_admin** | **boolean** |  | [default to undefined]
-**authority** | [**AuthorityEnum**](AuthorityEnum.md) |  | [optional] [default to undefined]
-**requested_password_reset** | **boolean** |  | [optional] [default to false]
-**created_at** | **string** |  | [optional] [default to undefined]
+**authority** | **string** |  | [optional] [default to undefined]
+**verified_email** | **boolean** |  | [default to undefined]
+**verified_phone_number** | **boolean** |  | [default to undefined]
+**requested_password_reset** | **boolean** |  | [default to undefined]
+**created_at** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { User } from './api';
+import { AdminUserResponseModel } from './api';
 
-const instance: User = {
+const instance: AdminUserResponseModel = {
     id,
     first_name,
     last_name,
     email,
-    verified_email,
     username,
-    password,
     phone_number,
-    verified_phone_number,
     is_active,
     is_admin,
     authority,
+    verified_email,
+    verified_phone_number,
     requested_password_reset,
     created_at,
 };

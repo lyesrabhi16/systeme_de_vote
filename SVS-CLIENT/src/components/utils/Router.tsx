@@ -1,4 +1,4 @@
-import { AuthorityEnum } from '@/api/sdk';
+import { UserCreationModelAuthorityEnum } from '@/api/sdk';
 import {
   AuthRequiredRoutes,
   AdminOnlyRoutes,
@@ -41,7 +41,7 @@ const Router = () => {
         <Route
           element={
             <WithAuthorityOnlyRoutes
-              requiredAuthority={AuthorityEnum.Inscription}
+              requiredAuthority={UserCreationModelAuthorityEnum.Inscription}
             />
           }
         >
@@ -60,7 +60,7 @@ const Router = () => {
         </Route>
         <Route
           element={
-            <WithAuthorityOnlyRoutes requiredAuthority={AuthorityEnum.Vote} />
+            <WithAuthorityOnlyRoutes requiredAuthority={UserCreationModelAuthorityEnum.Vote} />
           }
         >
           <Route

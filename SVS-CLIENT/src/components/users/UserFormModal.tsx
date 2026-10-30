@@ -1,8 +1,7 @@
 import apiClient, { ERROR_CODES } from '@/api/client';
 import {
-  AuthorityEnum,
   UserCreationModelAuthorityEnum,
-  type User,
+  type AdminUserResponseModel,
   type UserResponseModel,
   type UserUpdateModel,
 } from '@/api/sdk';
@@ -65,8 +64,18 @@ type DoneState = { state: boolean; success: boolean | null };
 
 type AsyncActionKey = 'resetPassword' | 'sendVerificationEmail';
 
+// An account as the lists show it, with what only the full view (AdminUserResponseModel) adds, and the password being typed.
+// The server never sends a password, nor its hash: the field always starts empty.
+type FormUser = UserResponseModel &
+  Partial<
+    Pick<
+      AdminUserResponseModel,
+      'verified_email' | 'verified_phone_number' | 'requested_password_reset' | 'created_at'
+    >
+  > & { password?: string };
+
 interface UserFormModalProps {
-  user?: User;
+  user?: FormUser;
   type: keyof typeof UserFormModalTypes | undefined;
   trigger?: React.ReactNode;
   content_only?: boolean;
@@ -119,7 +128,7 @@ const UserFormModal = (props: UserFormModalProps) => {
       is_admin: user.is_admin ?? false,
       verified_email: user.verified_email ?? false,
       verified_phone_number: user.verified_phone_number ?? false,
-      password: user.password ?? '',
+      password: '',
     },
   });
 
@@ -137,7 +146,7 @@ const UserFormModal = (props: UserFormModalProps) => {
       is_admin: user.is_admin ?? false,
       verified_email: user.verified_email ?? false,
       verified_phone_number: user.verified_phone_number ?? false,
-      password: user.password ?? '',
+      password: '',
       authority: user.authority ?? undefined,
     },
   });
@@ -207,7 +216,7 @@ const UserFormModal = (props: UserFormModalProps) => {
 
   // ── Submit ─────────────────────────────────────────────────────────────────
 
-  const handleSubmit = (data: User) => {
+  const handleSubmit = (data: FormUser) => {
     setLoading((p) => ({ ...p, form: true }));
 
     const new_data = {
@@ -219,7 +228,7 @@ const UserFormModal = (props: UserFormModalProps) => {
       authority: user.is_admin
         ? (data.authority ??
           adminForm.getValues('authority') ??
-          AuthorityEnum.Inscription)
+          UserCreationModelAuthorityEnum.Inscription)
         : null,
       password: manualPassword ? data.password : undefined,
     };
@@ -430,7 +439,7 @@ const UserFormModal = (props: UserFormModalProps) => {
                     is_admin: !s.is_admin,
                     authority:
                       !s.is_admin && s.authority === null
-                        ? AuthorityEnum.Inscription
+                        ? UserCreationModelAuthorityEnum.Inscription
                         : s.authority,
                   }))
                 }
@@ -443,9 +452,9 @@ const UserFormModal = (props: UserFormModalProps) => {
                     setUserWithoutReset((s) => ({
                       ...s,
                       authority:
-                        s.authority === AuthorityEnum.Inscription
-                          ? AuthorityEnum.Vote
-                          : AuthorityEnum.Inscription,
+                        s.authority === UserCreationModelAuthorityEnum.Inscription
+                          ? UserCreationModelAuthorityEnum.Vote
+                          : UserCreationModelAuthorityEnum.Inscription,
                     }))
                   }
                 />
@@ -459,7 +468,7 @@ const UserFormModal = (props: UserFormModalProps) => {
           id='user-form'
           className='space-y-6 mt-6'
           onSubmit={form.handleSubmit(
-            (data) => handleSubmit(data as User),
+            (data) => handleSubmit(data as FormUser),
             (errors) => {
               console.log(errors);
               toast.error('Corriger les erreurs dans le formulaire', {

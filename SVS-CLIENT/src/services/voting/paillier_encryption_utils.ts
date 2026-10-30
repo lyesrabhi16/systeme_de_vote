@@ -1,247 +1,178 @@
 /**
- * Paillier Binary ZKP — Non-interactive OR proof that a ciphertext encrypts 0 or 1.
+ * Paillier ballots with zero-knowledge proofs.
  *
- * Protocol: Cramer–Damgård–Schoenmakers "1-out-of-2" disjunctive proof,
- * made non-interactive via the Fiat–Shamir heuristic (SHA-256).
+ * A ballot has an encryption of 0 or 1 for each candidate, each with a proof that it is a 0 or a 1, and a proof that the sum of all of
+ * them is a 0 or a 1: at most one candidate. The server verifies all of it before recording the ballot (it cannot read the choice),
+ * and anybody can verify it again from the bulletin board (SVS-SERVER/app/utils/audit.py). The Python side of the same protocol is
+ * SVS-SERVER/app/models/voting_models.py: the two must hash exactly the same bytes (fsHash), and a test checks it against ballots
+ * made by each side.
  *
- * Install deps:
- *   npm install paillier-bigint bigint-crypto-utils
- *   npm install --save-dev @types/node typescript
- *
- * Run:
- *   npx ts-node paillier-binary-zkp.ts
+ * Each proof is a Cramer–Damgård–Schoenmakers "1-out-of-2" OR proof, made non-interactive with the Fiat–Shamir heuristic (SHA-256).
+ * With the Paillier ciphertext c = g^v · r^n mod n² and g = n + 1:
+ *   - c encrypts 0  ⇔  c is an n-th power  ⇔  the prover knows r with r^n = c
+ *   - c encrypts 1  ⇔  c/g is an n-th power
+ * The prover runs the real protocol for the branch that is true and simulates the other one; the challenge is split between the two
+ * so that it can only be simulated for one of them.
  */
 
-import * as paillier from "paillier-bigint";
-import * as bigintCryptoUtils from "bigint-crypto-utils";
-import { type BinaryZKProofModel } from "@api/sdk";
+import { randBetween, modPow, modInv } from "bigint-crypto-utils";
+import type { PublicKey } from "paillier-bigint";
+import type { BinaryZKProofModel, VoteCastData } from "@api/sdk";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/* export interface BinaryProof {
-    Commitment for the "encrypts 0" branch
-    a0: bigint;
-    Commitment for the "encrypts 1" branch
-    a1: bigint;
-    Challenge for the "encrypts 0" branch
-    e0: bigint;
-    Challenge for the "encrypts 1" branch
-    e1: bigint;
-    Response for the "encrypts 0" branch
-    z0: bigint;
-    Response for the "encrypts 1" branch
-    z1: bigint;
-}
-*/
+/** Number of challenge bits (128 gives 128-bit soundness). */
+const CHALLENGE_BITS = 128;
+export const CHALLENGE_MASK = (1n << BigInt(CHALLENGE_BITS)) - 1n;
+/** What the challenge is bound to, so that this proof cannot be taken for a proof of anything else. */
+const PROOF_TAG = "svs-paillier-binary-proof-v1|";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Number of challenge bits (128 gives 128-bit soundness). */
-const CHALLENGE_BITS = 128;
-const CHALLENGE_MASK = (1n << BigInt(CHALLENGE_BITS)) - 1n;
-
 /**
- * Fiat–Shamir hash: H(n, g, c, a0, a1) → bigint, truncated to CHALLENGE_BITS.
+ * The Fiat–Shamir challenge: SHA-256 of the tag and of the numbers written in hexadecimal, each padded to the width of n²
+ * (so that (c, a0, a1) cannot be cut differently into the same text), truncated to 128 bits.
  */
-async function fsHash(...values: bigint[]): Promise<bigint> {
-    const encoder = new TextEncoder();
-
-    let combined = "";
-
-    for (const v of values) {
-        const hex = v.toString(16).padStart(512, "0");
-        combined += hex;
+export async function fsHash(n: bigint, values: bigint[]): Promise<bigint> {
+    if (!globalThis.crypto?.subtle) {
+        throw new Error("Le vote nécessite une connexion sécurisée (HTTPS).");
     }
+    const width = 2 * Math.ceil(n.toString(2).length / 4);
+    const combined = PROOF_TAG + values.map(v => v.toString(16).padStart(width, "0")).join("");
+    const digest = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(combined)));
+    const hex = [...digest].map(b => b.toString(16).padStart(2, "0")).join("");
+    return BigInt("0x" + hex) & CHALLENGE_MASK;
+}
 
-    const data = encoder.encode(combined);
+/** A random integer in [1, n). Invertible mod n except with a probability of about 2^-1000. */
+const randomInZn = (n: bigint): bigint => randBetween(n - 1n, 1n);
 
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+/** A random challenge in [0, 2^128). */
+const randomChallenge = (): bigint => randBetween(CHALLENGE_MASK, 0n);
 
-    const hashArray = new Uint8Array(hashBuffer);
-    const hashHex = [...hashArray]
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("");
+const nSquaredOf = (publicKey: PublicKey): bigint => publicKey.n * publicKey.n;
 
-    return BigInt("0x" + hashHex) & CHALLENGE_MASK;
+const asProof = (a0: bigint, a1: bigint, e0: bigint, e1: bigint, z0: bigint, z1: bigint): BinaryZKProofModel => ({
+    a0: a0.toString(),
+    a1: a1.toString(),
+    e0: e0.toString(),
+    e1: e1.toString(),
+    z0: z0.toString(),
+    z1: z1.toString(),
+});
+
+// ---------------------------------------------------------------------------
+// Encryption and proof generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Encrypts 0n or 1n, and keeps the randomness r: the proof needs it (paillier-bigint's encrypt() does not give it back).
+ * c = g^v · r^n mod n²
+ */
+export function encryptBit(publicKey: PublicKey, v: 0n | 1n): { ciphertext: bigint; r: bigint } {
+    if (v !== 0n && v !== 1n) throw new Error("v must be 0n or 1n");
+    const n2 = nSquaredOf(publicKey);
+    const r = randomInZn(publicKey.n);
+    return { ciphertext: (modPow(publicKey.g, v, n2) * modPow(r, publicKey.n, n2)) % n2, r };
 }
 
 /**
- * Draw a random bigint in [1, n).
+ * A proof that `ciphertext`, which encrypts `v` (0n or 1n) with the randomness `r`, encrypts a 0 or a 1.
+ * It is also used for the product of the ciphertexts of a ballot, with the product of their randomnesses.
  */
-async function randomInZn(n: bigint): Promise<bigint> {
-    return bigintCryptoUtils.randBetween(n, 1n);
+export async function proveBinary(
+    publicKey: PublicKey,
+    ciphertext: bigint,
+    v: 0n | 1n,
+    r: bigint,
+): Promise<BinaryZKProofModel> {
+    const { n, g } = publicKey;
+    const n2 = nSquaredOf(publicKey);
+    // c/g: what the ciphertext looks like if the vote is a 1
+    const c1 = (ciphertext * modInv(g, n2)) % n2;
+
+    // the real branch: a commitment u^n; the simulated branch: a challenge and a response chosen first, the commitment computed from them
+    const u = randomInZn(n);
+    const aReal = modPow(u, n, n2);
+    const eFake = randomChallenge();
+    const zFake = randomInZn(n);
+
+    if (v === 0n) {
+        // real: "c encrypts 0" (branch 0). simulated: "c/g encrypts 0" (branch 1), a1 = z1^n · (c/g)^(-e1)
+        const a1 = (modPow(zFake, n, n2) * modInv(modPow(c1, eFake, n2), n2)) % n2;
+        const e = await fsHash(n, [n, g, ciphertext, aReal, a1]);
+        const e0 = e ^ eFake;
+        const z0 = (u * modPow(r, e0, n)) % n;
+        return asProof(aReal, a1, e0, eFake, z0, zFake);
+    }
+    // real: "c/g encrypts 0" (branch 1). simulated: "c encrypts 0" (branch 0), a0 = z0^n · c^(-e0)
+    const a0 = (modPow(zFake, n, n2) * modInv(modPow(ciphertext, eFake, n2), n2)) % n2;
+    const e = await fsHash(n, [n, g, ciphertext, a0, aReal]);
+    const e1 = e ^ eFake;
+    const z1 = (u * modPow(r, e1, n)) % n;
+    return asProof(a0, aReal, eFake, e1, zFake, z1);
 }
 
-// ---------------------------------------------------------------------------
-// Proof generation
-// ---------------------------------------------------------------------------
-
-/**
- * Encrypt `vote` (must be 0n or 1n) and produce a ZK proof that the
- * ciphertext is a valid binary vote.
- *
- * Returns the ciphertext and the proof. The randomness `r` used for
- * encryption is kept secret inside this function.
- *
- * The Paillier ciphertext is: c = g^v * r^n  mod n²
- * For g = n+1 (the standard choice in paillier-bigint): c = (1+n)^v * r^n mod n²
- * So the "1 branch" tests c / g = c * g^(-1) mod n².
- */
+/** Encrypts 0n or 1n and proves that it is a 0 or a 1. */
 export async function encryptWithBinaryProof(
-    publicKey: paillier.PublicKey,
-    vote: 0n | 1n
-): Promise<{ ciphertext: bigint; proof: BinaryZKProofModel }> {
-    if (vote !== 0n && vote !== 1n) throw new Error("vote must be 0n or 1n");
+    publicKey: PublicKey,
+    vote: 0n | 1n,
+): Promise<{ ciphertext: bigint; r: bigint; proof: BinaryZKProofModel }> {
+    const { ciphertext, r } = encryptBit(publicKey, vote);
+    return { ciphertext, r, proof: await proveBinary(publicKey, ciphertext, vote, r) };
+}
 
-    const { n, g, _n2: n2 } = publicKey as any;
-    // paillier-bigint exposes _n2 as the internal n² value
-    const nSquared: bigint = n2 ?? n * n;
-
-    // Encrypt the vote. paillier-bigint's encrypt() internally picks a random r.
-    // We need r for the proof, so we replicate the encryption manually.
-    const r: bigint = await randomInZn(n);
-    // c = g^v * r^n mod n²
-    const ciphertext =
-        (bigintCryptoUtils.modPow(g, vote, nSquared) *
-            bigintCryptoUtils.modPow(r, n, nSquared)) %
-        nSquared;
-
-    // g_inv = g^(-1) mod n²  — used for the "branch 1" ciphertext c/g
-    const gInv = bigintCryptoUtils.modInv(g, nSquared);
-    // c1 = ciphertext * g^(-1) mod n²  (= what ciphertext looks like if vote=1)
-    const c1 = (ciphertext * gInv) % nSquared;
-
-    let proof: BinaryZKProofModel;
-
-    if (vote === 0n) {
-        // -----------------------------------------------------------------------
-        // Real branch: vote = 0  →  prove "c encrypts 0"
-        // Simulated branch: vote = 1  →  simulate "c/g encrypts 0"
-        // -----------------------------------------------------------------------
-
-        // Real branch: pick witness u, compute a_real = u^n mod n²
-        const u = await randomInZn(n);
-        const a0 = bigintCryptoUtils.modPow(u, n, nSquared);
-
-        // Simulated branch: pick fake challenge e1 and response z1 freely,
-        // then back-compute commitment: a1 = z1^n * (c/g)^(-e1) mod n²
-        const e1 = await randomInZn(CHALLENGE_MASK + 1n);
-        const z1 = await randomInZn(n);
-        const a1 =
-            (bigintCryptoUtils.modPow(z1, n, nSquared) *
-                bigintCryptoUtils.modInv(
-                    bigintCryptoUtils.modPow(c1, e1, nSquared),
-                    nSquared
-                )) %
-            nSquared;
-
-        // Fiat–Shamir: e = H(n, g, ciphertext, a0, a1)
-        const e = await fsHash(n, g, ciphertext, a0, a1);
-
-        // Split challenge: e0 = e XOR e1  (or (e - e1) mod 2^CHALLENGE_BITS)
-        const e0 = (e ^ e1) & CHALLENGE_MASK;
-
-        // Real response: z0 = u * r^e0 mod n
-        const z0 = (u * bigintCryptoUtils.modPow(r, e0, n)) % n;
-
-        proof = { a0: a0.toString(), a1: a1.toString(), e0: e0.toString(), e1: e1.toString(), z0: z0.toString(), z1: z1.toString() };
-    } else {
-        // -----------------------------------------------------------------------
-        // Real branch: vote = 1  →  prove "c/g encrypts 0"
-        // Simulated branch: vote = 0  →  simulate "c encrypts 0"
-        // -----------------------------------------------------------------------
-
-        // Real branch: pick witness u, compute a_real = u^n mod n²
-        const u = await randomInZn(n);
-        const a1 = bigintCryptoUtils.modPow(u, n, nSquared);
-
-        // Simulated branch: fake challenge e0, fake response z0,
-        // back-compute: a0 = z0^n * c^(-e0) mod n²
-        const e0 = await randomInZn(CHALLENGE_MASK + 1n);
-        const z0 = await randomInZn(n);
-        const a0 =
-            (bigintCryptoUtils.modPow(z0, n, nSquared) *
-                bigintCryptoUtils.modInv(
-                    bigintCryptoUtils.modPow(ciphertext, e0, nSquared),
-                    nSquared
-                )) %
-            nSquared;
-
-        // Fiat–Shamir
-        const e = await fsHash(n, g, ciphertext, a0, a1);
-
-        // Split challenge: e1 = e XOR e0
-        const e1 = (e ^ e0) & CHALLENGE_MASK;
-
-        // Real response: z1 = u * r^e1 mod n
-        const z1 = (u * bigintCryptoUtils.modPow(r, e1, n)) % n;
-
-        proof = { a0: a0.toString(), a1: a1.toString(), e0: e0.toString(), e1: e1.toString(), z0: z0.toString(), z1: z1.toString() };
+/**
+ * The ballot for `choice` (a candidate id), or a blank ballot (null): an entry for each candidate, and the proof that
+ * the sum of the entries is a 0 or a 1. The product of the ciphertexts encrypts the sum, with the product of the randomnesses.
+ */
+export async function buildBallot(
+    publicKey: PublicKey,
+    candidateIds: number[],
+    choice: number | null,
+): Promise<VoteCastData> {
+    const n2 = nSquaredOf(publicKey);
+    if (choice !== null && !candidateIds.includes(choice)) throw new Error("choice is not a candidate");
+    const content: VoteCastData["content"] = [];
+    let product = 1n;
+    let randomness = 1n;
+    for (const candidateId of candidateIds) {
+        const { ciphertext, r, proof } = await encryptWithBinaryProof(publicKey, candidateId === choice ? 1n : 0n);
+        content.push({ candidate_id: candidateId, encrypted_value: ciphertext.toString(), proof });
+        product = (product * ciphertext) % n2;
+        randomness = (randomness * r) % publicKey.n;
     }
-
-    return { ciphertext, proof };
+    const sumProof = await proveBinary(publicKey, product, choice === null ? 0n : 1n, randomness);
+    return { content, sum_proof: sumProof };
 }
 
 // ---------------------------------------------------------------------------
-// Proof verification
+// Proof verification (the server does the same; this is for the tests, and for anybody who wants to check a ballot)
 // ---------------------------------------------------------------------------
 
 /**
- * Verify that `ciphertext` encrypts either 0 or 1, given the proof.
- *
- * Checks:
- *  1. e0 XOR e1 == H(n, g, c, a0, a1)          (challenges are consistent)
- *  2. z0^n == a0 * c^e0          mod n²         (branch 0 check)
- *  3. z1^n == a1 * (c/g)^e1      mod n²         (branch 1 check)
+ * Verifies that `ciphertext` encrypts either 0 or 1, given the proof:
+ *  1. e0 XOR e1 == H(n, g, c, a0, a1)          (the challenges are consistent)
+ *  2. z0^n == a0 · c^e0          mod n²         (branch 0)
+ *  3. z1^n == a1 · (c/g)^e1      mod n²         (branch 1)
  */
 export async function verifyBinaryProof(
-    publicKey: paillier.PublicKey,
+    publicKey: PublicKey,
     ciphertext: bigint,
-    proof: BinaryZKProofModel
+    proof: BinaryZKProofModel,
 ): Promise<boolean> {
-    const { n, g, _n2: n2 } = publicKey as any;
-    const nSquared: bigint = n2 ?? n * n;
-    const { a0: _a0, a1: _a1, e0: _e0, e1: _e1, z0: _z0, z1: _z1 } = proof;
-
+    const { n, g } = publicKey;
+    const n2 = nSquaredOf(publicKey);
     try {
-        // 1. Challenge consistency
-        const a0 = BigInt(_a0);
-        const a1 = BigInt(_a1);
-        const e0 = BigInt(_e0);
-        const e1 = BigInt(_e1);
-        const z0 = BigInt(_z0);
-        const z1 = BigInt(_z1);
-
-        const e = await fsHash(n, g, ciphertext, a0, a1);
-        if (((e0 ^ e1) & CHALLENGE_MASK) !== e) {
-            console.error("Challenge consistency check failed");
-            return false;
+        const [a0, a1, e0, e1, z0, z1] = [proof.a0, proof.a1, proof.e0, proof.e1, proof.z0, proof.z1].map(x => BigInt(x));
+        for (const unit of [ciphertext, a0, a1, z0, z1]) {
+            if (unit <= 0n || unit >= n2) return false;
         }
-
-        // 2. Branch 0: z0^n ≡ a0 * c^e0  (mod n²)
-        const lhs0 = bigintCryptoUtils.modPow(z0, n, nSquared);
-        const rhs0 =
-            (a0 * bigintCryptoUtils.modPow(ciphertext, e0, nSquared)) % nSquared;
-        if (lhs0 !== rhs0) {
-            console.error("Branch 0 check failed");
-            return false;
-        }
-
-        // 3. Branch 1: z1^n ≡ a1 * (c * g^(-1))^e1  (mod n²)
-        const gInv = bigintCryptoUtils.modInv(g, nSquared);
-        const c1 = (ciphertext * gInv) % nSquared;
-        const lhs1 = bigintCryptoUtils.modPow(z1, n, nSquared);
-        const rhs1 = (a1 * bigintCryptoUtils.modPow(c1, e1, nSquared)) % nSquared;
-        if (lhs1 !== rhs1) {
-            console.error("Branch 1 check failed");
-            return false;
-        }
-
-        return true;
+        if (e0 < 0n || e0 > CHALLENGE_MASK || e1 < 0n || e1 > CHALLENGE_MASK) return false;
+        if ((e0 ^ e1) !== (await fsHash(n, [n, g, ciphertext, a0, a1]))) return false;
+        if (modPow(z0, n, n2) !== (a0 * modPow(ciphertext, e0, n2)) % n2) return false;
+        const c1 = (ciphertext * modInv(g, n2)) % n2;
+        return modPow(z1, n, n2) === (a1 * modPow(c1, e1, n2)) % n2;
     } catch {
         return false;
     }

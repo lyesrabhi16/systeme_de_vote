@@ -1,5 +1,5 @@
 import apiClient from '@/api/client';
-import type { PaginatedListResponseVote, Vote } from '@/api/sdk';
+import type { PaginatedListResponseVoteResponseModel, VoteResponseModel } from '@/api/sdk';
 import AppContainer from '@/components/utils/AppContainer';
 import { DataTable } from '@/components/utils/datatable/DataTable';
 import { DataTableColumnHeader } from '@/components/utils/datatable/ColumnHeader';
@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dialog';
 
 type VotesTableData = Pick<
-  Vote,
+  VoteResponseModel,
   'id' | 'title' | 'start_date' | 'end_date' | 'has_been_counted' | 'creator_id'
 >;
 
@@ -47,7 +47,7 @@ const canDelete = (vote: VotesTableData): boolean =>
 const VotesAdministrationPage = () => {
   const navigate = useNavigate();
 
-  const [votesMeta, setVotesMeta] = useState<PaginatedListResponseVote>();
+  const [votesMeta, setVotesMeta] = useState<PaginatedListResponseVoteResponseModel>();
   const [searchValue, setSearchValue] = useState<string | undefined>(undefined);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [voteToDelete, setVoteToDelete] = useState<VotesTableData | null>(null);

@@ -1,5 +1,6 @@
 # BinaryZKProofModel
 
+A non-interactive zero-knowledge proof (Cramer–Damgård–Schoenmakers OR proof, Fiat–Shamir) that a Paillier ciphertext encrypts 0 or 1, without saying which. Numbers are decimal strings, because they do not fit a JSON number.
 
 ## Properties
 

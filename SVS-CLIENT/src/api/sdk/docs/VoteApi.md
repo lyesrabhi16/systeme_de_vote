@@ -4,21 +4,22 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**castVote**](#castvote) | **POST** /vote/cast/{vote_id} | Cast Vote|
-|[**checkIfUserVotedOnVote**](#checkifuservotedonvote) | **POST** /vote/check/{vote_id}/user-voted | Check If User Voted On Vote|
-|[**createVote**](#createvote) | **POST** /vote/ | Create Vote|
-|[**deleteVote**](#deletevote) | **DELETE** /vote/{vote_id}/ | Delete Vote|
-|[**getAllVotes**](#getallvotes) | **GET** /vote/ | Get All Votes|
-|[**getAlreadyVotedOnVotes**](#getalreadyvotedonvotes) | **GET** /vote/voted | Get Already Voted On Votes|
-|[**getAttributedVotes**](#getattributedvotes) | **GET** /vote/attributed | Get Attributed Votes|
-|[**getAvailableVotes**](#getavailablevotes) | **GET** /vote/available | Get Available Votes|
-|[**getCreatedVotes**](#getcreatedvotes) | **GET** /vote/created | Get Created Votes|
-|[**getFinishedVotes**](#getfinishedvotes) | **GET** /vote/finishedVotes | Get Finished Votes|
-|[**getVoteBulletins**](#getvotebulletins) | **GET** /vote/bulletins/{vote_id}/ | Get Public Vote Bulletins|
-|[**getVoteById**](#getvotebyid) | **GET** /vote/{vote_id}/ | Get Vote By Id|
-|[**getVoteCount**](#getvotecount) | **GET** /vote/count/{vote_id}/ | Get Vote Count|
-|[**getVoteResult**](#getvoteresult) | **GET** /vote/result/{vote_id}/ | Get Vote Result|
-|[**updateVote**](#updatevote) | **PUT** /vote/{vote_id}/ | Update Vote|
+|[**castVote**](#castvote) | **POST** /api/vote/cast/{vote_id} | Cast Vote|
+|[**checkIfUserVotedOnVote**](#checkifuservotedonvote) | **POST** /api/vote/check/{vote_id}/user-voted | Check If User Voted On Vote|
+|[**createVote**](#createvote) | **POST** /api/vote/ | Create Vote|
+|[**deleteVote**](#deletevote) | **DELETE** /api/vote/{vote_id}/ | Delete Vote|
+|[**getAllVotes**](#getallvotes) | **GET** /api/vote/ | Get All Votes|
+|[**getAlreadyVotedOnVotes**](#getalreadyvotedonvotes) | **GET** /api/vote/voted | Get Already Voted On Votes|
+|[**getAttributedVotes**](#getattributedvotes) | **GET** /api/vote/attributed | Get Attributed Votes|
+|[**getAvailableVotes**](#getavailablevotes) | **GET** /api/vote/available | Get Available Votes|
+|[**getCreatedVotes**](#getcreatedvotes) | **GET** /api/vote/created | Get Created Votes|
+|[**getFinishedVotes**](#getfinishedvotes) | **GET** /api/vote/finishedVotes | Get Finished Votes|
+|[**getVoteAudit**](#getvoteaudit) | **GET** /api/vote/audit/{vote_id}/ | Get Vote Audit|
+|[**getVoteBulletins**](#getvotebulletins) | **GET** /api/vote/bulletins/{vote_id}/ | Get Public Vote Bulletins|
+|[**getVoteById**](#getvotebyid) | **GET** /api/vote/{vote_id}/ | Get Vote By Id|
+|[**getVoteCount**](#getvotecount) | **GET** /api/vote/count/{vote_id}/ | Get Vote Count|
+|[**getVoteResult**](#getvoteresult) | **GET** /api/vote/result/{vote_id}/ | Get Vote Result|
+|[**updateVote**](#updatevote) | **PUT** /api/vote/{vote_id}/ | Update Vote|
 
 # **castVote**
 > VoteCastResponseModel castVote(voteCastData)
@@ -234,7 +235,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAllVotes**
-> ResponseGetAllVotes getAllVotes()
+> PaginatedListResponseVoteResponseModel getAllVotes()
 
 
 ### Example
@@ -270,7 +271,7 @@ const { status, data } = await apiInstance.getAllVotes(
 
 ### Return type
 
-**ResponseGetAllVotes**
+**PaginatedListResponseVoteResponseModel**
 
 ### Authorization
 
@@ -291,7 +292,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAlreadyVotedOnVotes**
-> Array<Vote> getAlreadyVotedOnVotes()
+> Array<VoteResponseModel> getAlreadyVotedOnVotes()
 
 
 ### Example
@@ -314,7 +315,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**Array<Vote>**
+**Array<VoteResponseModel>**
 
 ### Authorization
 
@@ -334,7 +335,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAttributedVotes**
-> Array<Vote> getAttributedVotes()
+> Array<VoteResponseModel> getAttributedVotes()
 
 
 ### Example
@@ -357,7 +358,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**Array<Vote>**
+**Array<VoteResponseModel>**
 
 ### Authorization
 
@@ -377,7 +378,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAvailableVotes**
-> Array<Vote> getAvailableVotes()
+> Array<VoteResponseModel> getAvailableVotes()
 
 
 ### Example
@@ -400,7 +401,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**Array<Vote>**
+**Array<VoteResponseModel>**
 
 ### Authorization
 
@@ -420,7 +421,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getCreatedVotes**
-> Array<Vote> getCreatedVotes()
+> Array<VoteResponseModel> getCreatedVotes()
 
 
 ### Example
@@ -443,7 +444,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**Array<Vote>**
+**Array<VoteResponseModel>**
 
 ### Authorization
 
@@ -505,9 +506,62 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getVoteAudit**
+> VoteAuditModel getVoteAudit()
+
+What is needed to check the count of a finished election against the bulletin board. Public, like the board.
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+
+const { status, data } = await apiInstance.getVoteAudit(
+    voteId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+
+
+### Return type
+
+**VoteAuditModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getVoteBulletins**
 > PaginatedListResponseBulletin getVoteBulletins()
 
+The bulletin board: every ballot of the election, public, so that anyone can check them (see app/utils/audit.py).
 
 ### Example
 
@@ -616,6 +670,7 @@ No authorization required
 # **getVoteCount**
 > VoteResultsModel getVoteCount()
 
+Counts an election that is finished (the cron does it too, every minute): the same result each time.
 
 ### Example
 

@@ -4,12 +4,12 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**adminDeleteUser**](#admindeleteuser) | **DELETE** /users/admin/:id | Admin Delete User|
-|[**adminGetUserById**](#admingetuserbyid) | **GET** /users/admin/:id | Admin Get User By Id|
-|[**adminUpdateUser**](#adminupdateuser) | **PUT** /users/admin/:id | Admin Update User|
-|[**createUser**](#createuser) | **POST** /users/ | Create User|
-|[**getUserById**](#getuserbyid) | **GET** /users/:id | Get User By Id|
-|[**getUsers**](#getusers) | **GET** /users/ | Admin Get Users|
+|[**adminDeleteUser**](#admindeleteuser) | **DELETE** /api/users/admin/{id} | Admin Delete User|
+|[**adminGetUserById**](#admingetuserbyid) | **GET** /api/users/admin/{id} | Admin Get User By Id|
+|[**adminUpdateUser**](#adminupdateuser) | **PUT** /api/users/admin/{id} | Admin Update User|
+|[**createUser**](#createuser) | **POST** /api/users/ | Create User|
+|[**getUserById**](#getuserbyid) | **GET** /api/users/{id} | Get User By Id|
+|[**getUsers**](#getusers) | **GET** /api/users/ | Admin Get Users|
 
 # **adminDeleteUser**
 > { [key: string]: any; } adminDeleteUser()
@@ -63,7 +63,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **adminGetUserById**
-> User adminGetUserById()
+> AdminUserResponseModel adminGetUserById()
 
 
 ### Example
@@ -93,7 +93,7 @@ const { status, data } = await apiInstance.adminGetUserById(
 
 ### Return type
 
-**User**
+**AdminUserResponseModel**
 
 ### Authorization
 
@@ -114,7 +114,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **adminUpdateUser**
-> User adminUpdateUser(userUpdateModel)
+> AdminUserResponseModel adminUpdateUser(userUpdateModel)
 
 
 ### Example
@@ -148,7 +148,7 @@ const { status, data } = await apiInstance.adminUpdateUser(
 
 ### Return type
 
-**User**
+**AdminUserResponseModel**
 
 ### Authorization
 
@@ -223,6 +223,7 @@ No authorization required
 # **getUserById**
 > UserResponseModel getUserById()
 
+The account of somebody (an administrator), or one\'s own: an email address and a phone number are not for everyone.
 
 ### Example
 

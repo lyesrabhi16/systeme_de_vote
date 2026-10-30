@@ -4,10 +4,10 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**createCandidate**](#createcandidate) | **POST** /candidates/ | Create Candidate|
-|[**deleteCandidate**](#deletecandidate) | **DELETE** /candidates/ | Delete Candidate|
-|[**getCandidateById**](#getcandidatebyid) | **GET** /candidates/ | Get Candidate By Id|
-|[**updateCandidate**](#updatecandidate) | **PUT** /candidates/ | Update Candidate|
+|[**createCandidate**](#createcandidate) | **POST** /api/candidates/ | Create Candidate|
+|[**deleteCandidate**](#deletecandidate) | **DELETE** /api/candidates/ | Delete Candidate|
+|[**getCandidateById**](#getcandidatebyid) | **GET** /api/candidates/ | Get Candidate By Id|
+|[**updateCandidate**](#updatecandidate) | **PUT** /api/candidates/ | Update Candidate|
 
 # **createCandidate**
 > Candidate createCandidate(candidateCreateModel)

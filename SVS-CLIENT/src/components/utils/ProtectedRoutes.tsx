@@ -1,4 +1,4 @@
-import type { AuthorityEnum } from '@/api/sdk';
+import type { UserCreationModelAuthorityEnum } from '@/api/sdk';
 import { routes } from '@/services/routing';
 import useGlobalStore from '@/services/store';
 import { useEffect } from 'react';
@@ -41,7 +41,7 @@ export const AdminOnlyRoutes = () => {
 };
 
 export const WithAuthorityOnlyRoutes = (props: {
-  requiredAuthority: AuthorityEnum;
+  requiredAuthority: UserCreationModelAuthorityEnum;
 }) => {
   const { user, token } = useGlobalStore();
   const navigate = useNavigate();

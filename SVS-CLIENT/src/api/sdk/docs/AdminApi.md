@@ -4,9 +4,9 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**adminDashboard**](#admindashboard) | **GET** /admin/dashboard | Admin Dashboard|
-|[**getAdmins**](#getadmins) | **GET** /admin/ | Get Admins|
-|[**sendVerificationEmail**](#sendverificationemail) | **POST** /admin/send-verification-email | Send Verification Email|
+|[**adminDashboard**](#admindashboard) | **GET** /api/admin/dashboard | Admin Dashboard|
+|[**getAdmins**](#getadmins) | **GET** /api/admin/ | Get Admins|
+|[**sendVerificationEmail**](#sendverificationemail) | **POST** /api/admin/send-verification-email | Send Verification Email|
 
 # **adminDashboard**
 > DashboardResponseModel adminDashboard()

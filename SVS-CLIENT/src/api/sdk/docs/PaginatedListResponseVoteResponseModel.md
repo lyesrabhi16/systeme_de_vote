@@ -1,11 +1,11 @@
-# PaginatedListResponseVote
+# PaginatedListResponseVoteResponseModel
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**Array&lt;Vote&gt;**](Vote.md) |  | [default to undefined]
+**data** | [**Array&lt;VoteResponseModel&gt;**](VoteResponseModel.md) |  | [default to undefined]
 **total_count** | **number** |  | [default to undefined]
 **has_more** | **boolean** |  | [default to undefined]
 **page** | **number** |  | [optional] [default to undefined]
@@ -14,9 +14,9 @@ Name | Type | Description | Notes
 ## Example
 
 ```typescript
-import { PaginatedListResponseVote } from './api';
+import { PaginatedListResponseVoteResponseModel } from './api';
 
-const instance: PaginatedListResponseVote = {
+const instance: PaginatedListResponseVoteResponseModel = {
     data,
     total_count,
     has_more,

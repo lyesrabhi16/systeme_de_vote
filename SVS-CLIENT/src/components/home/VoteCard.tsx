@@ -1,4 +1,4 @@
-import type { Vote } from '@/api/sdk';
+import type { VoteResponseModel } from '@/api/sdk';
 import VoteBadge from '@/components/home/VoteBadge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +14,7 @@ import { getBadgeType, VoteBadgeType } from '@/utils/vote.utils';
 import { useNavigate } from 'react-router';
 
 const VoteCard = (props: {
-  vote: Vote;
+  vote: VoteResponseModel;
   index?: number;
   userHasVoted?: boolean;
 }) => {

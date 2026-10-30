@@ -1,5 +1,5 @@
 import apiClient from '@/api/client';
-import type { Vote } from '@/api/sdk';
+import type { VoteResponseModel } from '@/api/sdk';
 import VoteCard from '@/components/home/VoteCard';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const AvailableVotes = () => {
-  const [votes, setVotes] = useState<Vote[]>([]);
+  const [votes, setVotes] = useState<VoteResponseModel[]>([]);
 
   useEffect(() => {
     // Fetch available votes from API or service

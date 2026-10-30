@@ -10,8 +10,6 @@ Name | Type | Description | Notes
 **start_date** | **string** |  | [optional] [default to undefined]
 **end_date** | **string** |  | [optional] [default to undefined]
 **candidates** | [**Array&lt;CandidateCreateModel&gt;**](CandidateCreateModel.md) |  | [optional] [default to undefined]
-**public_key** | **string** |  | [optional] [default to undefined]
-**private_key** | **string** |  | [optional] [default to undefined]
 **open_to_all** | **boolean** |  | [optional] [default to undefined]
 **attributed_user_ids** | **Array&lt;number&gt;** |  | [optional] [default to undefined]
 **excluded_user_ids** | **Array&lt;number&gt;** |  | [optional] [default to undefined]
@@ -27,8 +25,6 @@ const instance: VoteUpdateModel = {
     start_date,
     end_date,
     candidates,
-    public_key,
-    private_key,
     open_to_all,
     attributed_user_ids,
     excluded_user_ids,

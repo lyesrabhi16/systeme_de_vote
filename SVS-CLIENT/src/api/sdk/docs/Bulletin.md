@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **number** |  | [optional] [default to undefined]
 **vote_id** | **number** |  | [optional] [default to undefined]
-**content** | **string** | Homomorphically encrypted ballot | [default to undefined]
+**content** | **string** | Homomorphically encrypted ballot, with its proofs (JSON) | [default to undefined]
 **date** | **string** |  | [default to undefined]
 **unique_code** | **string** | Unique code for the bulletin, used for verification | [optional] [default to undefined]
 

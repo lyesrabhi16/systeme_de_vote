@@ -4,7 +4,7 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**getAllBulletins**](#getallbulletins) | **GET** /bulletins/ | Get All Bulletins|
+|[**getAllBulletins**](#getallbulletins) | **GET** /api/bulletins/ | Get All Bulletins|
 
 # **getAllBulletins**
 > PaginatedListResponseBulletin getAllBulletins()

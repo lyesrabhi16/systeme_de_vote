@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build --base /public/",
     "test": "vitest run",
     "lint": "eslint .",
+    "interop-fixture": "bun scripts/interop-fixture.ts",
     "preview": "vite preview",
     "generate-API-CLIENT": "rm -rf src/api/sdk && openapi-generator-cli generate -i ../SVS-SERVER/openapi.json -g typescript-axios -o src/api/sdk"
   },
