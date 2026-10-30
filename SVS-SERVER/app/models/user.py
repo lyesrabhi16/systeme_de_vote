@@ -190,6 +190,35 @@ class UserResponseModel(BaseModel):
         )
 
 
+class AdminUserResponseModel(UserResponseModel):
+    """What the administrators of the users see of an account (never the password hash)."""
+
+    verified_email: bool
+    verified_phone_number: bool
+    requested_password_reset: bool
+    created_at: datetime
+
+    @staticmethod
+    def from_user(user: User) -> "AdminUserResponseModel":
+        if user.id is None:
+            raise ValueError("User ID is None")
+        return AdminUserResponseModel(
+            id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            email=user.email,
+            username=user.username,
+            phone_number=user.phone_number,
+            is_active=user.is_active,
+            is_admin=user.is_admin,
+            authority=user.authority,
+            verified_email=user.verified_email,
+            verified_phone_number=user.verified_phone_number,
+            requested_password_reset=user.requested_password_reset,
+            created_at=user.created_at,
+        )
+
+
 class CurrentUserResponseModel(BaseModel):
     id: int
     first_name: str

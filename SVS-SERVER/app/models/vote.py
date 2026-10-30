@@ -162,6 +162,22 @@ class Vote(SQLModel, table=True):
         )
 
 
+class VoteResponseModel(SQLModel):
+    """
+    An election as the API shows it. The table model must never be a response: it holds the encrypted private key of the election
+    (and would hold anything added to the table later).
+    """
+
+    id: int
+    title: str
+    description: str
+    start_date: datetime
+    end_date: datetime
+    has_been_counted: bool
+    public_key: str
+    creator_id: int
+
+
 class VoteWithCreatorResponseModel(SQLModel):
     id: int
     title: str

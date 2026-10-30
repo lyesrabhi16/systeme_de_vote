@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query, Request, Depends, HTTPException
 from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
 from app.models import User
-from app.models.user import UserCreationModel, UserResponseModel, UserUpdateModel
+from app.models.user import AdminUserResponseModel, UserCreationModel, UserResponseModel, UserUpdateModel
 from loguru import logger
 from app.models.error_codes import ERROR_CODES
 from fastcrud import FastCRUD, PaginatedListResponse
@@ -101,9 +101,9 @@ async def admin_get_users(
 
 
 @router.get(
-    "/admin/:id",
+    "/admin/{id}",
     operation_id="admin_get_user_by_id",
-    response_model=User,
+    response_model=AdminUserResponseModel,
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
@@ -114,24 +114,27 @@ async def admin_get_user_by_id(request: Request, id: int):
     user = await User.get_user_by_id(id)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
-    return user
+    return AdminUserResponseModel.from_user(user)
 
 
 @router.get(
-    "/:id",
+    "/{id}",
     operation_id="get_user_by_id",
     response_model=UserResponseModel,
     dependencies=[Depends(AUTH_MIDDLEWARE.RequireAuthenticated)],
 )
 async def get_user_by_id(request: Request, id: int):
+    """The account of somebody (an administrator), or one's own: an email address and a phone number are not for everyone."""
+    if not request.state.user.is_admin and request.state.user.id != id:
+        raise HTTPException(status_code=403, detail=ERROR_CODES.FORBIDDEN)
     user = await User.get_user_by_id(id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
     return await UserResponseModel.from_user(user)
 
 
 @router.delete(
-    "/admin/:id",
+    "/admin/{id}",
     operation_id="admin_delete_user",
     response_model=dict,
     dependencies=[
@@ -152,18 +155,16 @@ async def admin_delete_user(request: Request, id: int):
 
 
 @router.put(
-    "/admin/:id",
+    "/admin/{id}",
     operation_id="admin_update_user",
-    response_model=User,
+    response_model=AdminUserResponseModel,
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
         Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
         Depends(ROUTES_GUARDS_MIDDLEWARE.InscriptionAuthorityOnly),
     ],
 )
-async def admin_update_user(
-    request: Request, id: int, user_data: UserUpdateModel
-) -> User:
+async def admin_update_user(request: Request, id: int, user_data: UserUpdateModel) -> AdminUserResponseModel:
     user = await User.get_user_by_id(id)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
@@ -196,4 +197,4 @@ async def admin_update_user(
     logger.info(
         f"Admin {request.state.user.username} updated user {user.username} (ID: {user.id})"
     )
-    return user
+    return AdminUserResponseModel.from_user(user)

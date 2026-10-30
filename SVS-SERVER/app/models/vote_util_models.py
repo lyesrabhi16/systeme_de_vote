@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.bulletin import Bulletin
 from app.models.user import User
 from app.models.attributed_votes import AttributedVote
-from app.utils import auth_utils
 from .vote import Vote, VoteWithCreatorResponseModel
 from .candidate import Candidate, CandidateCreateModel
 from datetime import datetime
@@ -187,8 +186,6 @@ class VoteUpdateModel(SQLModel):
     start_date: datetime | None = None
     end_date: datetime | None = None
     candidates: list[CandidateCreateModel] | None = None
-    public_key: str | None = None
-    private_key: str | None = None
     open_to_all: bool | None = None
     attributed_user_ids: list[int] | None = None
     excluded_user_ids: list[int] | None = None
@@ -214,10 +211,6 @@ class VoteUpdateModel(SQLModel):
         if self.end_date is not None:
             vote.end_date = self.end_date.replace(tzinfo=None)
             vote.has_been_counted = False  # reset counting status if end date changes
-        if self.public_key is not None:
-            vote.public_key = self.public_key
-        if self.private_key is not None:
-            vote.encrypted_private_key = auth_utils.encrypt_string(self.private_key)
         if self.candidates is not None:
             # Delete existing candidates
             await db.execute(delete(Candidate).where(Candidate.vote_id == vote_id))

@@ -6,6 +6,7 @@ from app.middlewares.auth_middleware import AUTH_MIDDLEWARE
 from app.middlewares.routes_guards_middleware import ROUTES_GUARDS_MIDDLEWARE
 from app.models import User, Vote, Bulletin, response_models
 from app.models.attributed_votes import AttributedVote
+from app.models.vote import VoteResponseModel
 from app.models import auth_models
 from app.models.vote_util_models import (
     FullVoteResponseModel,
@@ -27,7 +28,7 @@ bulletins_crud = FastCRUD(model=Bulletin)
 @router.get(
     "/attributed",
     operation_id="get_attributed_votes",
-    response_model=list[Vote],
+    response_model=list[VoteResponseModel],
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
@@ -41,7 +42,7 @@ async def get_attributed_votes(request: Request):
 @router.get(
     "/created",
     operation_id="get_created_votes",
-    response_model=list[Vote],
+    response_model=list[VoteResponseModel],
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
@@ -54,7 +55,7 @@ async def get_created_votes(request: Request):
 @router.get(
     "/voted",
     operation_id="get_already_voted_on_votes",
-    response_model=list[Vote],
+    response_model=list[VoteResponseModel],
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
@@ -70,7 +71,7 @@ async def get_already_voted_on_votes(request: Request):
 @router.get(
     "/available",
     operation_id="get_available_votes",
-    response_model=list[Vote],
+    response_model=list[VoteResponseModel],
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
@@ -159,15 +160,15 @@ async def get_vote_by_id(vote_id: int, request: Request):
 @router.get(
     "/",
     operation_id="get_all_votes",
-    response_model=PaginatedListResponse[Vote] | list[Vote],
+    response_model=PaginatedListResponse[VoteResponseModel],
     dependencies=[
         Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
     ],
 )
 async def get_all_votes(
     request: Request,
-    page: int = Query(default=1),
-    per_page: int = Query(default=10),
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=10, ge=1, le=100),
     search: str | None = Query(default=None),
 ):
     if request.state.user.is_admin:
@@ -177,16 +178,24 @@ async def get_all_votes(
             per_page=per_page,
             transformer=None,
             search=search,
+            schema_to_select=VoteResponseModel,
             search_columns=["title", "description"],
             sort_columns=["id"],
             sort_orders=["asc"],
         )
     user = await User.get_authenticated_user(request)
-    votes = []
-    votes.extend(user.created_votes)
-    votes.extend(map(lambda av: av.vote, user.attributed_votes))
+    # the elections of this person, each once, in the order of the administrators' list
+    votes = {v.id: v for v in [*user.created_votes, *(av.vote for av in user.attributed_votes)]}
+    matching = sorted(
+        (
+            v
+            for v in votes.values()
+            if not search or search.lower() in v.title.lower() or search.lower() in v.description.lower()
+        ),
+        key=lambda v: v.id,
+    )
     return paginated_response(
-        crud_data=({"data": votes, "total_count": len(votes)}),
+        crud_data={"data": matching[(page - 1) * per_page : page * per_page], "total_count": len(matching)},
         page=page,
         items_per_page=per_page,
     )
