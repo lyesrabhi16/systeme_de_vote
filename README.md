@@ -9,6 +9,11 @@ A web application for running elections where **the ballots are encrypted in the
 | <img src="docs/screenshots/login.png" alt="The sign-in page"> | <img src="docs/screenshots/home.png" alt="The elections of a voter: open, upcoming, and the history"> |
 | <img src="docs/screenshots/vote.png" alt="An open election, a candidate chosen"> | <img src="docs/screenshots/result.png" alt="An election that is over: the count, the winner"> |
 
+| | |
+| :---: | :---: |
+| <img src="docs/screenshots/editor.png" alt="The administrators' editor of an election that has not opened"> | <img src="docs/screenshots/mailpit.png" alt="The one-time password of a sign-in, in Mailpit's mailbox"> |
+| *The editor of an election that has not opened* | *The email of a sign-in, in Mailpit's mailbox (demo stack)* |
+
 ## Try it
 
 One command, no certificate and no mail server (needs Docker):
