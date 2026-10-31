@@ -1,0 +1,31 @@
+[project]
+name = "svs-server"
+version = "0.1.0"
+description = "Secure voting system API"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "fastapi[standard]",
+  "loguru",
+  "pwdlib[argon2]",
+  "pyjwt",
+  "sqlmodel[asyncio]",
+  "alembic",
+  "asyncpg",
+  "redis",
+  "fastapi-mail",
+  "cryptography",
+  "fastapi-crons",
+  "fastcrud",
+  "phe",
+]
+
+[dependency-groups]
+dev = [
+  "ruff",
+  "pytest",
+  "pytest-asyncio>=0.24",
+  "faker",
+  "aiosqlite",  # the tests run on SQLite (also a dependency of fastapi-crons, but not to be relied on)
+  "httpx",  # the test client
+  "fakeredis>=2.26",
+]

@@ -9,7 +9,7 @@
       pkgs = import nixpkgs { inherit system; };
     in {
       # nix develop
-      #   cd SVS-SERVER && uv venv && . .venv/bin/activate && uv pip install -r requirements-dev.txt && make test
+      #   cd SVS-SERVER && uv venv && . .venv/bin/activate && make install && make test
       #   cd SVS-CLIENT && bun install && bun run test
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [ python313 uv bun nodejs_22 jre docker-compose openssl ];

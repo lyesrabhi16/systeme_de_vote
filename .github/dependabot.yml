@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: pip
+  - package-ecosystem: uv
     directory: /SVS-SERVER
     schedule: { interval: weekly }
     open-pull-requests-limit: 5
