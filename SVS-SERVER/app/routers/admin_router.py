@@ -43,7 +43,7 @@ votes_crud = FastCRUD(model=Vote)
 )
 async def get_admins(
     page: int = 1,
-    per_page: int = Query(default=10, min=1, max=100),
+    per_page: int = Query(default=10, ge=1, le=100),
     search: str | None = Query(default=None),
 ):
 

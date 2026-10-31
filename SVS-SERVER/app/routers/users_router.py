@@ -80,7 +80,7 @@ async def create_user(request: Request, user_data: UserCreationModel):
 async def admin_get_users(
     request: Request,
     page: int = 1,
-    per_page: int = Query(default=10, min=1, max=100),
+    per_page: int = Query(default=10, ge=1, le=100),
     search: str | None = Query(default=None),
 ):
 
