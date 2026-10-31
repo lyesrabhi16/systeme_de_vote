@@ -16,7 +16,7 @@ A web application for running elections where **the ballots are encrypted in the
 
 ## Try it
 
-One command, no certificate and no mail server (needs Docker):
+One command, no certificate and no mail server of your own: the stack brings Mailpit (needs Docker):
 
 ```bash
 docker compose -f docker-compose.demo.yml up --build
