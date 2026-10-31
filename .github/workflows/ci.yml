@@ -98,6 +98,17 @@ jobs:
           curl --fail --silent --show-error http://localhost:8000/openapi.json > /dev/null
       - name: The demo data was seeded
         run: docker compose -f docker-compose.demo.yml logs svs | grep "newcomer"
+      # The application sent an email over SMTP and it arrived: the one-time password of a sign-in, in Mailpit's mailbox.
+      - name: The one-time password reaches the mailbox (Mailpit)
+        run: |
+          curl --fail --silent --show-error -X POST http://localhost:8000/api/auth/login \
+            -H 'content-type: application/json' \
+            -d '{"identifier":"alice@example.org","password":"demo-password-123","identifier_type":"email"}' > /dev/null
+          for i in $(seq 1 15); do
+            if curl --fail --silent http://localhost:8025/api/v1/messages | jq -e '.messages[0] | .Subject == "Votre code de connexion" and .To[0].Address == "alice@example.org"' > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          echo "no email in the mailbox"; docker compose -f docker-compose.demo.yml logs svs | tail -20; exit 1
       # The finished election of the demo is counted from real ballots: anybody can check the result from the public routes alone.
       - name: The count of the demo election verifies
         run: docker compose -f docker-compose.demo.yml exec -T svs python -m app.utils.audit http://localhost:8000 2

@@ -106,6 +106,17 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     networks: [internal]
 
+  # Opt-in, for trying this stack without a real mail server:  docker compose --profile mailpit up -d
+  # with, in .env:  SMTP_HOST=mailpit  SMTP_PORT=1025  SMTP_USER=  SMTP_PASSWORD=  SMTP_USE_TLS=False  SMTP_STARTTLS=False
+  # The mailbox is at http://localhost:8025, on this machine only. NEVER in production: it keeps the one-time passwords of everybody.
+  mailpit:
+    <<: *secure
+    profiles: [mailpit]
+    image: axllent/mailpit:v1.33.0
+    ports:
+      - "127.0.0.1:8025:8025"
+    networks: [internal, mailbox]
+
   traefik:
     <<: *secure
     image: traefik:v3.6
@@ -133,6 +144,8 @@ services:
     networks: [web]
 
 networks:
+  # the mailbox of the opt-in mail catcher is the only thing here that is published, and on 127.0.0.1 (a published port needs a network that is not internal)
+  mailbox:
   # internal: no route to the outside, and nothing published: only the application reaches the database and Redis
   internal:
     internal: true

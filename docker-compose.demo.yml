@@ -2,8 +2,9 @@
 #
 #     docker compose -f docker-compose.demo.yml up --build
 #
-# Open http://localhost:8000 . The accounts are printed in the logs of `svs` (password: demo-password-123),
-# and so is the one-time password of every sign-in (there is no mail server: the "email" is written to the log).
+# Open http://localhost:8000 . The accounts are printed in the logs of `svs` (password: demo-password-123).
+# Every sign-in is sent a one-time password by email: Mailpit, a mail server that keeps what it receives and delivers nothing,
+# shows it at http://localhost:8025 (and the receipt of each vote, and the password reset links).
 #
 # The finished election can be checked from the public data only:  docker compose -f docker-compose.demo.yml exec svs python -m app.utils.audit http://localhost:8000 2
 #
@@ -23,7 +24,13 @@ services:
       DB_PASSWORD: svs-demo-db-password
       DB_NAME: svs
       REDIS_HOST: redis
-      # no SMTP_HOST: emails are written to the log. no JWT_SECRET_KEY / ENCRYPTION_KEY: made up when the container starts (so the demo's elections can be counted only until it restarts)
+      # the emails go to Mailpit (no sign-in, no TLS: it is a catcher, nothing leaves the stack)
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_USE_TLS: "False"
+      SMTP_STARTTLS: "False"
+      SMTP_SENDER_EMAIL: svs@example.org
+      # no JWT_SECRET_KEY / ENCRYPTION_KEY: made up when the container starts (so the demo's elections can be counted only until it restarts)
     # the demo data first (it does nothing when there is data already), then the server
     command: ["sh", "-c", "python -m app.db.seed_demo && exec uvicorn app.main:APP --host 0.0.0.0 --port 8000"]
     ports:
@@ -33,6 +40,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit:v1.33.0
+    ports:
+      - "127.0.0.1:8025:8025"   # the mailbox (and its API: /api/v1/messages)
+    # the image has its own health check (`mailpit readyz`)
 
   db:
     image: postgres:17-alpine

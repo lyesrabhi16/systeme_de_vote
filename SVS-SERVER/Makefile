@@ -12,6 +12,9 @@ help:     ## Show this help.
 install: ## Install runtime and test dependencies from pyproject.toml.
 	uv sync --dev
 
+services: ## PostgreSQL, Redis and Mailpit (a mailbox for the application's emails, http://localhost:8025) for make run-dev.
+	docker compose -f ../docker-compose.dev.yml up -d
+
 run-dev: ## Run the API with auto-reload on http://localhost:8000 (needs PostgreSQL and Redis: see .env.example).
 	uv run uvicorn app.main:APP --reload --host 127.0.0.1 --port 8000
 

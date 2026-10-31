@@ -28,7 +28,8 @@ make install     # uv sync --dev: the server and the tools of the tests, as lock
 make test        # pytest: the whole application on SQLite and fakeredis
 make lint        # ruff check and format --check (what CI runs)
 make format      # fix what can be fixed
-make run-dev     # needs PostgreSQL and Redis (see .env.example), http://localhost:8000, docs at /docs
+make services    # PostgreSQL, Redis and Mailpit (the application's emails arrive at http://localhost:8025)
+make run-dev     # needs those (see .env.example), http://localhost:8000, docs at /docs
 make seed-demo   # demo accounts and elections, with real ballots (does nothing if there is data)
 make migrate     # bring the database to the latest schema; make migration m="..." writes one from a change of the models
 make openapi     # rewrite openapi.json after a change to the API, then `bun run generate-API-CLIENT` in ../SVS-CLIENT

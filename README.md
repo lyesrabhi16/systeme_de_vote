@@ -17,7 +17,7 @@ One command, no certificate and no mail server (needs Docker):
 docker compose -f docker-compose.demo.yml up --build
 ```
 
-Open <http://localhost:8000>. It starts PostgreSQL, Redis and the application, and seeds demo data: two administrators (`registrar`, who manages the accounts, and `organizer`, who manages the elections), voters (`alice`, `bob`, `carol`, `dave`, `erin`), an account with no password yet (`newcomer`), and three elections: one open, one that is over and **counted from real ballots**, one that has not opened. The password is `demo-password-123` (sign in with `alice@example.org`, …). There is no mail server, so **the one-time password of each sign-in is written to the log**: `docker compose -f docker-compose.demo.yml logs -f svs`.
+Open <http://localhost:8000>. It starts PostgreSQL, Redis and the application, and seeds demo data: two administrators (`registrar`, who manages the accounts, and `organizer`, who manages the elections), voters (`alice`, `bob`, `carol`, `dave`, `erin`), an account with no password yet (`newcomer`), and three elections: one open, one that is over and **counted from real ballots**, one that has not opened. The password is `demo-password-123` (sign in with `alice@example.org`, …). Every sign-in sends a one-time password by email: the stack includes [Mailpit](https://mailpit.axllent.org), a mail server that keeps what it receives and delivers nothing, and **the email is in its mailbox at <http://localhost:8025>** (so are the receipts of votes and the password reset links).
 
 Then check the count of the finished election without trusting the server:
 
@@ -107,7 +107,9 @@ cd SVS-SERVER
 make install      # uv sync --dev, as locked in uv.lock
 make test          # SQLite and an in-memory Redis
 make lint          # ruff
-make run-dev       # http://localhost:8000, needs PostgreSQL and Redis: see .env.example
+make services      # PostgreSQL, Redis and Mailpit (the mailbox: http://localhost:8025), on this machine
+cp .env.example .env   # points the application at them
+make run-dev       # http://localhost:8000
 
 # the client
 cd SVS-CLIENT
@@ -142,7 +144,7 @@ docker compose up -d --build      # https://svs-server.localhost (trust SVS-SERV
 | `PAILLIER_KEY_BITS` | size of an election's key (2048 by default, the minimum in production) |
 | `SMTP_*` | the mail server; required in production |
 
-Outside production, missing secrets are made up when the process starts (and said so in the log), and without `SMTP_HOST` the emails are written to the log. Elections made with a made-up `ENCRYPTION_KEY` cannot be counted after a restart.
+Outside production, missing secrets are made up when the process starts (and said so in the log), and without `SMTP_HOST` the emails are written to the log. To try the production stack without a real mail server, `docker compose --profile mailpit up -d` adds Mailpit (mailbox on <http://localhost:8025>, this machine only) and `.env.example` says which `SMTP_*` to set; never in production. Elections made with a made-up `ENCRYPTION_KEY` cannot be counted after a restart.
 
 **The schema is changed by migrations** ([Alembic](SVS-SERVER/migrations/README.md)), run once per deployment by the `migrate` service (an init container on Kubernetes) before the application starts; in production the application refuses to start on a database that is behind (`python -m app.db.migrate --check`). A database made by an earlier version, with tables and no history, is *adopted*: stamped with the revision it is like, then upgraded (the ballots, tallies and proofs become `TEXT`: they outgrew their `VARCHAR`, from about 20 candidates). Back it up first, and read what it will do with `make migrate-sql from=0001`. Bulletins cast before the proof of the sum have the old format: the count leaves them out and reports them.
 
