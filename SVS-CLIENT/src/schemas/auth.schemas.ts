@@ -4,7 +4,9 @@ import { z } from 'zod';
 
 export const LoginFormSchema = z.object({
     email: z.email({ message: 'Adresse email invalide' }),
-    password: z.string().min(1, { message: 'Mot de passe requis' }).optional(),
+    // optional: an account an administrator has just made has no password, and signs in with the one-time password alone.
+    // The field holds '' when it is empty (a field that starts undefined is uncontrolled until it is typed in); the form sends nothing then.
+    password: z.string().optional(),
     remember_me: z.boolean().optional(),
 });
 export type LoginFormSchemaType = z.infer<typeof LoginFormSchema>;

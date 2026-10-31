@@ -127,7 +127,7 @@ export const useAuthActions = (init_data?: {
         auth
             .login_password_step({
                 identifier: _data.identifier,
-                password: _data.password,
+                password: _data.password || undefined, // "" is a password (the wrong one): an account without one sends none
                 identifier_type: _data.IdentifierType,
             })
             .then((d) => {
