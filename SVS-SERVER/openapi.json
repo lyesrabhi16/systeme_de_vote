@@ -386,6 +386,80 @@
                 }
             }
         },
+        "/api/vote/electors/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Search Electors",
+                "description": "The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority.\n(The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)",
+                "operationId": "search_electors",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "title": "Page"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "default": 10,
+                            "title": "Per Page"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "maxLength": 100
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Search"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedListResponse_UserResponseModel_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/vote/finishedVotes": {
             "get": {
                 "tags": [
@@ -937,6 +1011,89 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/VoteResultsModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/vote/{vote_id}/roll/": {
+            "get": {
+                "tags": [
+                    "vote"
+                ],
+                "summary": "Get Vote Roll",
+                "description": "Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.",
+                "operationId": "get_vote_roll",
+                "parameters": [
+                    {
+                        "name": "vote_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Vote Id"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "title": "Page"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "default": 10,
+                            "title": "Per Page"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "maxLength": 100
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Search"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedListResponse_UserResponseModel_"
                                 }
                             }
                         }

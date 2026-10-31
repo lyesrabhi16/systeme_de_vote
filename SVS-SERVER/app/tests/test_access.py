@@ -339,3 +339,89 @@ class TestHeaders:
         assert (
             "strict-transport-security" not in (await client.get("/api/vote/")).headers
         )  # testing mode: plain http is fine
+
+
+class TestTheElectoralRoll:
+    """Who may vote: for the vote authority to read and to change, and a change of something else must not touch it."""
+
+    async def setup_election(self, voters=3):
+        author = await make_user("author", admin=True, authority="Vote")
+        people = [await make_user(f"voter{i}") for i in range(voters)]
+        vote, candidates = await make_vote(author, people, starts_in=timedelta(days=1), ends_in=timedelta(days=2))
+        return author, people, vote, candidates
+
+    async def test_the_vote_authority_reads_it_paged_and_searched_and_it_has_no_secret(self, client):
+        author, people, vote, _ = await self.setup_election(voters=5)
+        first = (await client.get(f"/api/vote/{vote.id}/roll/?per_page=2", headers=bearer(author))).json()
+        assert first["total_count"] == 5 and len(first["data"]) == 2
+        second = (await client.get(f"/api/vote/{vote.id}/roll/?per_page=2&page=3", headers=bearer(author))).json()
+        assert len(second["data"]) == 1
+        found = (await client.get(f"/api/vote/{vote.id}/roll/?search=voter3", headers=bearer(author))).json()
+        assert [u["username"] for u in found["data"]] == ["voter3"] and found["total_count"] == 1
+        assert "password" not in str(first)
+
+    async def test_nobody_else_reads_it(self, client):
+        author, people, vote, _ = await self.setup_election()
+        registrar = await make_user("registrar", admin=True, authority="Inscription")
+        for user in (people[0], registrar):
+            assert (await client.get(f"/api/vote/{vote.id}/roll/", headers=bearer(user))).status_code == 403
+        assert (await client.get(f"/api/vote/{vote.id}/roll/")).status_code == 401
+        assert (await client.get("/api/vote/9999/roll/", headers=bearer(author))).status_code == 404
+
+    async def test_an_election_only_on_the_roll_of_its_own_people(self, client):
+        author, people, vote, _ = await self.setup_election(voters=2)
+        other, _ = await make_vote(author, [await make_user("elsewhere")], title="Other")
+        usernames = [
+            u["username"]
+            for u in (await client.get(f"/api/vote/{vote.id}/roll/", headers=bearer(author))).json()["data"]
+        ]
+        assert sorted(usernames) == ["voter0", "voter1"]
+
+    async def test_changing_the_title_leaves_the_roll_alone(self, client):
+        """The editor used to send "open to all" with every save: renaming an election enrolled everybody in it."""
+        author, people, vote, _ = await self.setup_election(voters=2)
+        await make_user("bystander")  # an account that is not on the roll
+        response = await client.put(f"/api/vote/{vote.id}/", headers=bearer(author), json={"title": "Renamed"})
+        assert response.status_code == 200, response.text
+        roll = (await client.get(f"/api/vote/{vote.id}/roll/", headers=bearer(author))).json()
+        assert roll["total_count"] == 2
+
+    async def test_the_roll_is_replaced_when_a_list_is_sent(self, client):
+        author, people, vote, _ = await self.setup_election(voters=3)
+        keep = [people[0].id, people[1].id]
+        response = await client.put(
+            f"/api/vote/{vote.id}/", headers=bearer(author), json={"attributed_user_ids": keep, "open_to_all": False}
+        )
+        assert response.status_code == 200, response.text
+        roll = (await client.get(f"/api/vote/{vote.id}/roll/", headers=bearer(author))).json()
+        assert sorted(u["id"] for u in roll["data"]) == sorted(keep)
+
+
+class TestSearchingElectors:
+    """The vote authority puts people on a roll: it must be able to find them (the user list is the other authority's)."""
+
+    async def test_the_vote_authority_finds_active_accounts_by_name_or_address(self, client):
+        author = await make_user("author", admin=True, authority="Vote")
+        await make_user("ada")
+        await make_user("grace")
+        await make_user("ghost", active=False)
+        found = (await client.get("/api/vote/electors/?search=gra", headers=bearer(author))).json()
+        assert [u["username"] for u in found["data"]] == ["grace"]
+        everybody = (await client.get("/api/vote/electors/?per_page=100", headers=bearer(author))).json()
+        assert sorted(u["username"] for u in everybody["data"]) == ["ada", "author", "grace"]  # not the inactive one
+        assert "password" not in str(everybody)
+
+    async def test_nobody_else_searches(self, client):
+        ada = await make_user("ada")
+        registrar = await make_user("registrar", admin=True, authority="Inscription")
+        for user in (ada, registrar):
+            assert (await client.get("/api/vote/electors/", headers=bearer(user))).status_code == 403
+        assert (await client.get("/api/vote/electors/")).status_code == 401
+
+    async def test_the_search_is_paged_and_bounded(self, client):
+        author = await make_user("author", admin=True, authority="Vote")
+        for i in range(5):
+            await make_user(f"person{i}")
+        page = (await client.get("/api/vote/electors/?per_page=2&page=2", headers=bearer(author))).json()
+        assert page["total_count"] == 6 and len(page["data"]) == 2
+        assert (await client.get("/api/vote/electors/?per_page=1000", headers=bearer(author))).status_code == 422

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 from fastapi import Request
 from loguru import logger
 from pydantic import BaseModel
+from sqlalchemy import func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Field, Relationship, SQLModel, select
 
@@ -80,6 +81,35 @@ class User(SQLModel, table=True):
             raise ValueError("Database session is None")
         user = await db.get(User, user_id)
         return user
+
+    @staticmethod
+    @db_session
+    async def search_active(
+        page: int, per_page: int, search: str | None = None, db: AsyncSession | None = None
+    ) -> tuple[list["User"], int]:
+        """A page of the accounts that are active, by name, username or address, and how many match."""
+        if db is None:
+            raise ValueError("Database session is None")
+        matching = [User.is_active.is_(True)]
+        if search and search.strip():
+            like = f"%{search.strip()}%"
+            matching.append(
+                or_(
+                    User.username.ilike(like),
+                    User.email.ilike(like),
+                    User.first_name.ilike(like),
+                    User.last_name.ilike(like),
+                )
+            )
+        total = (await db.execute(select(func.count(User.id)).where(*matching))).scalar_one()
+        rows = await db.execute(
+            select(User)
+            .where(*matching)
+            .order_by(User.last_name, User.first_name, User.id)
+            .offset((page - 1) * per_page)
+            .limit(per_page)
+        )
+        return list(rows.scalars().all()), total
 
     @db_session
     async def has_voted_on(self, vote: "Vote", token: str, db: AsyncSession | None = None) -> bool:

@@ -11,6 +11,7 @@ from app.models import Bulletin, User, Vote, auth_models, response_models
 from app.models.attributed_votes import AttributedVote
 from app.models.error_codes import ERROR_CODES
 from app.models.types import utcnow
+from app.models.user import UserResponseModel
 from app.models.vote import AlreadyVoted, DuplicateBallot, VoteResponseModel
 from app.models.vote_util_models import (
     FinishedVoteResponseModel,
@@ -91,6 +92,36 @@ async def get_available_votes(request: Request):
     logger.debug(f"User {user.username} has {len(available_votes)} available votes.")
 
     return available_votes
+
+
+@router.get(
+    "/electors/",
+    operation_id="search_electors",
+    response_model=PaginatedListResponse[UserResponseModel],
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.VoteAuthorityOnly),
+    ],
+)
+async def search_electors(
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=10, ge=1, le=100),
+    search: str | None = Query(default=None, max_length=100),
+):
+    """
+    The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority.
+    (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+    """
+    users, total = await User.search_active(page, per_page, search)
+    return paginated_response(
+        crud_data={
+            "data": [UserResponseModel.model_validate(u, from_attributes=True) for u in users],
+            "total_count": total,
+        },
+        page=page,
+        items_per_page=per_page,
+    )
 
 
 @router.get(
@@ -336,6 +367,36 @@ async def get_vote_count(vote_id: int):
         count_failures=failures,
         abstention_count=len(vote.attributed_users) - voted,
         voter_count=voted,
+    )
+
+
+@router.get(
+    "/{vote_id}/roll/",
+    operation_id="get_vote_roll",
+    response_model=PaginatedListResponse[UserResponseModel],
+    dependencies=[
+        Depends(AUTH_MIDDLEWARE.RequireAuthenticated),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.AdminOnly),
+        Depends(ROUTES_GUARDS_MIDDLEWARE.VoteAuthorityOnly),
+    ],
+)
+async def get_vote_roll(
+    vote_id: int,
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=10, ge=1, le=100),
+    search: str | None = Query(default=None, max_length=100),
+):
+    """Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read."""
+    if await Vote.get_by_id(vote_id) is None:
+        raise HTTPException(status_code=404, detail=ERROR_CODES.NOT_FOUND)
+    users, total = await AttributedVote.roll_of(vote_id, page, per_page, search)
+    return paginated_response(
+        crud_data={
+            "data": [UserResponseModel.model_validate(u, from_attributes=True) for u in users],
+            "total_count": total,
+        },
+        page=page,
+        items_per_page=per_page,
     )
 
 
