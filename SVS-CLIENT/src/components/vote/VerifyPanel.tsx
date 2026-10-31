@@ -18,9 +18,9 @@ const VerifyPanel = (props: { voteId: number; counted: boolean }) => {
     if (!wanted) return;
     setStatus('checking');
     try {
-      const { data } = await apiClient().bulletins.getAllBulletins(1, 10, wanted, props.voteId);
-      // the search matches parts of a code: the receipt is the one that is equal
-      setStatus(data.data.some((b) => (b as { unique_code?: string }).unique_code === wanted) ? 'found' : 'missing');
+      // the server answers for this exact code (not for one that contains it)
+      const { data } = await apiClient().vote.checkReceipt(props.voteId, wanted);
+      setStatus(data.result ? 'found' : 'missing');
     } catch {
       setStatus('error');
     }

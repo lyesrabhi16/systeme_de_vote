@@ -2163,6 +2163,44 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+         * @summary Check Receipt
+         * @param {number} voteId 
+         * @param {string} code 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkReceipt: async (voteId: number, code: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('checkReceipt', 'voteId', voteId)
+            // verify required parameter 'code' is not null or undefined
+            assertParamExists('checkReceipt', 'code', code)
+            const localVarPath = `/api/vote/receipt/{vote_id}/{code}`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)))
+                .replace(`{${"code"}}`, encodeURIComponent(String(code)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Create Vote
          * @param {VoteCreationModel} voteCreationModel 
@@ -2685,6 +2723,20 @@ export const VoteApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+         * @summary Check Receipt
+         * @param {number} voteId 
+         * @param {string} code 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async checkReceipt(voteId: number, code: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.checkReceipt(voteId, code, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.checkReceipt']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Create Vote
          * @param {VoteCreationModel} voteCreationModel 
@@ -2898,6 +2950,17 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.checkIfUserVotedOnVote(voteId, requiredTokenInput, options).then((request) => request(axios, basePath));
         },
         /**
+         * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+         * @summary Check Receipt
+         * @param {number} voteId 
+         * @param {string} code 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkReceipt(voteId: number, code: string, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponse> {
+            return localVarFp.checkReceipt(voteId, code, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Create Vote
          * @param {VoteCreationModel} voteCreationModel 
@@ -3066,6 +3129,18 @@ export class VoteApi extends BaseAPI {
      */
     public checkIfUserVotedOnVote(voteId: number, requiredTokenInput: RequiredTokenInput, options?: RawAxiosRequestConfig) {
         return VoteApiFp(this.configuration).checkIfUserVotedOnVote(voteId, requiredTokenInput, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+     * @summary Check Receipt
+     * @param {number} voteId 
+     * @param {string} code 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public checkReceipt(voteId: number, code: string, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).checkReceipt(voteId, code, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

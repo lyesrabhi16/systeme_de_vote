@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Text
+from sqlalchemy import Text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -46,3 +46,14 @@ class Bulletin(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+    @staticmethod
+    @db_session
+    async def has_receipt(vote_id: int, code: str, db: AsyncSession | None = None) -> bool:
+        """Is there a bulletin of this election whose receipt is exactly this code?"""
+        if db is None:
+            raise ValueError("Database session is None")
+        found = await db.execute(
+            select(Bulletin.id).where(Bulletin.vote_id == vote_id, Bulletin.unique_code == code).limit(1)
+        )
+        return found.first() is not None

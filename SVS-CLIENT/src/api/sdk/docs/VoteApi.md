@@ -6,6 +6,7 @@ All URIs are relative to *http://localhost*
 |------------- | ------------- | -------------|
 |[**castVote**](#castvote) | **POST** /api/vote/cast/{vote_id} | Cast Vote|
 |[**checkIfUserVotedOnVote**](#checkifuservotedonvote) | **POST** /api/vote/check/{vote_id}/user-voted | Check If User Voted On Vote|
+|[**checkReceipt**](#checkreceipt) | **GET** /api/vote/receipt/{vote_id}/{code} | Check Receipt|
 |[**createVote**](#createvote) | **POST** /api/vote/ | Create Vote|
 |[**deleteVote**](#deletevote) | **DELETE** /api/vote/{vote_id}/ | Delete Vote|
 |[**getAllVotes**](#getallvotes) | **GET** /api/vote/ | Get All Votes|
@@ -120,6 +121,61 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **checkReceipt**
+> BooleanResponse checkReceipt()
+
+Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+let code: string; // (default to undefined)
+
+const { status, data } = await apiInstance.checkReceipt(
+    voteId,
+    code
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+| **code** | [**string**] |  | defaults to undefined|
+
+
+### Return type
+
+**BooleanResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 

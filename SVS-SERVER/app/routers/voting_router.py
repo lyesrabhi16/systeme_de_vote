@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from fastcrud import FastCRUD, PaginatedListResponse, paginated_response
 from loguru import logger
 
@@ -256,6 +256,19 @@ async def get_public_vote_bulletins(
         sort_orders=["asc"],
         vote_id=vote_id,
     )
+
+
+@router.get(
+    "/receipt/{vote_id}/{code}",
+    operation_id="check_receipt",
+    response_model=response_models.BooleanResponse,
+)
+async def check_receipt(vote_id: int, code: str = Path(max_length=1024)):
+    """
+    Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads.
+    A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+    """
+    return response_models.BooleanResponse(result=await Bulletin.has_receipt(vote_id, code))
 
 
 @router.get(

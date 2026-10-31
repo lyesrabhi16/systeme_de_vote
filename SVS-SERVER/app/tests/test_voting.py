@@ -61,6 +61,25 @@ class TestCasting:
         assert [b["unique_code"] for b in board.json()["data"]] == [code]
         assert "ada" not in board.text and "user" not in board.text
 
+    async def test_the_receipt_is_found_on_the_board_exactly_and_only_in_its_election(self, client):
+        _, (ada, *_), vote, ids = await election()
+        code = (await cast(client, ada, vote, ballot(vote, ids, ids[0]))).json()["unique_code"]
+        other, other_candidates = await make_vote(await make_user("other-admin", admin=True), [], title="Other")
+
+        async def found(election_id, receipt):
+            response = await client.get(f"/api/vote/receipt/{election_id}/{receipt}")  # no sign-in: the board is public
+            assert response.status_code == 200
+            return response.json()["result"]
+
+        assert await found(vote.id, code) is True
+        assert await found(vote.id, code[:-1]) is False  # a part of a receipt is not a receipt
+        assert await found(vote.id, code[5:12]) is False
+        assert await found(vote.id, code + "x") is False
+        assert await found(vote.id, "nothing-like-it") is False
+        assert await found(other.id, code) is False  # another election's board
+        assert await found(9999, code) is False
+        assert (await client.get(f"/api/vote/receipt/{vote.id}/{'x' * 2000}")).status_code == 422
+
     async def test_the_ballot_hides_the_choice(self, client):
         """Whatever is chosen, a ballot is an entry for each candidate, each a number the server cannot read without the private key."""
         _, (ada, grace, *_), vote, ids = await election()
