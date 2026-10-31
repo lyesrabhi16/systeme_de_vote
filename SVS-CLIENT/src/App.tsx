@@ -4,7 +4,19 @@ import { useEffect, useState } from 'react';
 import LoadingPage from '@/pages/LoadingPage';
 import Router from '@/components/utils/Router';
 import { Toaster } from 'sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 function App() {
+  const queryClient = new QueryClient();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppWrapper />
+    </QueryClientProvider>
+  );
+}
+
+const AppWrapper = () => {
   const store = useGlobalStore();
   const auth = useAuth();
   const [loaded, setLoaded] = useState(false);
@@ -15,10 +27,10 @@ function App() {
         .load_current_user()
         .then((user) => {
           if (user === null) {
-            console.log('No user loaded, logging out');
+            //console.log('No user loaded, logging out');
             auth.logout();
           } else {
-            console.log('Loaded current user:', user);
+            //console.log('Loaded current user:', user);
           }
         })
         .catch(async (e) => {
@@ -44,6 +56,6 @@ function App() {
       <Toaster position='bottom-right' richColors closeButton />
     </div>
   );
-}
+};
 
 export default App;

@@ -68,6 +68,7 @@ web_modules/
 # dotenv environment variable files
 .env
 .env.*
+!.env.example
 *.env
 !.env.example
 !.env.*.example
@@ -154,3 +155,13 @@ data
 
 *.db
 *.db-journal
+*.db*
+# Build output: the client is built into SVS-CLIENT/dist, then copied to SVS-SERVER/app/dist (make deploy, or the Dockerfile)
+SVS-CLIENT/dist/
+SVS-SERVER/app/dist/
+
+# virtual environments, editor caches
+.venv/
+.vscode/
+
+.ruff_cache/

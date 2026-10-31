@@ -4,16 +4,16 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**getCurrentUser**](#getcurrentuser) | **POST** /auth/user/me | Get Current User|
-|[**login**](#login) | **POST** /auth/login | Login|
-|[**logout**](#logout) | **POST** /auth/logout | Logout|
-|[**passwordResetRequest**](#passwordresetrequest) | **POST** /auth/password-reset | Password Reset Request|
-|[**resendOtp**](#resendotp) | **POST** /auth/resend-otp | Resend Otp|
-|[**validatePasswordReset**](#validatepasswordreset) | **POST** /auth/password-reset/validate | Validate Password Reset Otp|
-|[**verifyOTP**](#verifyotp) | **POST** /auth/verify-otp | Verify Otp|
+|[**getCurrentUser**](#getcurrentuser) | **POST** /api/auth/user/me | Get Current User|
+|[**login**](#login) | **POST** /api/auth/login | Login|
+|[**logout**](#logout) | **POST** /api/auth/logout | Logout|
+|[**passwordResetRequest**](#passwordresetrequest) | **POST** /api/auth/password-reset | Password Reset Request|
+|[**resendOtp**](#resendotp) | **POST** /api/auth/resend-otp | Resend Otp|
+|[**validatePasswordReset**](#validatepasswordreset) | **POST** /api/auth/password-reset/validate | Validate Password Reset Otp|
+|[**verifyOTP**](#verifyotp) | **POST** /api/auth/verify-otp | Verify Otp|
 
 # **getCurrentUser**
-> CurrentUserResponseModel getCurrentUser(tokenInput)
+> CurrentUserResponseModel getCurrentUser()
 
 Get the current user information
 
@@ -29,7 +29,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new AuthApi(configuration);
 
-let tokenInput: TokenInput; //
+let tokenInput: TokenInput; // (optional)
 
 const { status, data } = await apiInstance.getCurrentUser(
     tokenInput
@@ -163,7 +163,7 @@ No authorization required
 # **passwordResetRequest**
 > MessageResponse passwordResetRequest(passwordResetRequestModel)
 
-Request password reset by sending OTP to user email
+Request password reset by sending OTP to user email. The answer is the same whether the address belongs to somebody or not, so that it cannot be used to find out who has an account.
 
 ### Example
 

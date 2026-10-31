@@ -1,61 +1,70 @@
-# This is a regular comment, that will not be displayed
-
 ## ----------------------------------------------------------------------
-## SVS-SERVER Makefile
+## SVS-SERVER Makefile (run it from SVS-SERVER)
 ## ----------------------------------------------------------------------
 
 help:     ## Show this help.
 	@echo "Usage: make [COMMAND]"
 	@echo ""
 	@echo "Available targets:"
-	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-30s\033[0m %s\n", $$1, $$2}'
+	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-24s\033[0m %s\n", $$1, $$2}'
 
 
-install: ## Install all required dependencies.
-	@echo "Installing dependencies..."
-	@pip install -r requirements.txt
-	@echo "\033[32mInstallation complete.\033[0m"
+install: ## Install runtime and test dependencies from pyproject.toml.
+	uv sync --dev
 
-check-dependencies: ## Check if all required dependencies are installed.
-	@echo "Checking dependencies..."
-	@# check if all packages in requirements.txt are installed
-	@pip freeze | grep -F -f requirements.txt > /dev/null || (echo "Some dependencies are missing. running 'make install'." && make install)
-	@echo "\033[32mAll dependencies are installed.\033[0m"
+services: ## PostgreSQL, Redis and Mailpit (a mailbox for the application's emails, http://localhost:8025) for make run-dev.
+	docker compose -f ../docker-compose.dev.yml up -d
 
-run-dev: check-dependencies ## Run the FastAPI server in development mode.
-	@echo "Starting FastAPI server in development mode..."
-	pipenv run fastapi dev --host 0.0.0.0 --port 8000
+run-dev: ## Run the API with auto-reload on http://localhost:8000 (needs PostgreSQL and Redis: see .env.example).
+	uv run uvicorn app.main:APP --reload --host 127.0.0.1 --port 8000
 
-run-production: check-dependencies ## Run the FastAPI server in production mode.
-	@echo "Starting FastAPI server in production mode..."
-	fastapi run --host 0.0.0.0 --port 443
+test: ## Run the tests (no PostgreSQL, Redis or mail server needed).
+	uv run python -m pytest
 
-build-client: ## Build the SVS-CLIENT application.
-	@echo "Building SVS-CLIENT application..."
-	@cd ../SVS-CLIENT && bun install && bun run build
-	@echo "\033[32mSVS-CLIENT build complete.\033[0m"
+lint: ## Check the style and the likely bugs (what CI checks).
+	uv run ruff check app migrations
+	uv run ruff format --check app migrations
 
-deploy: build-client ## Deploy the built SVS-CLIENT application to the server's app directory.
-	@echo "Deploying application..."
-	@cp -r ../SVS-CLIENT/dist ./app/
-	@echo "\033[32mDeployment complete.\033[0m"
+format: ## Fix what can be fixed, and format the code.
+	uv run ruff check app migrations --fix
+	uv run ruff format app migrations
 
-generate-certs: ## Generate SSL certificates for the server.
-	@echo "Generating SSL certificates..."
-	@chmod +x ./scripts/generate-certs
-	@./scripts/generate-certs
-	@echo "\033[32mSSL certificates generated.\033[0m"
+openapi: ## Write openapi.json (the web client's typed SDK is generated from it; a test checks it is up to date).
+	uv run python -m app.utils.openapi
+	@echo "openapi.json written. Now: cd ../SVS-CLIENT && bun run generate-API-CLIENT"
 
-update-requirements: ## Update the requirements.txt file with the latest dependencies.
-	@echo "Updating requirements.txt..."
-	@pipenv requirements > requirements.txt
-	@echo "\033[32mrequirements.txt updated.\033[0m"
+build-client: ## Build the web client (SVS-CLIENT).
+	cd ../SVS-CLIENT && bun install --frozen-lockfile && bun run build
 
-seed-db: ## Seed the database with initial data.
-	@echo "Seeding the database..."
-	@python -m app.db.seed
-	@echo "\033[32mDatabase seeding complete.\033[0m"
-seed-more-db: seed-db ## Seed the database with additional data.
-	@echo "Seeding the database with more data..."
-	@python -m app.db.seed_more
-	@echo "\033[32mAdditional database seeding complete.\033[0m"
+deploy: build-client ## Put the built client where the API serves it (app/dist). The Docker image does this by itself.
+	rm -rf ./app/dist
+	cp -r ../SVS-CLIENT/dist ./app/dist
+
+seed-demo: ## Add demo data: accounts, an open election, a counted one with real ballots (does nothing if there is data). Never in production.
+	uv run python -m app.db.seed_demo
+
+seed-db: ## Add random data for the interface (asks whether to erase the database first). Never in production.
+	uv run python -m app.db.seed
+
+seed-more-db: ## Add more random data for the interface (their ballots are not valid ones: such an election counts as empty).
+	uv run python -m app.db.seed_more_2
+
+generate-certs: ## A local certificate authority and a certificate for svs-server.localhost (for ../docker-compose.yml).
+	./scripts/generate-certs
+
+update-requirements: ## Rewrite requirements*.txt (for those who do not use uv) from uv.lock.
+	uv export --frozen --no-dev --no-emit-project --no-hashes --no-annotate --format requirements-txt > requirements.txt
+	( echo "# What the tests and the checks need, on top of the server itself. Made by make update-requirements from uv.lock: do not edit."; echo "-r requirements.txt"; uv export --frozen --only-dev --no-emit-project --no-hashes --no-annotate --format requirements-txt | grep -v "^#" ) > requirements-dev.txt
+
+## ---- the database schema (Alembic): see migrations/README.md
+migrate: ## Bring the database to the latest schema (a database made before there were migrations is adopted, not recreated).
+	uv run python -m app.db.migrate
+
+migrate-check: ## Say whether the database is at the latest schema (exit 1 if not); changes nothing.
+	uv run python -m app.db.migrate --check
+
+migration: ## Write a migration from the change of the models: make migration m="what changed". Read it, then commit it.
+	uv run alembic revision --autogenerate -m "$(m)"
+
+migrate-sql: ## Print the SQL of the migrations a database at revision $(from) still needs, without running it: make migrate-sql from=0001
+	uv run alembic upgrade $(from):head --sql

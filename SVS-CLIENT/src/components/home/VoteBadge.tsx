@@ -1,53 +1,43 @@
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import type { VoteBadgeType } from '@/utils/vote.utils';
-import { LucideCheck, LucideHourglass, LucideX } from 'lucide-react';
+import { VoteBadgeType } from '@/utils/vote.utils';
+import { LucideCheck, LucideClock, LucideCircleDot, LucideMinus } from 'lucide-react';
 
-const VoteBadge = (props: { type: VoteBadgeType }) => {
-  const finishedStyle = {
-    className: 'bg-green-500 text-primary-foreground px-4 py-2',
-    icon: LucideCheck,
-    text: 'Terminé',
-  };
-  const ongoingStyle = {
-    className: 'bg-primary text-primary-foreground px-4 py-2',
-    icon: LucideHourglass,
-    text: 'En cours',
-  };
-  const upcomingStyle = {
-    className: 'bg-accent text-accent-foreground px-4 py-2',
-    icon: LucideHourglass,
-    text: 'À venir',
-  };
-  const finishedWithoutVotingStyle = {
-    className: 'bg-destructive text-destructive-foreground px-4 py-2',
-    icon: LucideX,
-    text: 'Terminé <span class="hidden sm:inline">(Abstention)</span>',
-  };
-  let style;
+/** The state of an election, as a label: never by colour alone (there is an icon and a word). */
+const VoteBadge = (props: {
+  type: VoteBadgeType;
+  userAlreadyVoted?: boolean;
+}) => {
   switch (props.type) {
-    case 'finished':
-      style = finishedStyle;
-      break;
-    case 'ongoing':
-      style = ongoingStyle;
-      break;
-    case 'upcoming':
-      style = upcomingStyle;
-      break;
-    case 'finished_without_voting':
-      style = finishedWithoutVotingStyle;
-      break;
+    case VoteBadgeType.Finished:
+      return (
+        <Badge variant='success' className='px-2.5 py-1'>
+          <LucideCheck /> Terminé
+        </Badge>
+      );
+    case VoteBadgeType.FinishedWithoutVoting:
+      return (
+        <Badge variant='muted' className='px-2.5 py-1'>
+          <LucideMinus /> Terminé · abstention
+        </Badge>
+      );
+    case VoteBadgeType.Upcoming:
+      return (
+        <Badge variant='warning' className='px-2.5 py-1'>
+          <LucideClock /> À venir
+        </Badge>
+      );
+    case VoteBadgeType.Ongoing:
     default:
-      style = ongoingStyle;
+      return (
+        <Badge
+          variant={props.userAlreadyVoted ? 'success' : 'info'}
+          className='px-2.5 py-1'
+        >
+          {props.userAlreadyVoted ? <LucideCheck /> : <LucideCircleDot />}
+          {props.userAlreadyVoted ? 'En cours · voté' : 'En cours'}
+        </Badge>
+      );
   }
-
-  return (
-    <Badge className={cn('flex flex-row gap-2 items-center', style.className)}>
-      <style.icon />
-      <span dangerouslySetInnerHTML={{ __html: style.text }} />
-    </Badge>
-  );
 };
 
 export default VoteBadge;

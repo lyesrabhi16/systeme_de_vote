@@ -23,19 +23,77 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
+/**
+ * What the administrators of the users see of an account (never the password hash).
+ */
+export interface AdminUserResponseModel {
+    'id': number;
+    'first_name': string;
+    'last_name': string;
+    'email': string;
+    'username': string;
+    'phone_number': string;
+    'is_active': boolean;
+    'is_admin': boolean;
+    'authority'?: AdminUserResponseModelAuthorityEnum | null;
+    'verified_email': boolean;
+    'verified_phone_number': boolean;
+    'requested_password_reset': boolean;
+    'created_at': string;
+}
+
+export const AdminUserResponseModelAuthorityEnum = {
+    Inscription: 'Inscription',
+    Vote: 'Vote'
+} as const;
+
+export type AdminUserResponseModelAuthorityEnum = typeof AdminUserResponseModelAuthorityEnum[keyof typeof AdminUserResponseModelAuthorityEnum];
+
+/**
+ * A non-interactive zero-knowledge proof (Cramer–Damgård–Schoenmakers OR proof, Fiat–Shamir) that a Paillier ciphertext encrypts 0 or 1, without saying which. Numbers are decimal strings, because they do not fit a JSON number.
+ */
+export interface BinaryZKProofModel {
+    'a0': string;
+    'a1': string;
+    'e0': string;
+    'e1': string;
+    'z0': string;
+    'z1': string;
+}
+export interface BooleanResponse {
+    'result': boolean;
+}
 export interface Bulletin {
-    'user_id'?: number | null;
+    'id'?: number | null;
     'vote_id'?: number | null;
+    /**
+     * Homomorphically encrypted ballot, with its proofs (JSON)
+     */
     'content': string;
     'date': string;
+    /**
+     * Unique code for the bulletin, used for verification
+     */
+    'unique_code'?: string;
 }
 export interface Candidate {
     'id'?: number | null;
     'first_name': string;
     'last_name': string;
     'photo_url'?: string | null;
-    'vote_count'?: number;
+    'vote_count'?: number | null;
     'vote_id': number;
+}
+export interface CandidateCreateModel {
+    'first_name': string;
+    'last_name': string;
+    'photo_url'?: string | null;
+    'vote_id'?: number | null;
+}
+export interface CandidateUpdateModel {
+    'first_name': string;
+    'last_name': string;
+    'photo_url'?: string | null;
 }
 export interface CurrentUserResponseModel {
     'id': number;
@@ -48,9 +106,37 @@ export interface CurrentUserResponseModel {
     'verified_phone_number': boolean;
     'is_active': boolean;
     'is_admin': boolean;
+    'authority'?: CurrentUserResponseModelAuthorityEnum | null;
+    'unique_hash': string;
+    'requested_password_reset': boolean;
+}
+
+export const CurrentUserResponseModelAuthorityEnum = {
+    Inscription: 'Inscription',
+    Vote: 'Vote'
+} as const;
+
+export type CurrentUserResponseModelAuthorityEnum = typeof CurrentUserResponseModelAuthorityEnum[keyof typeof CurrentUserResponseModelAuthorityEnum];
+
+export interface DashboardResponseModel {
+    'lastFinishedVote'?: FullVoteResponseModel | null;
+    'upcomingVotes'?: Array<VoteWithCreatorResponseModel> | null;
+    'ongoingVotes'?: Array<VoteWithCreatorResponseModel> | null;
+    'participationData'?: ParticipationDataResponseModel | null;
+    'votesPerMonth'?: Array<VotesPerMonthResponseModel> | null;
+    'votesStatusPerMonth'?: Array<VoteStatusPerMonthResponseModel> | null;
+    'userGrowthPerMonth'?: Array<UserGrowthPerMonthResponseModel> | null;
+    'userRoleRepartition'?: { [key: string]: number; } | null;
+    'userActivityRepartition'?: { [key: string]: number; } | null;
+    'nbr_users'?: number | null;
+    'nbr_admins'?: number | null;
+    'nbr_inscription_authority'?: number | null;
+    'nbr_vote_authority'?: number | null;
 }
 export interface FinishedVoteResponseModel {
     'vote': VoteWithCreatorResponseModel;
+    'tally_proof'?: string | null;
+    'encrypted_tally'?: string | null;
     'total_bulletins': number;
     'candidate_results': { [key: string]: number; };
     'abstention_count': number;
@@ -71,8 +157,7 @@ export interface HTTPValidationError {
 export const IdentifierType = {
     Email: 'email',
     Username: 'username',
-    PhoneNumber: 'phone_number',
-    Ssn: 'ssn'
+    PhoneNumber: 'phone_number'
 } as const;
 
 export type IdentifierType = typeof IdentifierType[keyof typeof IdentifierType];
@@ -89,6 +174,32 @@ export interface OTPVerificationModel {
     'otp': string;
     'remember_me'?: boolean;
 }
+export interface PaginatedListResponseBulletin {
+    'data': Array<Bulletin>;
+    'total_count': number;
+    'has_more': boolean;
+    'page'?: number | null;
+    'items_per_page'?: number | null;
+}
+export interface PaginatedListResponseUserResponseModel {
+    'data': Array<UserResponseModel>;
+    'total_count': number;
+    'has_more': boolean;
+    'page'?: number | null;
+    'items_per_page'?: number | null;
+}
+export interface PaginatedListResponseVoteResponseModel {
+    'data': Array<VoteResponseModel>;
+    'total_count': number;
+    'has_more': boolean;
+    'page'?: number | null;
+    'items_per_page'?: number | null;
+}
+export interface ParticipationDataResponseModel {
+    'total_votes': number;
+    'total_abstain': number;
+    'no_participation': number;
+}
 export interface PasswordResetOTPModel {
     'id': string;
     'otp': string;
@@ -97,9 +208,13 @@ export interface PasswordResetOTPModel {
 export interface PasswordResetRequestModel {
     'email': string;
 }
+export interface RequiredTokenInput {
+    'token': string;
+}
 export interface SuccessfulUserLoginResponseModel {
     'id': string;
     'masked_email': string;
+    'first_login': boolean;
 }
 export interface TokenInput {
     'token'?: string | null;
@@ -107,9 +222,32 @@ export interface TokenInput {
 export interface TokenResponse {
     'token': string;
 }
+export interface UserCreationModel {
+    'first_name': string;
+    'last_name': string;
+    'email': string;
+    'username': string;
+    'phone_number': string;
+    'password'?: string | null;
+    'is_admin': boolean;
+    'authority'?: UserCreationModelAuthorityEnum | null;
+}
+
+export const UserCreationModelAuthorityEnum = {
+    Inscription: 'Inscription',
+    Vote: 'Vote'
+} as const;
+
+export type UserCreationModelAuthorityEnum = typeof UserCreationModelAuthorityEnum[keyof typeof UserCreationModelAuthorityEnum];
+
+export interface UserGrowthPerMonthResponseModel {
+    'month': string;
+    'new_users_count': number;
+    'total_users': number;
+}
 export interface UserLoginModel {
     'identifier': string;
-    'password': string;
+    'password'?: string | null;
     'identifier_type': IdentifierType;
 }
 
@@ -123,34 +261,124 @@ export interface UserResponseModel {
     'phone_number': string;
     'is_active': boolean;
     'is_admin': boolean;
+    'authority'?: UserResponseModelAuthorityEnum | null;
 }
+
+export const UserResponseModelAuthorityEnum = {
+    Inscription: 'Inscription',
+    Vote: 'Vote'
+} as const;
+
+export type UserResponseModelAuthorityEnum = typeof UserResponseModelAuthorityEnum[keyof typeof UserResponseModelAuthorityEnum];
+
+export interface UserUpdateModel {
+    'first_name'?: string | null;
+    'last_name'?: string | null;
+    'email'?: string | null;
+    'username'?: string | null;
+    'phone_number'?: string | null;
+    'is_admin'?: boolean | null;
+    'is_active'?: boolean | null;
+    'authority'?: UserUpdateModelAuthorityEnum | null;
+    'verified_email'?: boolean | null;
+    'verified_phone_number'?: boolean | null;
+    'password'?: string | null;
+    'request_password_reset'?: boolean;
+}
+
+export const UserUpdateModelAuthorityEnum = {
+    Inscription: 'Inscription',
+    Vote: 'Vote'
+} as const;
+
+export type UserUpdateModelAuthorityEnum = typeof UserUpdateModelAuthorityEnum[keyof typeof UserUpdateModelAuthorityEnum];
+
 export interface ValidationError {
     'loc': Array<ValidationErrorLocInner>;
     'msg': string;
     'type': string;
+    'input'?: any;
+    'ctx'?: object;
 }
 export interface ValidationErrorLocInner {
 }
-export interface Vote {
-    'id'?: number | null;
+/**
+ * What anyone needs to check the count of an election with the bulletin board (see app/utils/audit.py).
+ */
+export interface VoteAuditModel {
+    'public_key': string;
+    'counts': { [key: string]: number; };
+    'encrypted_tally': { [key: string]: string; };
+    'tally_proof': { [key: string]: string; };
+}
+export interface VoteCastContentModel {
+    'candidate_id': number;
+    'encrypted_value': string;
+    'proof': BinaryZKProofModel;
+}
+/**
+ * A ballot: for each candidate, an encryption of 0 or 1 with the proof that it is one of the two, and a proof that the sum of all of them (the product of the ciphertexts) is 0 or 1 too: at most one candidate. Without that second proof, a voter could encrypt a 1 for every candidate, and each one would pass.
+ */
+export interface VoteCastData {
+    'content': Array<VoteCastContentModel>;
+    'sum_proof': BinaryZKProofModel;
+}
+export interface VoteCastResponseModel {
+    'unique_code': string;
+}
+export interface VoteCreationModel {
     'title': string;
     'description': string;
     'start_date': string;
     'end_date': string;
-    /**
-     * Indicates if the vote has been counted
-     */
-    'has_been_counted'?: boolean;
-    'creator_id': number;
+    'candidates': Array<CandidateCreateModel>;
+    'open_to_all'?: boolean;
+    'attributed_user_ids'?: Array<number> | null;
+    'excluded_user_ids'?: Array<number> | null;
 }
-export interface VoteInputData {
-    'content': string;
+/**
+ * Who created an election, as the voters see it: a name, never an email address or a phone number.
+ */
+export interface VoteCreatorModel {
+    'id': number;
+    'first_name': string;
+    'last_name': string;
+    'username': string;
+}
+/**
+ * An election as the API shows it. The table model must never be a response: it holds the encrypted private key of the election (and would hold anything added to the table later).
+ */
+export interface VoteResponseModel {
+    'id': number;
+    'title': string;
+    'description': string;
+    'start_date': string;
+    'end_date': string;
+    'has_been_counted': boolean;
+    'public_key': string;
+    'creator_id': number;
 }
 export interface VoteResultsModel {
     'candidate_results': { [key: string]: number; };
     'count_failures': Array<Bulletin>;
     'abstention_count': number;
     'voter_count': number;
+}
+export interface VoteStatusPerMonthResponseModel {
+    'month': string;
+    'upcoming': number;
+    'ongoing': number;
+    'finished': number;
+}
+export interface VoteUpdateModel {
+    'title'?: string | null;
+    'description'?: string | null;
+    'start_date'?: string | null;
+    'end_date'?: string | null;
+    'candidates'?: Array<CandidateCreateModel> | null;
+    'open_to_all'?: boolean | null;
+    'attributed_user_ids'?: Array<number> | null;
+    'excluded_user_ids'?: Array<number> | null;
 }
 export interface VoteWithCreatorResponseModel {
     'id': number;
@@ -159,8 +387,263 @@ export interface VoteWithCreatorResponseModel {
     'start_date': string;
     'end_date': string;
     'has_been_counted': boolean;
-    'creator': UserResponseModel;
+    'public_key': string;
+    'creator': VoteCreatorModel;
 }
+export interface VotesPerMonthResponseModel {
+    'month': string;
+    'vote_count': number;
+}
+
+/**
+ * AdminApi - axios parameter creator
+ */
+export const AdminApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Admin Dashboard
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminDashboard: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/admin/dashboard`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get Admins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAdmins: async (page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/admin/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Send Verification Email
+         * @param {number} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sendVerificationEmail: async (userId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('sendVerificationEmail', 'userId', userId)
+            const localVarPath = `/api/admin/send-verification-email`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (userId !== undefined) {
+                localVarQueryParameter['user_id'] = userId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AdminApi - functional programming interface
+ */
+export const AdminApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AdminApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Admin Dashboard
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminDashboard(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DashboardResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminDashboard(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminDashboard']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get Admins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAdmins(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAdmins(page, perPage, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.getAdmins']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Send Verification Email
+         * @param {number} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async sendVerificationEmail(userId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.sendVerificationEmail(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.sendVerificationEmail']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AdminApi - factory interface
+ */
+export const AdminApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AdminApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Admin Dashboard
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminDashboard(options?: RawAxiosRequestConfig): AxiosPromise<DashboardResponseModel> {
+            return localVarFp.adminDashboard(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get Admins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAdmins(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.getAdmins(page, perPage, search, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Send Verification Email
+         * @param {number} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sendVerificationEmail(userId: number, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.sendVerificationEmail(userId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AdminApi - object-oriented interface
+ */
+export class AdminApi extends BaseAPI {
+    /**
+     * 
+     * @summary Admin Dashboard
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminDashboard(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminDashboard(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get Admins
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAdmins(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).getAdmins(page, perPage, search, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Send Verification Email
+     * @param {number} userId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public sendVerificationEmail(userId: number, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).sendVerificationEmail(userId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
 
 /**
  * AuthApi - axios parameter creator
@@ -170,14 +653,12 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         /**
          * Get the current user information
          * @summary Get Current User
-         * @param {TokenInput} tokenInput 
+         * @param {TokenInput} [tokenInput] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCurrentUser: async (tokenInput: TokenInput, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tokenInput' is not null or undefined
-            assertParamExists('getCurrentUser', 'tokenInput', tokenInput)
-            const localVarPath = `/auth/user/me`;
+        getCurrentUser: async (tokenInput?: TokenInput, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/auth/user/me`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -213,7 +694,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         login: async (userLoginModel: UserLoginModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'userLoginModel' is not null or undefined
             assertParamExists('login', 'userLoginModel', userLoginModel)
-            const localVarPath = `/auth/login`;
+            const localVarPath = `/api/auth/login`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -246,7 +727,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
          * @throws {RequiredError}
          */
         logout: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/auth/logout`;
+            const localVarPath = `/api/auth/logout`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -270,7 +751,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Request password reset by sending OTP to user email
+         * Request password reset by sending OTP to user email. The answer is the same whether the address belongs to somebody or not, so that it cannot be used to find out who has an account.
          * @summary Password Reset Request
          * @param {PasswordResetRequestModel} passwordResetRequestModel 
          * @param {*} [options] Override http request option.
@@ -279,7 +760,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         passwordResetRequest: async (passwordResetRequestModel: PasswordResetRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'passwordResetRequestModel' is not null or undefined
             assertParamExists('passwordResetRequest', 'passwordResetRequestModel', passwordResetRequestModel)
-            const localVarPath = `/auth/password-reset`;
+            const localVarPath = `/api/auth/password-reset`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -315,7 +796,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         resendOtp: async (oTPResendRequestModel: OTPResendRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'oTPResendRequestModel' is not null or undefined
             assertParamExists('resendOtp', 'oTPResendRequestModel', oTPResendRequestModel)
-            const localVarPath = `/auth/resend-otp`;
+            const localVarPath = `/api/auth/resend-otp`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -351,7 +832,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         validatePasswordReset: async (passwordResetOTPModel: PasswordResetOTPModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'passwordResetOTPModel' is not null or undefined
             assertParamExists('validatePasswordReset', 'passwordResetOTPModel', passwordResetOTPModel)
-            const localVarPath = `/auth/password-reset/validate`;
+            const localVarPath = `/api/auth/password-reset/validate`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -387,7 +868,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         verifyOTP: async (oTPVerificationModel: OTPVerificationModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'oTPVerificationModel' is not null or undefined
             assertParamExists('verifyOTP', 'oTPVerificationModel', oTPVerificationModel)
-            const localVarPath = `/auth/verify-otp`;
+            const localVarPath = `/api/auth/verify-otp`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -425,11 +906,11 @@ export const AuthApiFp = function(configuration?: Configuration) {
         /**
          * Get the current user information
          * @summary Get Current User
-         * @param {TokenInput} tokenInput 
+         * @param {TokenInput} [tokenInput] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getCurrentUser(tokenInput: TokenInput, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurrentUserResponseModel>> {
+        async getCurrentUser(tokenInput?: TokenInput, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CurrentUserResponseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getCurrentUser(tokenInput, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.getCurrentUser']?.[localVarOperationServerIndex]?.url;
@@ -461,7 +942,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Request password reset by sending OTP to user email
+         * Request password reset by sending OTP to user email. The answer is the same whether the address belongs to somebody or not, so that it cannot be used to find out who has an account.
          * @summary Password Reset Request
          * @param {PasswordResetRequestModel} passwordResetRequestModel 
          * @param {*} [options] Override http request option.
@@ -524,11 +1005,11 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
         /**
          * Get the current user information
          * @summary Get Current User
-         * @param {TokenInput} tokenInput 
+         * @param {TokenInput} [tokenInput] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCurrentUser(tokenInput: TokenInput, options?: RawAxiosRequestConfig): AxiosPromise<CurrentUserResponseModel> {
+        getCurrentUser(tokenInput?: TokenInput, options?: RawAxiosRequestConfig): AxiosPromise<CurrentUserResponseModel> {
             return localVarFp.getCurrentUser(tokenInput, options).then((request) => request(axios, basePath));
         },
         /**
@@ -551,7 +1032,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.logout(options).then((request) => request(axios, basePath));
         },
         /**
-         * Request password reset by sending OTP to user email
+         * Request password reset by sending OTP to user email. The answer is the same whether the address belongs to somebody or not, so that it cannot be used to find out who has an account.
          * @summary Password Reset Request
          * @param {PasswordResetRequestModel} passwordResetRequestModel 
          * @param {*} [options] Override http request option.
@@ -600,11 +1081,11 @@ export class AuthApi extends BaseAPI {
     /**
      * Get the current user information
      * @summary Get Current User
-     * @param {TokenInput} tokenInput 
+     * @param {TokenInput} [tokenInput] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public getCurrentUser(tokenInput: TokenInput, options?: RawAxiosRequestConfig) {
+    public getCurrentUser(tokenInput?: TokenInput, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).getCurrentUser(tokenInput, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -630,7 +1111,7 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Request password reset by sending OTP to user email
+     * Request password reset by sending OTP to user email. The answer is the same whether the address belongs to somebody or not, so that it cannot be used to find out who has an account.
      * @summary Password Reset Request
      * @param {PasswordResetRequestModel} passwordResetRequestModel 
      * @param {*} [options] Override http request option.
@@ -677,10 +1158,209 @@ export class AuthApi extends BaseAPI {
 
 
 /**
+ * BulletinsApi - axios parameter creator
+ */
+export const BulletinsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get All Bulletins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {number | null} [voteId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllBulletins: async (page?: number, perPage?: number, search?: string | null, voteId?: number | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/bulletins/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (voteId !== undefined) {
+                localVarQueryParameter['vote_id'] = voteId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * BulletinsApi - functional programming interface
+ */
+export const BulletinsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = BulletinsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get All Bulletins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {number | null} [voteId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAllBulletins(page?: number, perPage?: number, search?: string | null, voteId?: number | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseBulletin>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAllBulletins(page, perPage, search, voteId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BulletinsApi.getAllBulletins']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * BulletinsApi - factory interface
+ */
+export const BulletinsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = BulletinsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get All Bulletins
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {number | null} [voteId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllBulletins(page?: number, perPage?: number, search?: string | null, voteId?: number | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseBulletin> {
+            return localVarFp.getAllBulletins(page, perPage, search, voteId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * BulletinsApi - object-oriented interface
+ */
+export class BulletinsApi extends BaseAPI {
+    /**
+     * 
+     * @summary Get All Bulletins
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {number | null} [voteId] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAllBulletins(page?: number, perPage?: number, search?: string | null, voteId?: number | null, options?: RawAxiosRequestConfig) {
+        return BulletinsApiFp(this.configuration).getAllBulletins(page, perPage, search, voteId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * CandidatesApi - axios parameter creator
  */
 export const CandidatesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * 
+         * @summary Create Candidate
+         * @param {CandidateCreateModel} candidateCreateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createCandidate: async (candidateCreateModel: CandidateCreateModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'candidateCreateModel' is not null or undefined
+            assertParamExists('createCandidate', 'candidateCreateModel', candidateCreateModel)
+            const localVarPath = `/api/candidates/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(candidateCreateModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete Candidate
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteCandidate: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('deleteCandidate', 'id', id)
+            const localVarPath = `/api/candidates/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (id !== undefined) {
+                localVarQueryParameter['id'] = id;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Get Candidate By Id
@@ -691,7 +1371,7 @@ export const CandidatesApiAxiosParamCreator = function (configuration?: Configur
         getCandidateById: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('getCandidateById', 'id', id)
-            const localVarPath = `/candidates/id`;
+            const localVarPath = `/api/candidates/`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -712,6 +1392,49 @@ export const CandidatesApiAxiosParamCreator = function (configuration?: Configur
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update Candidate
+         * @param {number} id 
+         * @param {CandidateUpdateModel} candidateUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateCandidate: async (id: number, candidateUpdateModel: CandidateUpdateModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('updateCandidate', 'id', id)
+            // verify required parameter 'candidateUpdateModel' is not null or undefined
+            assertParamExists('updateCandidate', 'candidateUpdateModel', candidateUpdateModel)
+            const localVarPath = `/api/candidates/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (id !== undefined) {
+                localVarQueryParameter['id'] = id;
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(candidateUpdateModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -729,6 +1452,32 @@ export const CandidatesApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Create Candidate
+         * @param {CandidateCreateModel} candidateCreateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createCandidate(candidateCreateModel: CandidateCreateModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Candidate>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createCandidate(candidateCreateModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CandidatesApi.createCandidate']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Delete Candidate
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteCandidate(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteCandidate(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CandidatesApi.deleteCandidate']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Get Candidate By Id
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -738,6 +1487,20 @@ export const CandidatesApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getCandidateById(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CandidatesApi.getCandidateById']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update Candidate
+         * @param {number} id 
+         * @param {CandidateUpdateModel} candidateUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateCandidate(id: number, candidateUpdateModel: CandidateUpdateModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Candidate>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateCandidate(id, candidateUpdateModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CandidatesApi.updateCandidate']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -751,6 +1514,26 @@ export const CandidatesApiFactory = function (configuration?: Configuration, bas
     return {
         /**
          * 
+         * @summary Create Candidate
+         * @param {CandidateCreateModel} candidateCreateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createCandidate(candidateCreateModel: CandidateCreateModel, options?: RawAxiosRequestConfig): AxiosPromise<Candidate> {
+            return localVarFp.createCandidate(candidateCreateModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete Candidate
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteCandidate(id: number, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.deleteCandidate(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Get Candidate By Id
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -758,6 +1541,17 @@ export const CandidatesApiFactory = function (configuration?: Configuration, bas
          */
         getCandidateById(id: number, options?: RawAxiosRequestConfig): AxiosPromise<Candidate> {
             return localVarFp.getCandidateById(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update Candidate
+         * @param {number} id 
+         * @param {CandidateUpdateModel} candidateUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateCandidate(id: number, candidateUpdateModel: CandidateUpdateModel, options?: RawAxiosRequestConfig): AxiosPromise<Candidate> {
+            return localVarFp.updateCandidate(id, candidateUpdateModel, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -768,6 +1562,28 @@ export const CandidatesApiFactory = function (configuration?: Configuration, bas
 export class CandidatesApi extends BaseAPI {
     /**
      * 
+     * @summary Create Candidate
+     * @param {CandidateCreateModel} candidateCreateModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createCandidate(candidateCreateModel: CandidateCreateModel, options?: RawAxiosRequestConfig) {
+        return CandidatesApiFp(this.configuration).createCandidate(candidateCreateModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Delete Candidate
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteCandidate(id: number, options?: RawAxiosRequestConfig) {
+        return CandidatesApiFp(this.configuration).deleteCandidate(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @summary Get Candidate By Id
      * @param {number} id 
      * @param {*} [options] Override http request option.
@@ -776,167 +1592,17 @@ export class CandidatesApi extends BaseAPI {
     public getCandidateById(id: number, options?: RawAxiosRequestConfig) {
         return CandidatesApiFp(this.configuration).getCandidateById(id, options).then((request) => request(this.axios, this.basePath));
     }
-}
-
-
-
-/**
- * DefaultApi - axios parameter creator
- */
-export const DefaultApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Serve Spa
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        serveSpa: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Serve Spa Fallback
-         * @param {string} path 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        spaFallback: async (path: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'path' is not null or undefined
-            assertParamExists('spaFallback', 'path', path)
-            const localVarPath = `/{path}`
-                .replace(`{${"path"}}`, encodeURIComponent(String(path)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * DefaultApi - functional programming interface
- */
-export const DefaultApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = DefaultApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Serve Spa
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async serveSpa(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.serveSpa(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['DefaultApi.serveSpa']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Serve Spa Fallback
-         * @param {string} path 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async spaFallback(path: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.spaFallback(path, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['DefaultApi.spaFallback']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
-};
-
-/**
- * DefaultApi - factory interface
- */
-export const DefaultApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = DefaultApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Serve Spa
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        serveSpa(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.serveSpa(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Serve Spa Fallback
-         * @param {string} path 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        spaFallback(path: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.spaFallback(path, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * DefaultApi - object-oriented interface
- */
-export class DefaultApi extends BaseAPI {
-    /**
-     * 
-     * @summary Serve Spa
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public serveSpa(options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).serveSpa(options).then((request) => request(this.axios, this.basePath));
-    }
 
     /**
      * 
-     * @summary Serve Spa Fallback
-     * @param {string} path 
+     * @summary Update Candidate
+     * @param {number} id 
+     * @param {CandidateUpdateModel} candidateUpdateModel 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public spaFallback(path: string, options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).spaFallback(path, options).then((request) => request(this.axios, this.basePath));
+    public updateCandidate(id: number, candidateUpdateModel: CandidateUpdateModel, options?: RawAxiosRequestConfig) {
+        return CandidatesApiFp(this.configuration).updateCandidate(id, candidateUpdateModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -949,15 +1615,50 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
     return {
         /**
          * 
-         * @summary Get User By Id
+         * @summary Admin Delete User
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getUserById: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        adminDeleteUser: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('getUserById', 'id', id)
-            const localVarPath = `/users/:id`;
+            assertParamExists('adminDeleteUser', 'id', id)
+            const localVarPath = `/api/users/admin/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Admin Get User By Id
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminGetUserById: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('adminGetUserById', 'id', id)
+            const localVarPath = `/api/users/admin/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -969,8 +1670,159 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            if (id !== undefined) {
-                localVarQueryParameter['id'] = id;
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Admin Update User
+         * @param {number} id 
+         * @param {UserUpdateModel} userUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminUpdateUser: async (id: number, userUpdateModel: UserUpdateModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('adminUpdateUser', 'id', id)
+            // verify required parameter 'userUpdateModel' is not null or undefined
+            assertParamExists('adminUpdateUser', 'userUpdateModel', userUpdateModel)
+            const localVarPath = `/api/users/admin/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(userUpdateModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create User
+         * @param {UserCreationModel} userCreationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser: async (userCreationModel: UserCreationModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userCreationModel' is not null or undefined
+            assertParamExists('createUser', 'userCreationModel', userCreationModel)
+            const localVarPath = `/api/users/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(userCreationModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * The account of somebody (an administrator), or one\'s own: an email address and a phone number are not for everyone.
+         * @summary Get User By Id
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUserById: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('getUserById', 'id', id)
+            const localVarPath = `/api/users/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Admin Get Users
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUsers: async (page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/users/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
 
 
@@ -995,6 +1847,59 @@ export const UsersApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Admin Delete User
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminDeleteUser(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: any; }>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminDeleteUser(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.adminDeleteUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Admin Get User By Id
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminGetUserById(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminGetUserById(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.adminGetUserById']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Admin Update User
+         * @param {number} id 
+         * @param {UserUpdateModel} userUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminUpdateUser(id: number, userUpdateModel: UserUpdateModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminUpdateUser(id, userUpdateModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.adminUpdateUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create User
+         * @param {UserCreationModel} userCreationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createUser(userCreationModel: UserCreationModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUser(userCreationModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.createUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The account of somebody (an administrator), or one\'s own: an email address and a phone number are not for everyone.
          * @summary Get User By Id
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -1004,6 +1909,21 @@ export const UsersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getUserById(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.getUserById']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Admin Get Users
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getUsers(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getUsers(page, perPage, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.getUsers']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -1017,6 +1937,47 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
     return {
         /**
          * 
+         * @summary Admin Delete User
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminDeleteUser(id: number, options?: RawAxiosRequestConfig): AxiosPromise<{ [key: string]: any; }> {
+            return localVarFp.adminDeleteUser(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Admin Get User By Id
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminGetUserById(id: number, options?: RawAxiosRequestConfig): AxiosPromise<AdminUserResponseModel> {
+            return localVarFp.adminGetUserById(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Admin Update User
+         * @param {number} id 
+         * @param {UserUpdateModel} userUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminUpdateUser(id: number, userUpdateModel: UserUpdateModel, options?: RawAxiosRequestConfig): AxiosPromise<AdminUserResponseModel> {
+            return localVarFp.adminUpdateUser(id, userUpdateModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create User
+         * @param {UserCreationModel} userCreationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser(userCreationModel: UserCreationModel, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseModel> {
+            return localVarFp.createUser(userCreationModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The account of somebody (an administrator), or one\'s own: an email address and a phone number are not for everyone.
          * @summary Get User By Id
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -1024,6 +1985,18 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          */
         getUserById(id: number, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseModel> {
             return localVarFp.getUserById(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Admin Get Users
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUsers(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.getUsers(page, perPage, search, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1034,6 +2007,51 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
 export class UsersApi extends BaseAPI {
     /**
      * 
+     * @summary Admin Delete User
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminDeleteUser(id: number, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).adminDeleteUser(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Admin Get User By Id
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminGetUserById(id: number, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).adminGetUserById(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Admin Update User
+     * @param {number} id 
+     * @param {UserUpdateModel} userUpdateModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public adminUpdateUser(id: number, userUpdateModel: UserUpdateModel, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).adminUpdateUser(id, userUpdateModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create User
+     * @param {UserCreationModel} userCreationModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createUser(userCreationModel: UserCreationModel, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).createUser(userCreationModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The account of somebody (an administrator), or one\'s own: an email address and a phone number are not for everyone.
      * @summary Get User By Id
      * @param {number} id 
      * @param {*} [options] Override http request option.
@@ -1041,6 +2059,19 @@ export class UsersApi extends BaseAPI {
      */
     public getUserById(id: number, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).getUserById(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Admin Get Users
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getUsers(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).getUsers(page, perPage, search, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -1053,12 +2084,100 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
     return {
         /**
          * 
-         * @summary Get All Votes
+         * @summary Cast Vote
+         * @param {number} voteId 
+         * @param {VoteCastData} voteCastData 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/vote/`;
+        castVote: async (voteId: number, voteCastData: VoteCastData, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('castVote', 'voteId', voteId)
+            // verify required parameter 'voteCastData' is not null or undefined
+            assertParamExists('castVote', 'voteCastData', voteCastData)
+            const localVarPath = `/api/vote/cast/{vote_id}`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(voteCastData, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Check If User Voted On Vote
+         * @param {number} voteId 
+         * @param {RequiredTokenInput} requiredTokenInput 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkIfUserVotedOnVote: async (voteId: number, requiredTokenInput: RequiredTokenInput, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('checkIfUserVotedOnVote', 'voteId', voteId)
+            // verify required parameter 'requiredTokenInput' is not null or undefined
+            assertParamExists('checkIfUserVotedOnVote', 'requiredTokenInput', requiredTokenInput)
+            const localVarPath = `/api/vote/check/{vote_id}/user-voted`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(requiredTokenInput, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+         * @summary Check Receipt
+         * @param {number} voteId 
+         * @param {string} code 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkReceipt: async (voteId: number, code: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('checkReceipt', 'voteId', voteId)
+            // verify required parameter 'code' is not null or undefined
+            assertParamExists('checkReceipt', 'code', code)
+            const localVarPath = `/api/vote/receipt/{vote_id}/{code}`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)))
+                .replace(`{${"code"}}`, encodeURIComponent(String(code)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1083,12 +2202,127 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @summary Create Vote
+         * @param {VoteCreationModel} voteCreationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createVote: async (voteCreationModel: VoteCreationModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteCreationModel' is not null or undefined
+            assertParamExists('createVote', 'voteCreationModel', voteCreationModel)
+            const localVarPath = `/api/vote/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(voteCreationModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete Vote
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteVote: async (voteId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('deleteVote', 'voteId', voteId)
+            const localVarPath = `/api/vote/{vote_id}/`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get All Votes
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllVotes: async (page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/vote/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Get Already Voted On Votes
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         getAlreadyVotedOnVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/vote/voted`;
+            const localVarPath = `/api/vote/voted`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1118,7 +2352,7 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
          * @throws {RequiredError}
          */
         getAttributedVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/vote/attributed`;
+            const localVarPath = `/api/vote/attributed`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1148,7 +2382,7 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
          * @throws {RequiredError}
          */
         getAvailableVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/vote/available`;
+            const localVarPath = `/api/vote/available`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1178,7 +2412,7 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
          * @throws {RequiredError}
          */
         getCreatedVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/vote/created`;
+            const localVarPath = `/api/vote/created`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1202,13 +2436,13 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
+         * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
          * @summary Get Finished Votes
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         getFinishedVotes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/vote/finishedVotes`;
+            const localVarPath = `/api/vote/finishedVotes`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1232,16 +2466,16 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
-         * @summary Get Vote By Id
+         * What is needed to check the count of a finished election against the bulletin board. Public, like the board.
+         * @summary Get Vote Audit
          * @param {number} voteId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getVoteById: async (voteId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getVoteAudit: async (voteId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'voteId' is not null or undefined
-            assertParamExists('getVoteById', 'voteId', voteId)
-            const localVarPath = `/vote/{vote_id}/`
+            assertParamExists('getVoteAudit', 'voteId', voteId)
+            const localVarPath = `/api/vote/audit/{vote_id}/`
                 .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1266,7 +2500,85 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * The bulletin board: every ballot of the election, public, so that anyone can check them (see app/utils/audit.py).
+         * @summary Get Public Vote Bulletins
+         * @param {number} voteId 
+         * @param {number} [page] 
+         * @param {number} [itemsPerPage] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteBulletins: async (voteId: number, page?: number, itemsPerPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('getVoteBulletins', 'voteId', voteId)
+            const localVarPath = `/api/vote/bulletins/{vote_id}/`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (itemsPerPage !== undefined) {
+                localVarQueryParameter['items_per_page'] = itemsPerPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
+         * @summary Get Vote By Id
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteById: async (voteId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('getVoteById', 'voteId', voteId)
+            const localVarPath = `/api/vote/{vote_id}/`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Counts an election that is finished (the cron does it too, every minute): the same result each time.
          * @summary Get Vote Count
          * @param {number} voteId 
          * @param {*} [options] Override http request option.
@@ -1275,7 +2587,7 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
         getVoteCount: async (voteId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'voteId' is not null or undefined
             assertParamExists('getVoteCount', 'voteId', voteId)
-            const localVarPath = `/vote/count/{vote_id}/`
+            const localVarPath = `/api/vote/count/{vote_id}/`
                 .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1309,7 +2621,7 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
         getVoteResult: async (voteId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'voteId' is not null or undefined
             assertParamExists('getVoteResult', 'voteId', voteId)
-            const localVarPath = `/vote/result/{vote_id}/`
+            const localVarPath = `/api/vote/result/{vote_id}/`
                 .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1334,19 +2646,19 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
-         * @summary Vote
+         * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+         * @summary Get Vote Roll
          * @param {number} voteId 
-         * @param {VoteInputData} voteInputData 
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        vote: async (voteId: number, voteInputData: VoteInputData, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getVoteRoll: async (voteId: number, page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'voteId' is not null or undefined
-            assertParamExists('vote', 'voteId', voteId)
-            // verify required parameter 'voteInputData' is not null or undefined
-            assertParamExists('vote', 'voteInputData', voteInputData)
-            const localVarPath = `/vote/{vote_id}/`
+            assertParamExists('getVoteRoll', 'voteId', voteId)
+            const localVarPath = `/api/vote/{vote_id}/roll/`
                 .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1355,7 +2667,101 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+         * @summary Search Electors
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        searchElectors: async (page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/vote/electors/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update Vote
+         * @param {number} voteId 
+         * @param {VoteUpdateModel} voteUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateVote: async (voteId: number, voteUpdateModel: VoteUpdateModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('updateVote', 'voteId', voteId)
+            // verify required parameter 'voteUpdateModel' is not null or undefined
+            assertParamExists('updateVote', 'voteUpdateModel', voteUpdateModel)
+            const localVarPath = `/api/vote/{vote_id}/`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -1366,7 +2772,7 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(voteInputData, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(voteUpdateModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1384,12 +2790,83 @@ export const VoteApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @summary Get All Votes
+         * @summary Cast Vote
+         * @param {number} voteId 
+         * @param {VoteCastData} voteCastData 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAllVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getAllVotes(options);
+        async castVote(voteId: number, voteCastData: VoteCastData, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VoteCastResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.castVote(voteId, voteCastData, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.castVote']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Check If User Voted On Vote
+         * @param {number} voteId 
+         * @param {RequiredTokenInput} requiredTokenInput 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async checkIfUserVotedOnVote(voteId: number, requiredTokenInput: RequiredTokenInput, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.checkIfUserVotedOnVote(voteId, requiredTokenInput, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.checkIfUserVotedOnVote']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+         * @summary Check Receipt
+         * @param {number} voteId 
+         * @param {string} code 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async checkReceipt(voteId: number, code: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.checkReceipt(voteId, code, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.checkReceipt']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create Vote
+         * @param {VoteCreationModel} voteCreationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createVote(voteCreationModel: VoteCreationModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FullVoteResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createVote(voteCreationModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.createVote']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Delete Vote
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteVote(voteId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteVote(voteId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.deleteVote']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get All Votes
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAllVotes(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseVoteResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAllVotes(page, perPage, search, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VoteApi.getAllVotes']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -1400,7 +2877,7 @@ export const VoteApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAlreadyVotedOnVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+        async getAlreadyVotedOnVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<VoteResponseModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getAlreadyVotedOnVotes(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VoteApi.getAlreadyVotedOnVotes']?.[localVarOperationServerIndex]?.url;
@@ -1412,7 +2889,7 @@ export const VoteApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAttributedVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+        async getAttributedVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<VoteResponseModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getAttributedVotes(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VoteApi.getAttributedVotes']?.[localVarOperationServerIndex]?.url;
@@ -1424,7 +2901,7 @@ export const VoteApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAvailableVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+        async getAvailableVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<VoteResponseModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getAvailableVotes(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VoteApi.getAvailableVotes']?.[localVarOperationServerIndex]?.url;
@@ -1436,14 +2913,14 @@ export const VoteApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getCreatedVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Vote>>> {
+        async getCreatedVotes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<VoteResponseModel>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getCreatedVotes(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VoteApi.getCreatedVotes']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
          * @summary Get Finished Votes
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1452,6 +2929,34 @@ export const VoteApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFinishedVotes(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VoteApi.getFinishedVotes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * What is needed to check the count of a finished election against the bulletin board. Public, like the board.
+         * @summary Get Vote Audit
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getVoteAudit(voteId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VoteAuditModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVoteAudit(voteId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getVoteAudit']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The bulletin board: every ballot of the election, public, so that anyone can check them (see app/utils/audit.py).
+         * @summary Get Public Vote Bulletins
+         * @param {number} voteId 
+         * @param {number} [page] 
+         * @param {number} [itemsPerPage] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getVoteBulletins(voteId: number, page?: number, itemsPerPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseBulletin>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVoteBulletins(voteId, page, itemsPerPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getVoteBulletins']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1468,7 +2973,7 @@ export const VoteApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Counts an election that is finished (the cron does it too, every minute): the same result each time.
          * @summary Get Vote Count
          * @param {number} voteId 
          * @param {*} [options] Override http request option.
@@ -1494,17 +2999,48 @@ export const VoteApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
-         * @summary Vote
+         * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+         * @summary Get Vote Roll
          * @param {number} voteId 
-         * @param {VoteInputData} voteInputData 
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async vote(voteId: number, voteInputData: VoteInputData, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.vote(voteId, voteInputData, options);
+        async getVoteRoll(voteId: number, page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVoteRoll(voteId, page, perPage, search, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['VoteApi.vote']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getVoteRoll']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+         * @summary Search Electors
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async searchElectors(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.searchElectors(page, perPage, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.searchElectors']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update Vote
+         * @param {number} voteId 
+         * @param {VoteUpdateModel} voteUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateVote(voteId: number, voteUpdateModel: VoteUpdateModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FullVoteResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateVote(voteId, voteUpdateModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.updateVote']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -1518,12 +3054,68 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
     return {
         /**
          * 
-         * @summary Get All Votes
+         * @summary Cast Vote
+         * @param {number} voteId 
+         * @param {VoteCastData} voteCastData 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
-            return localVarFp.getAllVotes(options).then((request) => request(axios, basePath));
+        castVote(voteId: number, voteCastData: VoteCastData, options?: RawAxiosRequestConfig): AxiosPromise<VoteCastResponseModel> {
+            return localVarFp.castVote(voteId, voteCastData, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Check If User Voted On Vote
+         * @param {number} voteId 
+         * @param {RequiredTokenInput} requiredTokenInput 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkIfUserVotedOnVote(voteId: number, requiredTokenInput: RequiredTokenInput, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponse> {
+            return localVarFp.checkIfUserVotedOnVote(voteId, requiredTokenInput, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+         * @summary Check Receipt
+         * @param {number} voteId 
+         * @param {string} code 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkReceipt(voteId: number, code: string, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponse> {
+            return localVarFp.checkReceipt(voteId, code, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create Vote
+         * @param {VoteCreationModel} voteCreationModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createVote(voteCreationModel: VoteCreationModel, options?: RawAxiosRequestConfig): AxiosPromise<FullVoteResponseModel> {
+            return localVarFp.createVote(voteCreationModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete Vote
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteVote(voteId: number, options?: RawAxiosRequestConfig): AxiosPromise<MessageResponse> {
+            return localVarFp.deleteVote(voteId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get All Votes
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllVotes(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseVoteResponseModel> {
+            return localVarFp.getAllVotes(page, perPage, search, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1531,7 +3123,7 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAlreadyVotedOnVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+        getAlreadyVotedOnVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<VoteResponseModel>> {
             return localVarFp.getAlreadyVotedOnVotes(options).then((request) => request(axios, basePath));
         },
         /**
@@ -1540,7 +3132,7 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAttributedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+        getAttributedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<VoteResponseModel>> {
             return localVarFp.getAttributedVotes(options).then((request) => request(axios, basePath));
         },
         /**
@@ -1549,7 +3141,7 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAvailableVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+        getAvailableVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<VoteResponseModel>> {
             return localVarFp.getAvailableVotes(options).then((request) => request(axios, basePath));
         },
         /**
@@ -1558,17 +3150,39 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getCreatedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<Vote>> {
+        getCreatedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<VoteResponseModel>> {
             return localVarFp.getCreatedVotes(options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
          * @summary Get Finished Votes
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         getFinishedVotes(options?: RawAxiosRequestConfig): AxiosPromise<Array<FinishedVoteResponseModel>> {
             return localVarFp.getFinishedVotes(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * What is needed to check the count of a finished election against the bulletin board. Public, like the board.
+         * @summary Get Vote Audit
+         * @param {number} voteId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteAudit(voteId: number, options?: RawAxiosRequestConfig): AxiosPromise<VoteAuditModel> {
+            return localVarFp.getVoteAudit(voteId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The bulletin board: every ballot of the election, public, so that anyone can check them (see app/utils/audit.py).
+         * @summary Get Public Vote Bulletins
+         * @param {number} voteId 
+         * @param {number} [page] 
+         * @param {number} [itemsPerPage] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteBulletins(voteId: number, page?: number, itemsPerPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseBulletin> {
+            return localVarFp.getVoteBulletins(voteId, page, itemsPerPage, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1581,7 +3195,7 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getVoteById(voteId, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Counts an election that is finished (the cron does it too, every minute): the same result each time.
          * @summary Get Vote Count
          * @param {number} voteId 
          * @param {*} [options] Override http request option.
@@ -1601,15 +3215,40 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getVoteResult(voteId, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
-         * @summary Vote
+         * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+         * @summary Get Vote Roll
          * @param {number} voteId 
-         * @param {VoteInputData} voteInputData 
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        vote(voteId: number, voteInputData: VoteInputData, options?: RawAxiosRequestConfig): AxiosPromise<MessageResponse> {
-            return localVarFp.vote(voteId, voteInputData, options).then((request) => request(axios, basePath));
+        getVoteRoll(voteId: number, page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.getVoteRoll(voteId, page, perPage, search, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+         * @summary Search Electors
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        searchElectors(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.searchElectors(page, perPage, search, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update Vote
+         * @param {number} voteId 
+         * @param {VoteUpdateModel} voteUpdateModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateVote(voteId: number, voteUpdateModel: VoteUpdateModel, options?: RawAxiosRequestConfig): AxiosPromise<FullVoteResponseModel> {
+            return localVarFp.updateVote(voteId, voteUpdateModel, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1620,12 +3259,73 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
 export class VoteApi extends BaseAPI {
     /**
      * 
-     * @summary Get All Votes
+     * @summary Cast Vote
+     * @param {number} voteId 
+     * @param {VoteCastData} voteCastData 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public getAllVotes(options?: RawAxiosRequestConfig) {
-        return VoteApiFp(this.configuration).getAllVotes(options).then((request) => request(this.axios, this.basePath));
+    public castVote(voteId: number, voteCastData: VoteCastData, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).castVote(voteId, voteCastData, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Check If User Voted On Vote
+     * @param {number} voteId 
+     * @param {RequiredTokenInput} requiredTokenInput 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public checkIfUserVotedOnVote(voteId: number, requiredTokenInput: RequiredTokenInput, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).checkIfUserVotedOnVote(voteId, requiredTokenInput, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Is this receipt on the bulletin board of this election? Exactly this code: not one that contains it. Public, like the board it reads. A receipt is 256 bits drawn at random: it cannot be found by trying, and it says nothing about who voted or what.
+     * @summary Check Receipt
+     * @param {number} voteId 
+     * @param {string} code 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public checkReceipt(voteId: number, code: string, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).checkReceipt(voteId, code, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create Vote
+     * @param {VoteCreationModel} voteCreationModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createVote(voteCreationModel: VoteCreationModel, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).createVote(voteCreationModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Delete Vote
+     * @param {number} voteId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteVote(voteId: number, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).deleteVote(voteId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get All Votes
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getAllVotes(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getAllVotes(page, perPage, search, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1669,13 +3369,37 @@ export class VoteApi extends BaseAPI {
     }
 
     /**
-     * 
+     * The elections that are over and the ones the user voted in, with the user\'s own situation in each.
      * @summary Get Finished Votes
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public getFinishedVotes(options?: RawAxiosRequestConfig) {
         return VoteApiFp(this.configuration).getFinishedVotes(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * What is needed to check the count of a finished election against the bulletin board. Public, like the board.
+     * @summary Get Vote Audit
+     * @param {number} voteId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getVoteAudit(voteId: number, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getVoteAudit(voteId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The bulletin board: every ballot of the election, public, so that anyone can check them (see app/utils/audit.py).
+     * @summary Get Public Vote Bulletins
+     * @param {number} voteId 
+     * @param {number} [page] 
+     * @param {number} [itemsPerPage] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getVoteBulletins(voteId: number, page?: number, itemsPerPage?: number, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getVoteBulletins(voteId, page, itemsPerPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1690,7 +3414,7 @@ export class VoteApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Counts an election that is finished (the cron does it too, every minute): the same result each time.
      * @summary Get Vote Count
      * @param {number} voteId 
      * @param {*} [options] Override http request option.
@@ -1712,15 +3436,42 @@ export class VoteApi extends BaseAPI {
     }
 
     /**
-     * 
-     * @summary Vote
+     * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+     * @summary Get Vote Roll
      * @param {number} voteId 
-     * @param {VoteInputData} voteInputData 
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vote(voteId: number, voteInputData: VoteInputData, options?: RawAxiosRequestConfig) {
-        return VoteApiFp(this.configuration).vote(voteId, voteInputData, options).then((request) => request(this.axios, this.basePath));
+    public getVoteRoll(voteId: number, page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getVoteRoll(voteId, page, perPage, search, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+     * @summary Search Electors
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public searchElectors(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).searchElectors(page, perPage, search, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update Vote
+     * @param {number} voteId 
+     * @param {VoteUpdateModel} voteUpdateModel 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateVote(voteId: number, voteUpdateModel: VoteUpdateModel, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).updateVote(voteId, voteUpdateModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -34,10 +34,9 @@ const PasswordResetCard = (props: { uid: string; otp: string }) => {
     },
   });
   return (
-    <Card className='w-full max-w-sm'>
+    <Card className='w-full max-w-md border-0 bg-transparent shadow-none sm:border sm:bg-card sm:shadow-sm'>
       <CardHeader>
-        <CardTitle className='text-3xl font-bold text-center flex flex-col flex-nowrap gap-2 items-center w-full'>
-          <img src='/logo.png' alt='Logo' />
+        <CardTitle className='text-center text-3xl font-semibold'>
           <h1>Saisir un nouveau mot de passe</h1>
         </CardTitle>
       </CardHeader>
@@ -71,6 +70,7 @@ const PasswordResetCard = (props: { uid: string; otp: string }) => {
                     input_props={{
                       ...field,
                       'aria-invalid': fieldState.invalid,
+                      type: 'password',
                       id: 'password1',
                       /* type:
                           data.IdentifierType === IdentifierType.Email

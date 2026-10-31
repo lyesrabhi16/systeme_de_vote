@@ -1,3 +1,4 @@
+import AuthLayout from '@/components/auth/AuthLayout';
 import PasswordResetCard from '@/components/auth/PasswordResetCard';
 import PasswordResetRequestCard from '@/components/auth/PasswordResetRequestCard';
 
@@ -6,9 +7,17 @@ const PasswordResetPage = () => {
   const uid = queryParams.get('uid');
   const otp = queryParams.get('otp');
   if (uid && otp) {
-    return <PasswordResetCard uid={uid} otp={otp} />;
+    return (
+      <AuthLayout>
+        <PasswordResetCard uid={uid} otp={otp} />
+      </AuthLayout>
+    );
   }
-  return <PasswordResetRequestCard />;
+  return (
+    <AuthLayout>
+      <PasswordResetRequestCard />
+    </AuthLayout>
+  );
 };
 
 export default PasswordResetPage;

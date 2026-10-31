@@ -15,6 +15,9 @@ Name | Type | Description | Notes
 **verified_phone_number** | **boolean** |  | [default to undefined]
 **is_active** | **boolean** |  | [default to undefined]
 **is_admin** | **boolean** |  | [default to undefined]
+**authority** | **string** |  | [optional] [default to undefined]
+**unique_hash** | **string** |  | [default to undefined]
+**requested_password_reset** | **boolean** |  | [default to undefined]
 
 ## Example
 
@@ -32,6 +35,9 @@ const instance: CurrentUserResponseModel = {
     verified_phone_number,
     is_active,
     is_admin,
+    authority,
+    unique_hash,
+    requested_password_reset,
 };
 ```
 

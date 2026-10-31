@@ -1,0 +1,44 @@
+# What `make run-dev` and `bun run dev` need around the application, published on this machine only:
+#
+#     docker compose -f docker-compose.dev.yml up -d
+#
+# PostgreSQL :5432, Redis :6379, and Mailpit: a mail server that keeps what it receives and delivers nothing (SMTP :1025,
+# the mailbox at http://localhost:8025). SVS-SERVER/.env.example points the application at all three.
+name: svs-dev
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: svs
+      POSTGRES_PASSWORD: svs-demo-db-password
+      POSTGRES_DB: svs
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U svs -d svs"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.33.0
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  dev-db-data:

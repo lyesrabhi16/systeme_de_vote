@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server (lint, tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: SVS-SERVER
+    # a real PostgreSQL, for the migrations only: the tests themselves run on SQLite
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: svs
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: svs
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U svs" --health-interval 5s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --dev --locked  # fails if uv.lock is not what pyproject.toml says
+      - name: Lint and format
+        run: |
+          uv run ruff check app migrations
+          uv run ruff format --check app migrations
+      # SQLite and an in-memory Redis: the tests need no service. Includes the check that openapi.json is the one of the code.
+      - name: Tests
+        run: uv run python -m pytest -q
+      # What SQLite cannot say: the migrations, run on PostgreSQL from nothing, make exactly the schema of the models (`alembic check`
+      # fails if a model changed without a migration), and three of them at once (three replicas) do not collide.
+      - name: Migrations on PostgreSQL
+        env:
+          ENV_MODE: testing
+          DB_DRIVER: postgresql+asyncpg
+          DB_HOST: localhost
+          DB_USER: svs
+          DB_PASSWORD: ci
+          DB_NAME: svs
+        run: |
+          uv run python -m app.db.migrate & uv run python -m app.db.migrate & uv run python -m app.db.migrate & wait
+          uv run python -m app.db.migrate --check
+          uv run alembic check
+          uv run alembic downgrade 0001
+          uv run alembic upgrade head
+
+  client:
+    name: Client (lint, types, tests, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: SVS-CLIENT
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - name: Tests
+        run: bun run test
+      - name: Types and production build
+        run: bun run build
+
+  # Builds the image and uses it for real: PostgreSQL, Redis, the application, and the page it serves.
+  stack:
+    name: Docker image and demo stack
+    runs-on: ubuntu-latest
+    needs: [server, client]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the demo stack
+        run: docker compose -f docker-compose.demo.yml up -d --build --wait --wait-timeout 180
+      - name: The page, the API and the documentation answer
+        run: |
+          curl --fail --silent --show-error http://localhost:8000/ | grep -qi '<div id="root"'
+          curl --fail --silent --show-error http://localhost:8000/vote/12 | grep -qi '<div id="root"'   # a page route, not JSON
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8000/api/vote/)" = "401"
+          curl --fail --silent --show-error http://localhost:8000/openapi.json > /dev/null
+      - name: The demo data was seeded
+        run: docker compose -f docker-compose.demo.yml logs svs | grep "newcomer"
+      # The application sent an email over SMTP and it arrived: the one-time password of a sign-in, in Mailpit's mailbox.
+      - name: The one-time password reaches the mailbox (Mailpit)
+        run: |
+          curl --fail --silent --show-error -X POST http://localhost:8000/api/auth/login \
+            -H 'content-type: application/json' \
+            -d '{"identifier":"alice@example.org","password":"demo-password-123","identifier_type":"email"}' > /dev/null
+          for i in $(seq 1 15); do
+            if curl --fail --silent http://localhost:8025/api/v1/messages | jq -e '.messages[0] | .Subject == "Votre code de connexion" and .To[0].Address == "alice@example.org"' > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          echo "no email in the mailbox"; docker compose -f docker-compose.demo.yml logs svs | tail -20; exit 1
+      # The finished election of the demo is counted from real ballots: anybody can check the result from the public routes alone.
+      - name: The count of the demo election verifies
+        run: docker compose -f docker-compose.demo.yml exec -T svs python -m app.utils.audit http://localhost:8000 2
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.demo.yml logs
+      - name: Stop
+        if: always()
+        run: docker compose -f docker-compose.demo.yml down -v

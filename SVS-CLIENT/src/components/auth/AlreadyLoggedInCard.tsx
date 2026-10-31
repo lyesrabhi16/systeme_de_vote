@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/card';
 import useAuth from '@/hooks/useAuth';
 import { LucideLogIn } from 'lucide-react';
-import logo from '/logo.png';
 
 const AlreadyLoggedInCard = () => {
   const auth = useAuth();
@@ -16,10 +15,9 @@ const AlreadyLoggedInCard = () => {
     return null;
   }
   return (
-    <Card className='w-full max-w-sm'>
+    <Card className='w-full max-w-md border-0 bg-transparent shadow-none sm:border sm:bg-card sm:shadow-sm'>
       <CardHeader>
-        <CardTitle className='text-3xl font-bold text-center flex flex-col flex-nowrap gap-2 items-center w-full'>
-          <img src={logo} alt='Logo' />
+        <CardTitle className='text-center text-3xl font-semibold'>
           <h1>Vous êtes déjà connecté</h1>
         </CardTitle>
       </CardHeader>

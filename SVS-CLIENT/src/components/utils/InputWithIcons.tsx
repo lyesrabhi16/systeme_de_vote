@@ -10,9 +10,10 @@ const InputWithIcons = (props: {
   LeftIcon: React.ElementType;
   input_props?: React.ComponentProps<typeof InputGroupInput>;
   icon_props?: React.ComponentProps<'svg'>;
+  input_group_props?: React.ComponentProps<typeof InputGroup>;
 }) => {
   return (
-    <InputGroup>
+    <InputGroup {...props.input_group_props}>
       <InputGroupAddon>
         <props.LeftIcon
           {...props.icon_props}

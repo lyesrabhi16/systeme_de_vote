@@ -6,6 +6,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **vote** | [**VoteWithCreatorResponseModel**](VoteWithCreatorResponseModel.md) |  | [default to undefined]
+**tally_proof** | **string** |  | [optional] [default to undefined]
+**encrypted_tally** | **string** |  | [optional] [default to undefined]
 **total_bulletins** | **number** |  | [default to undefined]
 **candidate_results** | **{ [key: string]: number; }** |  | [default to undefined]
 **abstention_count** | **number** |  | [default to undefined]
@@ -21,6 +23,8 @@ import { FinishedVoteResponseModel } from './api';
 
 const instance: FinishedVoteResponseModel = {
     vote,
+    tally_proof,
+    encrypted_tally,
     total_bulletins,
     candidate_results,
     abstention_count,

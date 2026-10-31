@@ -2,3 +2,8 @@ tls:
   certificates:
     - certFile: /certs/svs-server.crt
       keyFile: /certs/svs-server.key
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/svs-server.crt
+        keyFile: /certs/svs-server.key

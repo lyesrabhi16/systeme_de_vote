@@ -1,5 +1,4 @@
 import AlreadyLoggedInCard from '@/components/auth/AlreadyLoggedInCard';
-import logo from '/logo.png';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -47,11 +46,10 @@ const LoginCard = () => {
   }
 
   return (
-    <Card className='w-full max-w-sm'>
+    <Card className='w-full max-w-md border-0 bg-transparent shadow-none sm:border sm:bg-card sm:shadow-sm'>
       <CardHeader>
-        <CardTitle className='text-3xl font-bold text-center flex flex-col flex-nowrap gap-2 items-center w-full'>
-          <img src={logo} alt='Logo' />
-          <h1>Connectez-vous Pour Voter</h1>
+        <CardTitle className='text-center text-3xl font-semibold'>
+          <h1>Connexion</h1>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -66,7 +64,7 @@ const LoginCard = () => {
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor='email'>
-                    Adresse mail / numero de telephone
+                    Adresse e-mail
                   </FieldLabel>
                   <InputWithIcons
                     LeftIcon={LucideUser}
@@ -151,10 +149,10 @@ const LoginCard = () => {
           </FieldGroup>
         </form>
       </CardContent>
-      <CardFooter className='flex-col gap-2'>
+      <CardFooter className='flex-col gap-3'>
         <Button
           type='submit'
-          className='w-fit hover:scale-105 transition-transform'
+          className='w-full'
           disabled={loading.loginButton}
           form='login-form'
         >

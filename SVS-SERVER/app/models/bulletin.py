@@ -1,22 +1,38 @@
-from sqlmodel import SQLModel, Field
-from app.db.db import db_session
-from sqlalchemy.ext.asyncio import AsyncSession
+import secrets
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlmodel import Relationship
+from sqlalchemy import Text, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import Field, Relationship, SQLModel
+
+from app.db.db import db_session
+from app.models.types import UTCDateTime
+
+if TYPE_CHECKING:
+    from app.models.vote import Vote
 
 
 class Bulletin(SQLModel, table=True):
-    user_id: int | None = Field(default=None, primary_key=True, foreign_key="user.id")
-    vote_id: int | None = Field(default=None, primary_key=True, foreign_key="vote.id")
+    id: int | None = Field(default=None, primary_key=True)
+    vote_id: int | None = Field(default=None, index=True, foreign_key="vote.id")
 
-    content: str = Field(..., title="Content", max_length=2000)
-    date: datetime = Field(..., title="Date")
-
-    user: "User" = Relationship(
-        back_populates="bulletins",
-        sa_relationship_kwargs={"lazy": "selectin"},  # async safe
+    content: str = Field(
+        ...,
+        title="Content",
+        sa_type=Text,
+        description="Homomorphically encrypted ballot, with its proofs (JSON)",
     )
+    date: datetime = Field(..., title="Date", sa_type=UTCDateTime)
+
+    unique_code: str = Field(
+        ...,
+        max_length=1024,
+        unique=True,
+        default_factory=lambda: secrets.token_urlsafe(32),
+        description="Unique code for the bulletin, used for verification",
+    )
+
     vote: "Vote" = Relationship(
         back_populates="bulletins",
         sa_relationship_kwargs={"lazy": "selectin"},  # async safe
@@ -30,3 +46,14 @@ class Bulletin(SQLModel, table=True):
         db.add(self)
         await db.commit()
         await db.refresh(self)
+
+    @staticmethod
+    @db_session
+    async def has_receipt(vote_id: int, code: str, db: AsyncSession | None = None) -> bool:
+        """Is there a bulletin of this election whose receipt is exactly this code?"""
+        if db is None:
+            raise ValueError("Database session is None")
+        found = await db.execute(
+            select(Bulletin.id).where(Bulletin.vote_id == vote_id, Bulletin.unique_code == code).limit(1)
+        )
+        return found.first() is not None

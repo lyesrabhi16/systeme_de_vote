@@ -1,40 +1,80 @@
-export const useNav: () => {
+import { UserCreationModelAuthorityEnum } from '@/api/sdk';
+import { routes } from '@/services/routing';
+import useGlobalStore from '@/services/store';
+
+const linkMatch = (links: string[], path: string): boolean => {
+  for (const link of links) {
+    // exact match
+    if (link === path) {
+      //console.log('link_match: exact match:', link, path);
+      return true;
+    }
+    // dynamic route match (e.g., /vote/:voteId)
+    const linkParts = link.split('/').filter((part) => part.length > 0);
+    const pathParts = path.split('/').filter((part) => part.length > 0);
+    //console.log('linkParts:', linkParts, 'pathParts:', pathParts);
+    let isMatch = true;
+    for (let i = 0; i < linkParts.length; i++) {
+      if (i >= pathParts.length && linkParts[i].endsWith('?')) {
+        //console.log('link_match: dynamic optional part missing but ok:', link, path);
+        continue;
+      }
+      if (linkParts[i].startsWith(':')) {
+        //console.log('link_match: dynamic part match:', link, path);
+        continue; // dynamic part
+      }
+      if (linkParts[i] !== pathParts[i]) {
+        //console.log('link_match: dynamic no match:', link, path);
+        isMatch = false;
+        break;
+      }
+    }
+    if (isMatch) {
+      //console.log('link_match: dynamic match:', link, path);
+      return true;
+    }
+  }
+  return false;
+};
+export const useNav: (props?: { admin?: boolean }) => {
   navItems: NavItemType[];
   currentNavItem: NavItemType | undefined;
   currentNavItemIndex: number;
-} = () => {
-  const navItems = [
-    { label: 'Home', link: '/' },
-    { label: 'About', link: '/about' },
-    { label: 'Contact', link: '/contact' },
-    { label: 'Vote', link: '/vote' },
+} = (props?: { admin?: boolean }) => {
+  const { user } = useGlobalStore();
+  const _navItems = [
+    { label: 'Accueil', links: [routes.HOME], hidden: false },
+    { label: 'À propos', links: [routes.ABOUT], hidden: false },
+    { label: 'Contact', links: [routes.CONTACT], hidden: false },
+    { label: 'Élection', links: [routes.VOTE], hidden: true },
   ];
+
+  const AdminNavItems = [
+    { label: 'Tableau de bord', links: [routes.ADMIN], hidden: false },
+    {
+      label: 'Utilisateurs',
+      links: [
+        routes.PICK_USERS_ADMINISTRATION,
+        routes.USERS_ADMINISTRATION,
+        routes.ADMIN_ADMINISTRATION,
+      ],
+      hidden: user?.authority !== UserCreationModelAuthorityEnum.Inscription,
+    },
+    {
+      label: 'Élections',
+      links: [routes.VOTES_ADMINISTRATION, routes.VOTE_ADMINISTRATION],
+      hidden: user?.authority !== UserCreationModelAuthorityEnum.Vote,
+    },
+  ];
+
+  const navItems: NavItemType[] = props?.admin ? AdminNavItems : _navItems;
+
   const path = window.location.pathname;
   let currentNavItem: NavItemType | undefined = undefined;
   let currentNavItemIndex: number = -1;
 
   for (const item of navItems) {
-    const linkParts = item.link.split('/').filter((i) => i.length > 0);
-    const IndexesToIgnore = linkParts
-      .map((part, index) => (part.startsWith(':') ? index : -1))
-      .filter((i) => i !== -1);
-    const pathParts = path.split('/').filter((i) => i.length > 0);
-    let match = true;
-    for (let i = 0; i < linkParts.length; i++) {
-      //console.log(`check linkpart : ${linkParts[i]} pathpart: ${pathParts[i]}`);
-
-      if (IndexesToIgnore.includes(i)) {
-        /* console.log(
-          `check linkpart : ${linkParts[i]} pathpart: ${pathParts[i]}`,
-        ); */
-
-        continue;
-      }
-      if (linkParts[i] !== pathParts[i]) {
-        match = false;
-        break;
-      }
-    }
+    const match = linkMatch(item.links, path);
     if (match) {
       currentNavItem = match ? item : currentNavItem;
       currentNavItemIndex = navItems.indexOf(item);
@@ -51,5 +91,6 @@ export const useNav: () => {
 
 export type NavItemType = {
   label: string;
-  link: string;
+  links: string[];
+  hidden?: boolean;
 };

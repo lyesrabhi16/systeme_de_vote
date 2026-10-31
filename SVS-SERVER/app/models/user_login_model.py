@@ -1,20 +1,21 @@
-from typing import Optional, Tuple
+from enum import Enum
+
+from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import Row
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from .user import User
+from sqlmodel import select
+
 from app.db import db_session
 from app.utils import auth_utils
-from loguru import logger
-from enum import Enum
+
+from .user import User
 
 
 class identifierType(Enum):
     EMAIL = "email"
     USERNAME = "username"
     PHONE_NUMBER = "phone_number"
-    SSN = "ssn"
 
     def get_user_field(self) -> str:
         match self:
@@ -24,31 +25,26 @@ class identifierType(Enum):
                 return User.username
             case identifierType.PHONE_NUMBER:
                 return User.phone_number
-            case identifierType.SSN:
-                return User.ssn
             case _:
                 raise ValueError(f"Invalid identifier type: {self}")
 
 
 class UserLoginModel(BaseModel):
     identifier: str
-    password: str
+    password: str | None = None
     identifier_type: identifierType
 
     @classmethod
     @db_session
-    async def get_user_by_email(
-        cls, user_email: str, db: AsyncSession | None = None
-    ) -> User | None:
+    async def get_user_by_email(cls, user_email: str, db: AsyncSession | None = None) -> User | None:
         if db is None:
             return None
-        user_row: Row[Tuple[User]] | None = (
+        user_row: Row[tuple[User]] | None = (
             await db.execute(select(User).where(User.email == user_email))
         ).one_or_none()
         if user_row is not None:
-            logger.debug(f"User found with Email: {user_email}")
             return user_row[0]
-        logger.warning(f"User not found with Email: {user_email}")
+        logger.warning("User not found by email")
         return None
 
     @classmethod
@@ -56,37 +52,34 @@ class UserLoginModel(BaseModel):
     async def authenticate(
         cls,
         identifier: str,
-        password: str,
+        password: str | None,
         identifier_type: identifierType,
         db: AsyncSession | None = None,
     ) -> User | None:
         if db is None:
             return None
-        user_row = (
-            await db.execute(
-                select(User).where(identifier_type.get_user_field() == identifier)
-            )
-        ).one_or_none()
-        logger.debug(
-            f"Authenticating user: {identifier}, Found: {user_row is not None}"
-        )
-        if user_row is not None:
-            user: User = user_row[0]
-            if (
-                (user_row is not None)
-                and (user := user_row[0])
-                and (auth_utils.verify_hash(password, user.password))
-            ):
-                logger.debug(f"User authenticated successfully: {user.email}")
+        user_row = (await db.execute(select(User).where(identifier_type.get_user_field() == identifier))).one_or_none()
+        if user_row is None:
+            auth_utils.burn_password_check(password)  # an unknown user must not be quicker to refuse than a known one
+            logger.warning("User authentication failed")
+            return None
+        user: User = user_row[0]
+        if user.is_active is False:
+            auth_utils.burn_password_check(password)
+            logger.warning("Inactive user attempted to authenticate")
+            return None
+        if user.password is None:
+            # first login: no password has been chosen yet, the one-time password sent by email is the only factor
+            if password is None:
                 return user
-        logger.warning(f"User authentication failed: {identifier}")
+        elif password is not None and auth_utils.verify_hash(password, user.password):
+            return user
+        logger.warning("User authentication failed")
         return None
 
     @classmethod
     @db_session
-    async def get_current_user(
-        cls, token: str, db: AsyncSession | None = None
-    ) -> User | None:
+    async def get_current_user(cls, token: str, db: AsyncSession | None = None) -> User | None:
         if db is None:
             logger.error("No database session was provided.")
             return None
@@ -95,13 +88,10 @@ class UserLoginModel(BaseModel):
             if payload.id is None:
                 logger.warning("Token does not contain user ID.")
                 return None
-            user: Row[Tuple[User]] | None = (
-                await db.execute(select(User).where(User.id == payload.id))
-            ).one_or_none()
+            user: Row[tuple[User]] | None = (await db.execute(select(User).where(User.id == payload.id))).one_or_none()
             if user is None:
                 logger.warning(f"User not found for ID: {payload.id}")
                 return None
-            logger.debug(f"Current user retrieved successfully: ID {payload.id}")
             return user[0]
         except Exception as e:
             logger.error(f"Error retrieving current user from token: {e}")

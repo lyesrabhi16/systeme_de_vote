@@ -1,16 +1,25 @@
+from datetime import datetime
 from typing import Any
-from sqlmodel import SQLModel
-from app.db.db import db_session
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from loguru import logger
+from pydantic import model_validator
+from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import SQLModel, delete, select
+
+from app.db.db import db_session
+from app.models.attributed_votes import AttributedVote
 from app.models.bulletin import Bulletin
 from app.models.user import User
+
+from .candidate import Candidate, CandidateCreateModel
 from .vote import Vote, VoteWithCreatorResponseModel
-from .candidate import Candidate
 
 
 class FinishedVoteResponseModel(SQLModel):
     vote: VoteWithCreatorResponseModel
+    tally_proof: str | None = None
+    encrypted_tally: str | None = None
     total_bulletins: int
     candidate_results: dict[int, int]  # candidate_id -> number of votes
     abstention_count: int
@@ -47,6 +56,11 @@ class FinishedVoteResponseModel(SQLModel):
         vote = await Vote.get_by_id(vote_id)
         if vote is None:
             return None
+        total_bulletins = (
+            await db.execute(select(func.count(Bulletin.id)).where(Bulletin.vote_id == vote_id))
+        ).scalar_one()
+
+        user_av = await AttributedVote.get_by_ids(user_id=user.id, vote_id=vote_id) if user else None
 
         vote_with_creator = await VoteWithCreatorResponseModel.from_vote_id(vote_id)
         if vote_with_creator is None:
@@ -54,20 +68,13 @@ class FinishedVoteResponseModel(SQLModel):
 
         return FinishedVoteResponseModel(
             vote=vote_with_creator,
-            total_bulletins=len(vote.bulletins),
-            candidate_results={
-                candidate.id: candidate.vote_count for candidate in vote.candidates
-            },
-            abstention_count=(
-                len({u.user_id for u in vote.attributed_users})
-                - len({bulletin.user_id for bulletin in vote.bulletins})
-            ),
-            voter_count=len({bulletin.user_id for bulletin in vote.bulletins}),
-            user_has_voted=(
-                user.id in {bulletin.user_id for bulletin in vote.bulletins}
-                if user
-                else False
-            ),
+            total_bulletins=total_bulletins,
+            encrypted_tally=vote.encrypted_tally,
+            tally_proof=vote.tally_proof,
+            candidate_results={candidate.id: candidate.vote_count for candidate in vote.candidates},
+            abstention_count=(len({av.user_id for av in vote.attributed_users if not av.user_has_voted})),
+            voter_count=len({av.user_id for av in vote.attributed_users if av.user_has_voted}),
+            user_has_voted=(user_av.user_has_voted if user_av else False),
             candidates=vote.candidates,
         )
 
@@ -79,20 +86,17 @@ class FullVoteResponseModel(SQLModel):
 
     @staticmethod
     @db_session
-    async def from_vote_id(vote_id: int, user: "User", db: AsyncSession | None = None):
+    async def from_vote_id(vote_id: int, user: User | None = None, db: AsyncSession | None = None):
         if db is None:
             raise ValueError("Database session is None")
         vote = await Vote.get_by_id(vote_id)
-        finishedVote: FinishedVoteResponseModel | None = (
-            await FinishedVoteResponseModel.from_vote_id(vote_id)
-        )
+        finishedVote: FinishedVoteResponseModel | None = await FinishedVoteResponseModel.from_vote_id(vote_id, user)
         if finishedVote is None or vote is None:
             return None
-        finishedVote.user_has_voted = any(b.vote_id == vote.id for b in user.bulletins)
         return FullVoteResponseModel(
             vote=finishedVote,
             candidates=vote.candidates,
-            total_bulletins=len(vote.bulletins),
+            total_bulletins=finishedVote.total_bulletins,
         )
 
 
@@ -101,3 +105,139 @@ class VoteResultsModel(SQLModel):
     count_failures: list[Bulletin]
     abstention_count: int
     voter_count: int
+
+
+class VoteCreationModel(SQLModel):
+    title: str
+    description: str
+    start_date: datetime
+    end_date: datetime
+    candidates: list[CandidateCreateModel]
+    open_to_all: bool = False
+    attributed_user_ids: list[int] | None = None
+    excluded_user_ids: list[int] | None = None
+
+    @model_validator(mode="after")
+    def check_dates_and_candidates(self) -> "VoteCreationModel":
+        """An election that ends before it starts could never be voted on, and one with no candidate has nothing to choose."""
+        if self.end_date <= self.start_date:
+            raise ValueError("end_date must be after start_date")
+        if not self.candidates:
+            raise ValueError("an election needs at least one candidate")
+        return self
+
+    @db_session
+    async def save(self, creator_id: int, db: AsyncSession | None = None) -> FullVoteResponseModel | None:
+        if db is None:
+            raise ValueError("Database session is None")
+
+        vote = Vote(
+            title=self.title,
+            description=self.description,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            creator_id=creator_id,
+        )
+        db.add(vote)
+        await db.flush()  # get vote.id safely
+
+        # Candidates
+        for c in self.candidates:
+            db.add(
+                Candidate(
+                    first_name=c.first_name,
+                    last_name=c.last_name,
+                    photo_url=c.photo_url,
+                    vote_id=vote.id,
+                )
+            )
+
+        # Resolve attributed users
+        attributed_ids = set(self.attributed_user_ids or [])
+
+        if self.open_to_all:
+            result = await db.execute(select(User.id))
+            attributed_ids = {row[0] for row in result.fetchall()}
+
+        excluded_ids = set(self.excluded_user_ids or [])
+        final_user_ids = attributed_ids - excluded_ids
+        logger.info(f"Vote {vote.id} attributed to users: {final_user_ids} (excluded: {excluded_ids})")
+        if final_user_ids:
+            db.add_all([AttributedVote(user_id=_id, vote_id=vote.id) for _id in final_user_ids])
+        await db.commit()
+        await db.refresh(vote)
+
+        return await FullVoteResponseModel.from_vote_id(vote.id)
+
+
+class VoteUpdateModel(SQLModel):
+    title: str | None = None
+    description: str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    candidates: list[CandidateCreateModel] | None = None
+    open_to_all: bool | None = None
+    attributed_user_ids: list[int] | None = None
+    excluded_user_ids: list[int] | None = None
+
+    @db_session
+    async def update(self, vote_id: int, db: AsyncSession | None = None) -> FullVoteResponseModel | None:
+        logger.debug(f"Updating vote {vote_id} with data: {self.json()}")
+        if db is None:
+            raise ValueError("Database session is None")
+        vote = await Vote.get_by_id(vote_id)
+        if vote is None:
+            return None
+        logger.debug(f"Updating vote {vote_id} with data: {self.json()}")
+
+        if self.title is not None:
+            vote.title = self.title
+        if self.description is not None:
+            vote.description = self.description
+        if self.start_date is not None:
+            vote.start_date = self.start_date
+        if self.end_date is not None:
+            vote.end_date = self.end_date
+            vote.has_been_counted = False  # reset counting status if end date changes
+        if self.candidates is not None:
+            # Delete existing candidates
+            await db.execute(delete(Candidate).where(Candidate.vote_id == vote_id))
+            # Add new candidates
+            for c in self.candidates:
+                db.add(
+                    Candidate(
+                        first_name=c.first_name,
+                        last_name=c.last_name,
+                        photo_url=c.photo_url,
+                        vote_id=vote.id,
+                    )
+                )
+        # Update attributed users if needed
+        if self.open_to_all is not None or self.attributed_user_ids is not None:
+            if self.open_to_all:
+                result = await db.execute(select(User.id))
+                new_attributed_ids = {row[0] for row in result.fetchall()}
+            else:
+                new_attributed_ids = set(self.attributed_user_ids or [])
+            if self.excluded_user_ids is not None:
+                new_attributed_ids -= set(self.excluded_user_ids)
+            # Get current attributed user ids
+            result = await db.execute(select(AttributedVote.user_id).where(AttributedVote.vote_id == vote_id))
+            current_attributed_ids = {row[0] for row in result.fetchall()}
+            # Calculate ids to add and remove
+            to_add = new_attributed_ids - current_attributed_ids
+            to_remove = current_attributed_ids - new_attributed_ids
+            # Add new attributed votes
+            db.add_all([AttributedVote(user_id=_id, vote_id=vote.id) for _id in to_add])
+            # Remove old attributed votes
+            if to_remove:
+                await db.execute(
+                    delete(AttributedVote).where(
+                        AttributedVote.vote_id == vote_id,
+                        AttributedVote.user_id.in_(to_remove),
+                    )
+                )
+        logger.debug(f"Committing updates for vote {vote_id}, vote data: {vote.json()}")
+        await vote.save()
+        await db.commit()
+        return await FullVoteResponseModel.from_vote_id(vote.id)

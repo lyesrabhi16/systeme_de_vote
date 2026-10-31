@@ -1,8 +1,8 @@
+import json
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
-import json
 from loguru import logger
-from app.config.env import env
 
 
 def setup_openapi(app: FastAPI):
@@ -24,11 +24,24 @@ def setup_openapi(app: FastAPI):
             routes=app.routes,
         )
         # logo replacement
-        openapi_schema["info"]["x-logo"] = {"url": f"{env.HOST_URL}/public/logo.png"}
+        openapi_schema["info"]["x-logo"] = {
+            "url": "/public/logo.png"
+        }  # relative: the description must not depend on where it was written
         app.openapi_schema = openapi_schema
         return app.openapi_schema
 
     app.openapi = custom_openapi
-    with open("openapi.json", "w") as f:
-        json.dump(app.openapi(), f, indent=4)
     logger.info("OpenAPI documentation setup complete")
+
+
+def write_openapi(app: FastAPI, path: str = "openapi.json") -> None:
+    """Writes the API description to a file (make openapi). The web client's typed SDK is generated from it."""
+    with open(path, "w") as f:
+        json.dump(app.openapi(), f, indent=4)
+        f.write("\n")
+
+
+if __name__ == "__main__":
+    from app.main import APP
+
+    write_openapi(APP)

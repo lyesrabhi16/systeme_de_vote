@@ -1,11 +1,12 @@
-from datetime import timedelta
 import random
+from datetime import timedelta
+
 from faker import Faker
-from sqlalchemy import insert
-from app.models import Candidate, Vote, User, AttributedVote, Bulletin
-from app.utils.auth_utils import hash_string, encrypt_string
-from app.db import db_session
 from loguru import logger
+
+from app.db import db_session
+from app.models import AttributedVote, Bulletin, Candidate, User, Vote
+from app.utils.auth_utils import encrypt_string, hash_string
 
 fake = Faker()
 hashed_password = hash_string("0000")
@@ -99,9 +100,7 @@ async def seed_more_attributed_votes(db=None, n=100):
             await db.commit()
         except Exception:
             await db.rollback()
-            logger.warning(
-                f"Duplicate attributed vote for user {av.user_id} and vote {av.vote_id}, skipping."
-            )
+            logger.warning(f"Duplicate attributed vote for user {av.user_id} and vote {av.vote_id}, skipping.")
             continue
     await db.commit()
     logger.info(f"Seeded {n} additional attributed votes.")
@@ -124,9 +123,7 @@ async def seed_more_bulletins(db=None, n=100):
             await db.commit()
         except Exception:
             await db.rollback()
-            logger.warning(
-                f"Failed to add bulletin for user {b.user_id} and vote {b.vote_id}, skipping."
-            )
+            logger.warning(f"Failed to add bulletin for user {b.user_id} and vote {b.vote_id}, skipping.")
             continue
     await db.commit()
     logger.info(f"Seeded {n} additional bulletins.")

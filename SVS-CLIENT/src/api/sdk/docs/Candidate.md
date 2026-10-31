@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **first_name** | **string** |  | [default to undefined]
 **last_name** | **string** |  | [default to undefined]
 **photo_url** | **string** |  | [optional] [default to undefined]
-**vote_count** | **number** |  | [optional] [default to 0]
+**vote_count** | **number** |  | [optional] [default to undefined]
 **vote_id** | **number** |  | [default to undefined]
 
 ## Example

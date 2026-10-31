@@ -1,16 +1,18 @@
-from typing import Any
-from sqlmodel import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from app.utils.db_utils import get_db_url, get_redis_connection
+from collections.abc import AsyncGenerator
 from functools import wraps
+from typing import Any
+
 from loguru import logger
+from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlmodel import text
+
 from app.config.env import env
-from redis import Redis
-import inspect
+from app.utils.db_utils import get_db_url, get_redis_connection
 
 # DB
 _db_url = get_db_url()
-engine = create_async_engine(_db_url, echo=env.DEBUG, future=True)
+engine = create_async_engine(_db_url, future=True)  # no echo: the SQL would show what is voted
 
 # Redis Cache
 cache_db = get_redis_connection()
@@ -67,6 +69,13 @@ def db_session(func):
     return wrapper
 
 
+async def get_db_session() -> AsyncGenerator[AsyncSession]:
+    """Get a new database session."""
+    Session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=True)
+    async with Session() as session:
+        yield session
+
+
 @db_session
 async def test_db_connection(db: AsyncSession | None = None):
     """Test database connection by executing a simple query"""
@@ -88,10 +97,7 @@ async def test_redis_cache_connection(cache: Redis | None = None):
     if cache is None:
         return False
     try:
-        pong = cache.ping()
-        if inspect.isawaitable(pong):
-            pong = await pong
-        if pong:
+        if await cache.ping():
             logger.info(f"Redis Cache({env.REDIS_HOST}) connected")
             return True
         else:
@@ -106,8 +112,9 @@ async def test_redis_cache_connection(cache: Redis | None = None):
 async def init_db(recreate: bool = False, db: AsyncSession | None = None):
     """Initialize the database (e.g., create tables)"""
     # Import models to register them with SQLModel metadata
-    import app.models  # noqa: F401
     from sqlmodel import SQLModel
+
+    import app.models  # noqa: F401
 
     if not SQLModel.metadata.tables:
         logger.info("No models found to create tables.")

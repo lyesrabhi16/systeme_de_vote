@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **phone_number** | **string** |  | [default to undefined]
 **is_active** | **boolean** |  | [default to undefined]
 **is_admin** | **boolean** |  | [default to undefined]
+**authority** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -28,6 +29,7 @@ const instance: UserResponseModel = {
     phone_number,
     is_active,
     is_admin,
+    authority,
 };
 ```
 

@@ -1,10 +1,11 @@
-from typing import Callable, List
-from fastapi import FastAPI, Request, HTTPException
+from collections.abc import Callable
+
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 
 
-def setup_middlewares(APP: FastAPI, MIDDLEWARES: list | None = None) -> List[str]:
+def setup_middlewares(APP: FastAPI, MIDDLEWARES: list | None = None) -> list[str]:
     """
     Setup all middlewares for the FastAPI app.
     Args:
@@ -23,9 +24,7 @@ def setup_middlewares(APP: FastAPI, MIDDLEWARES: list | None = None) -> List[str
             logger.info(f"Setting up middleware: {middleware_name}")
             middleware_class = middleware.get("middleware_class", None)
             if middleware_class is None:
-                logger.warning(
-                    f"Middleware class not found for {middleware_name}. Skipping."
-                )
+                logger.warning(f"Middleware class not found for {middleware_name}. Skipping.")
                 continue
             middleware_args = middleware.get("args", {})
             APP.add_middleware(middleware_class, **middleware_args)
@@ -70,15 +69,12 @@ def register_middleware_func(APP: FastAPI, func, middleware_name: str):
 
 
 class HTTPExceptionWithHandler(HTTPException):
-
     def __init__(
         self,
         handler: Callable[[Request, "HTTPExceptionWithHandler"], JSONResponse],
         exc: HTTPException,
     ):
-        self.handler: Callable[[Request, HTTPExceptionWithHandler], JSONResponse] = (
-            handler
-        )
+        self.handler: Callable[[Request, HTTPExceptionWithHandler], JSONResponse] = handler
         super().__init__(
             status_code=exc.status_code,
             detail=exc.detail,

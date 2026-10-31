@@ -7,57 +7,35 @@ export const login_password_step = async (data: UserLoginModel) => {
     const api_response = await apiClient().auth.login(data);
     return api_response.data;
 };
+
 export const login_otp_step = async (store: GlobalStore, data: OTPVerificationModel) => {
-    const api_response = await apiClient().auth.verifyOTP(data);
-    const token = api_response.data.token;
-    await saveToken(store, token);
-    return store.user;
+    // The server answers with the session as a cookie (HttpOnly: not readable from here). The token in the body is for other
+    // kinds of clients; it is not kept.
+    await apiClient().auth.verifyOTP(data);
+    return loadCurrentUser(store);
 }
 
-const saveToken = async (store: GlobalStore, token: string) => {
-    localStorage.setItem("token", token);
-    store.setToken(token);
-    await loadCurrentUser(store);
-};
+/** Who is signed in: asked to the server, which knows from the cookie. null when nobody is. */
 export const loadCurrentUser = async (store: GlobalStore) => {
     if (store.user) {
         return store.user;
     }
-    const token = getToken(store);
-
-    if (!token) {
-        console.log("No token available to load current user");
-        return null;
-    }
-    const api_response = await apiClient().auth.getCurrentUser(
-        {
-            token: token,
+    try {
+        const api_response = await apiClient({ quiet: true }).auth.getCurrentUser();
+        store.setUser(api_response.data);
+        return api_response.data;
+    } catch (e) {
+        const status = (e as { response?: { status?: number } }).response?.status;
+        if (status === 401 || status === 403) {
+            return null;
         }
-    )
-    const user = api_response.data;
-
-    store.setUser(user);
-
-    return user;
+        throw e;
+    }
 };
 
 export const logout = async (store: GlobalStore) => {
     store.clearUser();
     await apiClient().auth.logout();
-};
-
-export const getToken = (store: GlobalStore): string | null => {
-    if (store.token) {
-        return store.token;
-    }
-    // check local storage
-    const token = localStorage.getItem("token");
-    if (token) {
-        store.setToken(token);
-        return token;
-    }
-    return null;
-
 };
 
 export const resendEmailOTP = async (data: OTPResendRequestModel) => {

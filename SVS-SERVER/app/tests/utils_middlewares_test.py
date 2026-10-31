@@ -1,8 +1,8 @@
 def test_setup_middlewares():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -19,9 +19,10 @@ def test_setup_middlewares():
 
 
 def test_setup_middlewares_dict():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.middleware.base import BaseHTTPMiddleware
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -43,11 +44,11 @@ def test_setup_middlewares_dict():
 
 
 def test_setup_middlewares_mixed():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
-    from starlette.requests import Request
-    from starlette.responses import Response
     from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.requests import Request
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -70,17 +71,16 @@ def test_setup_middlewares_mixed():
         "args": {},
     }
 
-    middlewares = setup_middlewares(
-        APP=APP, MIDDLEWARES=[SAMPLEMiddleware, middleware_config]
-    )
+    middlewares = setup_middlewares(APP=APP, MIDDLEWARES=[SAMPLEMiddleware, middleware_config])
 
     assert "SAMPLEMiddleware:custom_middleware" in middlewares
     assert "Test Middleware" in middlewares
 
 
 def test_setup_middlewares_no_middlewares():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -91,8 +91,9 @@ def test_setup_middlewares_no_middlewares():
 
 
 def test_setup_middlewares_invalid_dict():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -110,10 +111,10 @@ def test_setup_middlewares_invalid_dict():
 
 
 def test_setup_middlewares_non_callable_attribute():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -129,16 +130,14 @@ def test_setup_middlewares_non_callable_attribute():
     middlewares = setup_middlewares(APP=APP, MIDDLEWARES=[NonCallableMiddleware])
 
     assert "NonCallableMiddleware:valid_middleware" in middlewares
-    assert all(
-        "some_attribute" not in mw for mw in middlewares
-    )  # Ensure non-callable attribute is not registered
+    assert all("some_attribute" not in mw for mw in middlewares)  # Ensure non-callable attribute is not registered
 
 
 def test_setup_middlewares_multiple_functions():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -163,10 +162,10 @@ def test_setup_middlewares_multiple_functions():
 
 
 def test_setup_middlewares_order():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from starlette.requests import Request
-    from starlette.responses import Response
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -184,9 +183,7 @@ def test_setup_middlewares_order():
             response.headers["X-Second-Middleware"] = "Active"
             return response
 
-    middlewares = setup_middlewares(
-        APP=APP, MIDDLEWARES=[FirstMiddleware, SecondMiddleware]
-    )
+    middlewares = setup_middlewares(APP=APP, MIDDLEWARES=[FirstMiddleware, SecondMiddleware])
 
     assert middlewares.index("SecondMiddleware:process") < middlewares.index(
         "FirstMiddleware:process"
@@ -195,8 +192,9 @@ def test_setup_middlewares_order():
 
 
 def test_setup_middlewares_empty_middleware_class():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -214,9 +212,10 @@ def test_setup_middlewares_empty_middleware_class():
 
 
 def test_setup_middlewares_dict_with_predefined_middleware_class():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
@@ -237,8 +236,9 @@ def test_setup_middlewares_dict_with_predefined_middleware_class():
 
 
 def test_setup_middlewares_no_callable_methods():
-    from app.utils.middlewares import setup_middlewares
     from fastapi import FastAPI
+
+    from app.utils.middlewares import setup_middlewares
 
     APP = FastAPI()
 
