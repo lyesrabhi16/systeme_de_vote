@@ -17,10 +17,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /srv
 
-COPY SVS-SERVER/requirements.txt ./
-RUN pip install -r requirements.txt
+# exactly what uv.lock says (--frozen: it is never re-resolved), the dependencies only: the code is copied after, so that a change of code does not reinstall them
+COPY SVS-SERVER/pyproject.toml SVS-SERVER/uv.lock ./
+RUN pip install uv && uv sync --frozen --no-dev --no-install-project
+
+ENV PATH="/srv/.venv/bin:${PATH}"
 
 COPY SVS-SERVER/app ./app
+COPY SVS-SERVER/migrations ./migrations
+COPY SVS-SERVER/alembic.ini ./
 COPY SVS-SERVER/openapi.json ./
 COPY --from=client /client/dist ./app/dist
 

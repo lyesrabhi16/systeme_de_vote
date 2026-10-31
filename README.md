@@ -104,7 +104,7 @@ nix develop        # Python 3.13, uv, bun, Docker Compose, a JRE (or install the
 
 # the server: no PostgreSQL, Redis or mail server needed for the tests
 cd SVS-SERVER
-uv venv && . .venv/bin/activate && make install
+make install      # uv sync --dev, as locked in uv.lock
 make test          # SQLite and an in-memory Redis
 make lint          # ruff
 make run-dev       # http://localhost:8000, needs PostgreSQL and Redis: see .env.example
@@ -144,7 +144,7 @@ docker compose up -d --build      # https://svs-server.localhost (trust SVS-SERV
 
 Outside production, missing secrets are made up when the process starts (and said so in the log), and without `SMTP_HOST` the emails are written to the log. Elections made with a made-up `ENCRYPTION_KEY` cannot be counted after a restart.
 
-There is no database migration tool. A database made by an earlier version: ballots, tallies and proofs are `TEXT` columns now (they were `VARCHAR`, which a ballot outgrows from about 20 candidates; `ALTER TABLE bulletin ALTER COLUMN content TYPE text`, and the same for `vote.encrypted_tally` and `vote.tally_proof`), and bulletins cast before the proof of the sum have the old format: the count leaves them out and reports them. Recreate the database for a demo.
+**The schema is changed by migrations** ([Alembic](SVS-SERVER/migrations/README.md)), run once per deployment by the `migrate` service (an init container on Kubernetes) before the application starts; in production the application refuses to start on a database that is behind (`python -m app.db.migrate --check`). A database made by an earlier version, with tables and no history, is *adopted*: stamped with the revision it is like, then upgraded (the ballots, tallies and proofs become `TEXT`: they outgrew their `VARCHAR`, from about 20 candidates). Back it up first, and read what it will do with `make migrate-sql from=0001`. Bulletins cast before the proof of the sum have the old format: the count leaves them out and reports them.
 
 The Kubernetes manifest [SVS-SERVER/svs-k8s.yml](SVS-SERVER/svs-k8s.yml) uses the same image; I have not run it on a cluster.
 
@@ -169,7 +169,6 @@ Dockerfile, docker-compose.yml (deploy), docker-compose.demo.yml (try it)
 
 - Threshold decryption of the election key, so that nobody holds it whole, and ballots not tied to a session.
 - A "cast or audit" challenge, so that a voter can check what their browser encrypted.
-- A migration tool (Alembic).
 - Revocable sessions (a denylist in Redis), and end of all sessions after a password reset.
 
 ## License

@@ -8,7 +8,8 @@ from loguru import logger
 
 from app.config.env import env
 from app.crons import start_crons
-from app.db import init_db, test_db_connection, test_redis_cache_connection
+from app.db import test_db_connection, test_redis_cache_connection
+from app.db.migrate import adopt_or_upgrade, ensure_current
 from app.middlewares.cors_middleware import CORS_MIDDLEWARE
 from app.middlewares.http_middleware import HTTP_MIDDLEWARE
 from app.models.error_codes import ERROR_CODES
@@ -41,8 +42,12 @@ async def lifespan(app: FastAPI):
     connected = await test_db_connection()
     if not connected:
         logger.error("Failed to connect to the database on startup.")
-    # Initialize the database if needed
-    await init_db(recreate=False)
+    # The schema: migrated here (development, testing, or AUTO_MIGRATE=true), or checked (production: it is migrated before the application
+    # starts, once, not by each replica; one that is behind does not start)
+    if env.auto_migrate:
+        logger.info(f"Database at revision {await adopt_or_upgrade()}")
+    else:
+        await ensure_current()
 
     if env.generated_secrets:
         logger.warning(

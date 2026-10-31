@@ -192,6 +192,12 @@ class _ENV(BaseModel):
         description="Size in bits of the Paillier modulus of each election. Below 2048 is only for tests.",
     )
 
+    AUTO_MIGRATE: bool | None = Field(
+        default=None,
+        title="Migrate when starting",
+        description="Whether the application brings the database to its schema (Alembic) when it starts. Empty: yes outside production, no in production, where `python -m app.db.migrate` runs once per deployment before the application starts, and the application refuses to start on a database that is behind.",
+    )
+
     FRONTEND_URL: str = Field(
         default="http://localhost:5173",
         title="Frontend URL",
@@ -280,6 +286,10 @@ class _ENV(BaseModel):
         if problems:
             raise ValueError("Unsafe or incomplete configuration: " + "; ".join(problems))
         return self
+
+    @property
+    def auto_migrate(self) -> bool:
+        return self.AUTO_MIGRATE if self.AUTO_MIGRATE is not None else self.ENV_MODE != ENV_MODES.PRODUCTION
 
     @property
     def DEBUG(self) -> bool:

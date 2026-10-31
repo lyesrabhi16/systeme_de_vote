@@ -12,21 +12,42 @@ x-secure: &secure
   security_opt:
     - no-new-privileges:true
 
+x-app: &app
+  build: .
+  image: svs-app
+  env_file: .env
+  environment: &app-environment
+    ENV_MODE: production
+    DB_HOST: db
+    DB_USER: svs
+    DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    DB_NAME: svs
+    REDIS_HOST: redis
+
 services:
+  # The schema of the database is changed here, once per deployment, and by nothing else: the application checks that it is at the
+  # revision it needs and refuses to start if it is not. (A database made before there were migrations is adopted, not recreated.)
+  # Look at what it will do first:  docker compose run --rm migrate alembic upgrade 0001:head --sql
+  migrate:
+    <<: [*secure, *app]
+    restart: "no"
+    command: ["python", "-m", "app.db.migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+    read_only: true
+    tmpfs: [/tmp]
+
   svs:
-    <<: *secure
-    build: .
-    env_file: .env
+    <<: [*secure, *app]
     environment:
-      ENV_MODE: production
-      DB_HOST: db
-      DB_USER: svs
-      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
-      DB_NAME: svs
-      REDIS_HOST: redis
+      <<: *app-environment
       # the only way to this container is Traefik (nothing is published), so it may be believed about the visitor's address
       FORWARDED_ALLOW_IPS: "*"
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:

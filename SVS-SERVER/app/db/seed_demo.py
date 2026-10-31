@@ -14,7 +14,8 @@ from datetime import timedelta
 from loguru import logger
 from sqlalchemy import func, select, update
 
-from app.db import db_session, init_db
+from app.db import db_session
+from app.db.migrate import adopt_or_upgrade
 from app.models import AttributedVote, Candidate, User, Vote
 from app.models.types import utcnow
 from app.utils import auth_utils, vote_utils
@@ -106,7 +107,7 @@ async def move_dates(vote_id: int, start, end, db=None) -> None:
 
 
 async def seed_demo() -> None:
-    await init_db(recreate=False)
+    await adopt_or_upgrade()
 
     @db_session
     async def user_count(db=None) -> int:

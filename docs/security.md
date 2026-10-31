@@ -75,6 +75,7 @@ Server tests are in `SVS-SERVER/app/tests`, client tests in `SVS-CLIENT/src`.
 | running in production with a placeholder secret, a missing key, `*` as CORS origin, a small election key | the application refuses to start, and lists everything that is wrong at once | `test_env.py::TestProduction` |
 | secrets printed by a configuration error | `hide_input_in_errors` | `test_env.py::TestWhatAnErrorSays` |
 | exposing the database or Redis | an internal Docker network, nothing published, a Redis password | `docker-compose.yml` |
+| the application running on a schema it was not written for, or two replicas changing the schema at once | production starts only on a database at the latest revision; migrations run once, before, under an advisory lock | `test_migrations.py`, and the CI step on PostgreSQL |
 | a stale or mixed API description | `openapi.json` is checked against the code; the client is generated from it | `test_openapi.py` |
 
 ## What it does not protect

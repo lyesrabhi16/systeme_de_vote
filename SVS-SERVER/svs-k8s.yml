@@ -82,6 +82,18 @@ spec:
       labels:
         app: svs-server
     spec:
+      # The schema is brought to the revision the code needs before the application starts (it refuses to start on a database that is behind).
+      # The three replicas start together: Alembic takes a PostgreSQL advisory lock, so one migrates and the others find nothing to do.
+      initContainers:
+        - name: migrate
+          image: svs-server:latest
+          imagePullPolicy: Never
+          command: ["python", "-m", "app.db.migrate"]
+          envFrom:
+            - configMapRef:
+                name: svs-config
+            - secretRef:
+                name: svs-secrets-config
       containers:
         - name: svs-server
           # built from the root of the repository (the Dockerfile builds the web client and the API together):
