@@ -20,6 +20,8 @@ All URIs are relative to *http://localhost*
 |[**getVoteById**](#getvotebyid) | **GET** /api/vote/{vote_id}/ | Get Vote By Id|
 |[**getVoteCount**](#getvotecount) | **GET** /api/vote/count/{vote_id}/ | Get Vote Count|
 |[**getVoteResult**](#getvoteresult) | **GET** /api/vote/result/{vote_id}/ | Get Vote Result|
+|[**getVoteRoll**](#getvoteroll) | **GET** /api/vote/{vote_id}/roll/ | Get Vote Roll|
+|[**searchElectors**](#searchelectors) | **GET** /api/vote/electors/ | Search Electors|
 |[**updateVote**](#updatevote) | **PUT** /api/vote/{vote_id}/ | Update Vote|
 
 # **castVote**
@@ -808,6 +810,125 @@ const { status, data } = await apiInstance.getVoteResult(
 ### Return type
 
 **FinishedVoteResponseModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getVoteRoll**
+> PaginatedListResponseUserResponseModel getVoteRoll()
+
+Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let voteId: number; // (default to undefined)
+let page: number; // (optional) (default to 1)
+let perPage: number; // (optional) (default to 10)
+let search: string; // (optional) (default to undefined)
+
+const { status, data } = await apiInstance.getVoteRoll(
+    voteId,
+    page,
+    perPage,
+    search
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **voteId** | [**number**] |  | defaults to undefined|
+| **page** | [**number**] |  | (optional) defaults to 1|
+| **perPage** | [**number**] |  | (optional) defaults to 10|
+| **search** | [**string**] |  | (optional) defaults to undefined|
+
+
+### Return type
+
+**PaginatedListResponseUserResponseModel**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **searchElectors**
+> PaginatedListResponseUserResponseModel searchElectors()
+
+The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+
+### Example
+
+```typescript
+import {
+    VoteApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VoteApi(configuration);
+
+let page: number; // (optional) (default to 1)
+let perPage: number; // (optional) (default to 10)
+let search: string; // (optional) (default to undefined)
+
+const { status, data } = await apiInstance.searchElectors(
+    page,
+    perPage,
+    search
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **page** | [**number**] |  | (optional) defaults to 1|
+| **perPage** | [**number**] |  | (optional) defaults to 10|
+| **search** | [**string**] |  | (optional) defaults to undefined|
+
+
+### Return type
+
+**PaginatedListResponseUserResponseModel**
 
 ### Authorization
 

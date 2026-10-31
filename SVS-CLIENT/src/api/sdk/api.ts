@@ -2646,6 +2646,100 @@ export const VoteApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+         * @summary Get Vote Roll
+         * @param {number} voteId 
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteRoll: async (voteId: number, page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'voteId' is not null or undefined
+            assertParamExists('getVoteRoll', 'voteId', voteId)
+            const localVarPath = `/api/vote/{vote_id}/roll/`
+                .replace(`{${"vote_id"}}`, encodeURIComponent(String(voteId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+         * @summary Search Electors
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        searchElectors: async (page?: number, perPage?: number, search?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/vote/electors/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Update Vote
          * @param {number} voteId 
@@ -2905,6 +2999,37 @@ export const VoteApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+         * @summary Get Vote Roll
+         * @param {number} voteId 
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getVoteRoll(voteId: number, page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getVoteRoll(voteId, page, perPage, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.getVoteRoll']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+         * @summary Search Electors
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async searchElectors(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedListResponseUserResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.searchElectors(page, perPage, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VoteApi.searchElectors']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Update Vote
          * @param {number} voteId 
@@ -3088,6 +3213,31 @@ export const VoteApiFactory = function (configuration?: Configuration, basePath?
          */
         getVoteResult(voteId: number, options?: RawAxiosRequestConfig): AxiosPromise<FinishedVoteResponseModel> {
             return localVarFp.getVoteResult(voteId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+         * @summary Get Vote Roll
+         * @param {number} voteId 
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getVoteRoll(voteId: number, page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.getVoteRoll(voteId, page, perPage, search, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+         * @summary Search Electors
+         * @param {number} [page] 
+         * @param {number} [perPage] 
+         * @param {string | null} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        searchElectors(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedListResponseUserResponseModel> {
+            return localVarFp.searchElectors(page, perPage, search, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3283,6 +3433,33 @@ export class VoteApi extends BaseAPI {
      */
     public getVoteResult(voteId: number, options?: RawAxiosRequestConfig) {
         return VoteApiFp(this.configuration).getVoteResult(voteId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Who is on the electoral roll of an election. For the vote authority only: who may vote is not for every voter to read.
+     * @summary Get Vote Roll
+     * @param {number} voteId 
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getVoteRoll(voteId: number, page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).getVoteRoll(voteId, page, perPage, search, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * The accounts that can be put on the electoral roll of an election, found by name or address, for the vote authority. (The user list is for the authority that manages the accounts: the one that makes the rolls is not that one.)
+     * @summary Search Electors
+     * @param {number} [page] 
+     * @param {number} [perPage] 
+     * @param {string | null} [search] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public searchElectors(page?: number, perPage?: number, search?: string | null, options?: RawAxiosRequestConfig) {
+        return VoteApiFp(this.configuration).searchElectors(page, perPage, search, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

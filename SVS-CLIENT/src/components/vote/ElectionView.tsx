@@ -25,6 +25,7 @@ import { getBadgeType, VoteBadgeType } from '@/utils/vote.utils';
 import {
   LucideCalendarClock,
   LucideCircleCheck,
+  LucideEye,
   LucideHourglass,
   LucideLockKeyhole,
   LucideSquareDashed,
@@ -36,7 +37,11 @@ import { toast } from 'sonner';
 const BLANK = 'blank';
 
 /** An election, as a voter sees it: to vote in, to wait for, or to read the result of. */
-const ElectionView = (props: { fullVote: FullVoteResponseModel }) => {
+const ElectionView = (props: {
+  fullVote: FullVoteResponseModel;
+  /** An administrator looking at it: no ballot is offered (it is for the people on the roll, and the server would refuse) */
+  readOnly?: boolean;
+}) => {
   const { fullVote } = props;
   const election = fullVote.vote.vote;
   const now = useNow();
@@ -53,7 +58,7 @@ const ElectionView = (props: { fullVote: FullVoteResponseModel }) => {
   const upcoming = type === VoteBadgeType.Upcoming;
   const finished = !open && !upcoming;
   const counted = election.has_been_counted;
-  const canVote = open && !alreadyVoted;
+  const canVote = open && !alreadyVoted && !props.readOnly;
 
   const candidates = fullVote.candidates;
   const selected: Candidate | null | undefined =
@@ -126,6 +131,15 @@ const ElectionView = (props: { fullVote: FullVoteResponseModel }) => {
       </header>
 
       {/* banners */}
+      {props.readOnly && (
+        <div className='flex items-start gap-3 rounded-2xl border bg-muted/60 p-4' role='note'>
+          <LucideEye className='mt-0.5 size-5 shrink-0' />
+          <p>
+            Vue de l'administration. L'élection a commencé : ses candidats et sa liste ne peuvent plus changer, et le vote est réservé
+            aux électeurs inscrits.
+          </p>
+        </div>
+      )}
       {alreadyVoted && open && (
         <div className='flex items-start gap-3 rounded-2xl border border-success/30 bg-success-soft p-4 text-success' role='status'>
           <LucideCircleCheck className='mt-0.5 size-5 shrink-0' />

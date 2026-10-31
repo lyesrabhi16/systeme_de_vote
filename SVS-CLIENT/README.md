@@ -10,7 +10,7 @@ src/
   services/auth.ts         sign-in steps; the session is an HttpOnly cookie, the client never holds the token
   pages/, components/      the pages (home, vote, administration) and their components
     components/vote/ElectionView.tsx   the voter's page of an election: the ballot, the confirmation and the receipt, the waiting
-                           state, the result and the verification panel (the administrators' form is VotingCard.tsx)
+                           state, the result and the verification panel (the administrators' form is components/vote/editor/ElectionEditor.tsx)
   index.css                the design tokens (colours, radius, shadows, fonts), light and dark: components use the tokens only
   schemas/                 Zod schemas of the forms
 tests/, src/**/*.test.ts   Vitest

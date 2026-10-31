@@ -31,3 +31,20 @@ export const progressBetween = (start: string | Date, end: string | Date, now: D
   if (total <= 0) return 1;
   return Math.min(1, Math.max(0, (now.getTime() - new Date(start).getTime()) / total));
 };
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** What an `<input type="datetime-local">` holds ("2030-11-05T18:30", the wall clock of the visitor) for a moment. */
+export const toInputValue = (value: string | Date): string => {
+  const d = new Date(value);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/** The moment (UTC, for the API) of what an `<input type="datetime-local">` holds, read as the visitor's wall clock. */
+export const fromInputValue = (value: string): string => new Date(value).toISOString();
+
+/** The moment an `<input type="datetime-local">` value stands for, or null when it holds nothing usable. */
+export const parseInputValue = (value: string): Date | null => {
+  const d = new Date(value);
+  return value && !Number.isNaN(d.getTime()) ? d : null;
+};
