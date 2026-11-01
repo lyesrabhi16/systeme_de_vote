@@ -105,7 +105,7 @@ The full model, with where each claim is tested, is in [docs/security.md](docs/s
 ## Develop
 
 ```bash
-nix develop        # Python 3.13, uv, bun, Docker Compose, a JRE (or install them yourself)
+nix develop        # Python 3.15, uv, bun, Docker Compose, a JRE (or install them yourself)
 
 # the server: no PostgreSQL, Redis or mail server needed for the tests
 cd SVS-SERVER
@@ -167,7 +167,7 @@ Dockerfile, docker-compose.yml (deploy), docker-compose.demo.yml (try it)
 
 | layer | technologies |
 | --- | --- |
-| Backend | Python 3.13, FastAPI, SQLModel/SQLAlchemy (async), PostgreSQL, Redis, python-paillier (`phe`), Argon2 (pwdlib), PyJWT, cryptography (Fernet), fastapi-crons, loguru |
+| Backend | Python 3.15, FastAPI, SQLModel/SQLAlchemy (async), PostgreSQL, Redis, python-paillier (`phe`), Argon2 (pwdlib), PyJWT, cryptography (Fernet), fastapi-crons, loguru |
 | Frontend | React 19, TypeScript, Vite 7, Tailwind CSS 4, Radix UI, Zustand, TanStack Query/Table, Recharts, Zod, React Hook Form, paillier-bigint |
 | Quality | pytest, Vitest, ruff, ESLint, GitHub Actions, Dependabot |
 | Infrastructure | Docker, Docker Compose, Traefik, Kubernetes manifest, Nix |

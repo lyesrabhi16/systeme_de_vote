@@ -19,5 +19,4 @@ pytest-asyncio==1.4.1
 redis==8.1.0
 ruff==0.17.3
 sortedcontainers==2.4.0
-typing-extensions==4.16.0
 tzdata==2026.6 ; sys_platform == 'win32'
