@@ -10,7 +10,7 @@ COPY SVS-CLIENT/ ./
 RUN bun run build
 
 # ---- the API
-FROM python:3.15-slim AS server
+FROM python:3.13-slim AS server
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
