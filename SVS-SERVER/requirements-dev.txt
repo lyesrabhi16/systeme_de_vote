@@ -1,7 +1,7 @@
 # What the tests and the checks need, on top of the server itself. Made by make update-requirements from uv.lock: do not edit.
 -r requirements.txt
 aiosqlite==0.22.1
-anyio==4.15.1
+anyio==4.16.0
 certifi==2026.10.23
 colorama==0.4.6 ; sys_platform == 'win32'
 faker==40.44.0
