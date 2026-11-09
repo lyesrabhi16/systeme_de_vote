@@ -1,4 +1,4 @@
-# SVS — Secure Voting System
+# SVS: Secure Voting System
 
 [![CI](https://github.com/lyesrabhi16/systeme_de_vote/actions/workflows/ci.yml/badge.svg)](https://github.com/lyesrabhi16/systeme_de_vote/actions/workflows/ci.yml)
 
