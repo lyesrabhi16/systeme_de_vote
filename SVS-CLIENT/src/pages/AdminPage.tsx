@@ -47,7 +47,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { PieSectorDataItem } from 'recharts/types/polar/Pie';
+import type { PieSectorShapeProps } from 'recharts/types/polar/Pie';
 import { toast } from 'sonner';
 
 // ─── Dashboard display flags ────────────────────────────────────────────────
@@ -304,8 +304,8 @@ const AdminPage = () => {
       year: 'numeric',
     });
 
-  const formatMonthLongFr = (value: string) =>
-    new Date(value).toLocaleDateString('fr-FR', {
+  const formatMonthLongFr = (value: unknown) =>
+    new Date(String(value)).toLocaleDateString('fr-FR', {
       month: 'long',
       year: 'numeric',
     });
@@ -349,16 +349,45 @@ const AdminPage = () => {
                         nameKey='name'
                         innerRadius={60}
                         strokeWidth={5}
-                        activeIndex={activeIndex}
-                        activeShape={({
+                        shape={({
                           outerRadius = 0,
-                          ...props
-                        }: PieSectorDataItem) => (
-                          <g>
-                            <Sector {...props} outerRadius={outerRadius + 5} />
-                            <Sector {...props} innerRadius={outerRadius + 12} />
-                          </g>
-                        )}
+                          index,
+                          cx,
+                          cy,
+                          innerRadius,
+                          startAngle,
+                          endAngle,
+                          cornerRadius,
+                          fill,
+                          stroke,
+                          strokeWidth,
+                        }: PieSectorShapeProps) => {
+                          const sector = {
+                            cx,
+                            cy,
+                            innerRadius,
+                            startAngle,
+                            endAngle,
+                            cornerRadius,
+                            fill,
+                            stroke,
+                            strokeWidth,
+                          };
+                          return index === activeIndex ? (
+                            <g>
+                              <Sector
+                                {...sector}
+                                outerRadius={outerRadius + 5}
+                              />
+                              <Sector
+                                {...sector}
+                                innerRadius={outerRadius + 12}
+                              />
+                            </g>
+                          ) : (
+                            <Sector {...sector} outerRadius={outerRadius} />
+                          );
+                        }}
                       >
                         <Label
                           content={({ viewBox }) => {
