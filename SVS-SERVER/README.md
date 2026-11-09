@@ -1,6 +1,6 @@
 # SVS-SERVER
 
-The API of the voting system: FastAPI, async SQLModel on PostgreSQL, Redis. The project as a whole, how to run it and its security model are in the [main README](../README.md) and [docs/security.md](../docs/security.md); this is the map of the server.
+The API of the voting system: FastAPI, async SQLModel on PostgreSQL, Redis. The project as a whole, how to run it and its security model are in the [main README](../README.md) and [docs/security.md](../docs/security.md). This is the map of the server.
 
 ```text
 app/
@@ -38,9 +38,9 @@ make deploy      # put the built web client in app/dist (the Docker image does t
 
 ## Things to know
 
-- **The tests run the real application**, with election keys of 1024 bits (`PAILLIER_KEY_BITS`; production refuses less than 2048) so that making an election takes a tenth of a second instead of a second.
+- **The tests run the real application**, with election keys of 1024 bits (`PAILLIER_KEY_BITS`, production refuses less than 2048) so that making an election takes a tenth of a second instead of a second.
 - **The admin dashboard uses PostgreSQL functions** (`to_char`, `date_trunc`): its routes are not covered by the SQLite tests.
 - **Ballots are checked on a thread** (`asyncio.to_thread`): a ballot is a few exponentiations of 4096 bits per candidate.
-- **The count is idempotent**: the cron, an administrator and several replicas may all run it; they write the same result.
+- **The count is idempotent**: the cron, an administrator and several replicas may all run it. They write the same result.
 - Dates are UTC with a timezone (`UTCDateTime`, the same column as before).
 - The `vote_utils.get_vote_count` and the cron are the only places that use an election's private key.

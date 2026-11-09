@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/lyesrabhi16/systeme_de_vote/actions/workflows/ci.yml/badge.svg)](https://github.com/lyesrabhi16/systeme_de_vote/actions/workflows/ci.yml)
 
-A web application for running elections where **the ballots are encrypted in the voter's browser and counted without being decrypted one by one**, and where **anybody can check the count** from public data. Administrators create elections with their candidates and electoral rolls; people sign in with a password **and a one-time password sent by email**, vote once, receive a receipt, and see the result when the election is over. Built as the M1 "Projet Long" (Logiciels Sûrs track, Université Paris-Est Créteil). The interface is in French.
+A web application for running elections where **the ballots are encrypted in the voter's browser and counted without being decrypted one by one**, and where **anybody can check the count** from public data. Administrators create elections with their candidates and electoral rolls. People sign in with a password **and a one-time password sent by email**, vote once, receive a receipt, and see the result when the election is over. Built as the M1 "Projet Long" (Logiciels Sûrs track, Université Paris-Est Créteil). The interface is in French.
 
 | | |
 | :---: | :---: |
@@ -32,12 +32,12 @@ docker compose -f docker-compose.demo.yml exec svs python -m app.utils.audit htt
 # The result is verified.
 ```
 
-This stack is for looking at the project (`ENV_MODE=development`, plain http); see [Deploy](#deploy) for the real thing.
+This stack is for looking at the project (`ENV_MODE=development`, plain http). See [Deploy](#deploy) for the real thing.
 
 ## What it does
 
 - **Two-step sign-in**: password (Argon2), then a one-time password by email (6 characters, valid 5 minutes, single use, 3 tries). An account an administrator creates without a password signs in with the one-time password alone, until its owner chooses one with the password reset by email link.
-- **Two kinds of administrators**: the *inscription authority* manages accounts; the *vote authority* creates elections (dates, candidates, electoral roll), changes them until they open, and counts them. Voters see the elections they are on the roll of.
+- **Two kinds of administrators**: the *inscription authority* manages accounts. The *vote authority* creates elections (dates, candidates, electoral roll), changes them until they open, and counts them. Voters see the elections they are on the roll of.
 - **Voting**: a candidate or a blank ballot, a confirmation step, then the browser encrypts the choice with the election's public key and proves, in zero knowledge, that the ballot is valid. The server checks the proofs, records the ballot, marks the voter as having voted, and emails a **receipt** (the code of the bulletin on the public board).
 - **Counting** when an election ends, by a scheduled job (or by the vote authority): the ciphertexts are *added*, and only the sums are decrypted.
 - **Verification**: the bulletin board (every ballot, no names), the encrypted sums and a proof that each decrypts to the published count are public. [`app/utils/audit.py`](SVS-SERVER/app/utils/audit.py) checks them all from the public routes alone.
@@ -53,7 +53,7 @@ This stack is for looking at the project (`ENV_MODE=development`, plain http); s
 
 ### The ballot
 
-Each election has its own [Paillier](https://en.wikipedia.org/wiki/Paillier_cryptosystem) key pair, made when the election is created. The public key is published; the private key is kept encrypted with the server's `ENCRYPTION_KEY`. Paillier is *additively homomorphic*: multiplying ciphertexts adds the plaintexts.
+Each election has its own [Paillier](https://en.wikipedia.org/wiki/Paillier_cryptosystem) key pair, made when the election is created. The public key is published. The private key is kept encrypted with the server's `ENCRYPTION_KEY`. Paillier is *additively homomorphic*: multiplying ciphertexts adds the plaintexts.
 
 A ballot is, for each candidate, an encryption of **1** (chosen) or **0**, and the browser attaches two kinds of proof, so that the server (which cannot read the ballot) can refuse a ballot that cheats:
 
@@ -68,8 +68,8 @@ The server verifies the whole ballot before recording anything, and a refused ba
 
 When the election is over, the server multiplies the ciphertexts of the valid ballots per candidate (the *encrypted sum*), decrypts each sum (that is the result), and publishes with it, for each candidate, the **n-th root** of `sum · g^(−count)`: it exists only if the sum really decrypts to `count`, anybody can check it with the public key, and it reveals nothing about any ballot. Anybody can then, from the public routes:
 
-1. read the bulletin board and verify every proof of every ballot;
-2. multiply the valid ones and compare with the published encrypted sums;
+1. read the bulletin board and verify every proof of every ballot.
+2. multiply the valid ones and compare with the published encrypted sums.
 3. check the decryption proof of each result.
 
 `python -m app.utils.audit <server> <election id>` does all three. A wrong count, a ballot added or removed after the fact, and a made-up proof are each caught by a test.
@@ -87,17 +87,17 @@ The full model, with where each claim is tested, is in [docs/security.md](docs/s
 ### Protected, and tested
 
 - A voter cannot vote twice (even with requests at the same time), before the opening, after the end, or without being on the roll.
-- A ballot that chooses several candidates, that has an entry missing or repeated, or whose proofs do not verify is refused whole (tests make each of these ballots with a Python voter; two fixtures check that the web client and the server agree on the proofs byte for byte).
-- The count can be checked by anybody; counting early is refused; counting twice gives the same result.
-- The API never returns the private key of an election or the hash of a password; the candidates of an election cannot be changed once it is open (it would invalidate the ballots already cast).
-- One-time passwords work once; guessing is limited per account and per address; no password, one-time password or token reaches the log.
-- Production **refuses to start** with a placeholder secret, a missing key, a wildcard CORS origin or a key smaller than 2048 bits; and the error does not print the secrets it was given.
-- PostgreSQL and Redis are not reachable from outside; the application runs read-only, as a non-root user.
+- A ballot that chooses several candidates, that has an entry missing or repeated, or whose proofs do not verify is refused whole (tests make each of these ballots with a Python voter, two fixtures check that the web client and the server agree on the proofs byte for byte).
+- The count can be checked by anybody. Counting early is refused. Counting twice gives the same result.
+- The API never returns the private key of an election or the hash of a password. The candidates of an election cannot be changed once it is open (it would invalidate the ballots already cast).
+- One-time passwords work once. Guessing is limited per account and per address. No password, one-time password or token reaches the log.
+- Production **refuses to start** with a placeholder secret, a missing key, a wildcard CORS origin or a key smaller than 2048 bits. And the error does not print the secrets it was given.
+- PostgreSQL and Redis are not reachable from outside. The application runs read-only, as a non-root user.
 
 ### Not protected (read this before trusting it with a real election)
 
-- **The operator of the server is trusted for ballot secrecy.** The private key of each election is on the server (encrypted with `ENCRYPTION_KEY`, which is on the server too), and the server knows which authenticated voter sent which ballot. Whoever controls the server can decrypt any single ballot and attribute it to a person. The design makes the *application* count without decrypting ballots one by one; it does not make the operator *unable* to. Closing that gap needs a key that is never whole on one machine (threshold decryption) and ballots not tied to an authenticated session (anonymous credentials).
-- **Counting is verifiable; eligibility is not**: the audit proves that the ballots on the board are valid and are what was counted, not that each one belongs to somebody on the roll who voted. A server could add valid ballots. A voter can check that their receipt is on the board; the number of voters is published; that is all.
+- **The operator of the server is trusted for ballot secrecy.** The private key of each election is on the server (encrypted with `ENCRYPTION_KEY`, which is on the server too), and the server knows which authenticated voter sent which ballot. Whoever controls the server can decrypt any single ballot and attribute it to a person. The design makes the *application* count without decrypting ballots one by one. It does not make the operator *unable* to. Closing that gap needs a key that is never whole on one machine (threshold decryption) and ballots not tied to an authenticated session (anonymous credentials).
+- **Counting is verifiable. Eligibility is not**: the audit proves that the ballots on the board are valid and are what was counted, not that each one belongs to somebody on the roll who voted. A server could add valid ballots. A voter can check that their receipt is on the board. The number of voters is published. That is all.
 - A voter cannot check that the ballot made by their browser encrypts the choice they made (no "cast or audit" challenge): a compromised browser, or a modified client served by the server, could encrypt another choice.
 - It is not coercion-resistant: the receipt does not reveal the choice, but nothing stops a voter from voting under the eye of somebody who will check.
 - A session cannot be revoked: logging out clears the cookie, but a copied token stays valid until it expires (1 hour by default).
@@ -124,15 +124,15 @@ bun run test
 bun run lint && bun run build
 ```
 
-**The API client is generated.** After a change to the API: `make openapi` (writes `SVS-SERVER/openapi.json`; a test fails if it is out of date), then `bun run generate-API-CLIENT` in `SVS-CLIENT` (needs a JRE). The generator is pinned (7.17.0).
+**The API client is generated.** After a change to the API: `make openapi` (writes `SVS-SERVER/openapi.json`, a test fails if it is out of date), then `bun run generate-API-CLIENT` in `SVS-CLIENT` (needs a JRE). The generator is pinned (7.17.0).
 
-**The proofs are made by the browser and verified by the server**, in two languages. `SVS-SERVER/app/tests/fixtures/` holds ballots made by each side (public data only), verified by the other side's tests; regenerate with `bun run interop-fixture` (in `SVS-CLIENT`) and `python app/tests/make_interop_fixture.py`.
+**The proofs are made by the browser and verified by the server**, in two languages. `SVS-SERVER/app/tests/fixtures/` holds ballots made by each side (public data only), verified by the other side's tests. Regenerate with `bun run interop-fixture` (in `SVS-CLIENT`) and `python app/tests/make_interop_fixture.py`.
 
 CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the lint and the tests of both parts, builds the production client, then builds the Docker image and uses it: PostgreSQL, Redis, the page, a page route, the API, and the audit of the demo election.
 
 ## Deploy
 
-[docker-compose.yml](docker-compose.yml): the application behind Traefik with HTTPS; PostgreSQL and Redis on an internal network with nothing published; no Traefik dashboard and no access log.
+[docker-compose.yml](docker-compose.yml): the application behind Traefik with HTTPS. PostgreSQL and Redis on an internal network with nothing published. No Traefik dashboard and no access log.
 
 ```bash
 cp .env.example .env              # every secret is required: the stack refuses to start without
@@ -145,15 +145,15 @@ docker compose up -d --build      # https://svs-server.localhost (trust SVS-SERV
 | `DOMAIN`, `HOST_URL`, `FRONTEND_URL`, `ALLOWED_ORIGINS` | where the site is. Origins are explicit: cookies are sent with the requests |
 | `POSTGRES_PASSWORD`, `REDIS_PASSWORD` | the two backing services |
 | `JWT_SECRET_KEY` | signs sessions (≥ 32 characters) |
-| `ENCRYPTION_KEY` | a Fernet key. It encrypts the private key of every election: **back it up. Without it the elections can no longer be counted**; with it and the database, ballots can be read |
+| `ENCRYPTION_KEY` | a Fernet key. It encrypts the private key of every election: **back it up. Without it the elections can no longer be counted**, with it and the database, ballots can be read |
 | `PAILLIER_KEY_BITS` | size of an election's key (2048 by default, the minimum in production) |
-| `SMTP_*` | the mail server; required in production |
+| `SMTP_*` | the mail server, required in production |
 
-Outside production, missing secrets are made up when the process starts (and said so in the log), and without `SMTP_HOST` the emails are written to the log. To try the production stack without a real mail server, `docker compose --profile mailpit up -d` adds Mailpit (mailbox on <http://localhost:8025>, this machine only) and `.env.example` says which `SMTP_*` to set; never in production. Elections made with a made-up `ENCRYPTION_KEY` cannot be counted after a restart.
+Outside production, missing secrets are made up when the process starts (and said so in the log), and without `SMTP_HOST` the emails are written to the log. To try the production stack without a real mail server, `docker compose --profile mailpit up -d` adds Mailpit (mailbox on <http://localhost:8025>, this machine only) and `.env.example` says which `SMTP_*` to set. Never in production. Elections made with a made-up `ENCRYPTION_KEY` cannot be counted after a restart.
 
-**The schema is changed by migrations** ([Alembic](SVS-SERVER/migrations/README.md)), run once per deployment by the `migrate` service (an init container on Kubernetes) before the application starts; in production the application refuses to start on a database that is behind (`python -m app.db.migrate --check`). A database made by an earlier version, with tables and no history, is *adopted*: stamped with the revision it is like, then upgraded (the ballots, tallies and proofs become `TEXT`: they outgrew their `VARCHAR`, from about 20 candidates). Back it up first, and read what it will do with `make migrate-sql from=0001`. Bulletins cast before the proof of the sum have the old format: the count leaves them out and reports them.
+**The schema is changed by migrations** ([Alembic](SVS-SERVER/migrations/README.md)), run once per deployment by the `migrate` service (an init container on Kubernetes) before the application starts. In production the application refuses to start on a database that is behind (`python -m app.db.migrate --check`). A database made by an earlier version, with tables and no history, is *adopted*: stamped with the revision it is like, then upgraded (the ballots, tallies and proofs become `TEXT`: they outgrew their `VARCHAR`, from about 20 candidates). Back it up first, and read what it will do with `make migrate-sql from=0001`. Bulletins cast before the proof of the sum have the old format: the count leaves them out and reports them.
 
-The Kubernetes manifest [SVS-SERVER/svs-k8s.yml](SVS-SERVER/svs-k8s.yml) uses the same image; I have not run it on a cluster.
+The Kubernetes manifest [SVS-SERVER/svs-k8s.yml](SVS-SERVER/svs-k8s.yml) uses the same image. I have not run it on a cluster.
 
 ## Repository
 

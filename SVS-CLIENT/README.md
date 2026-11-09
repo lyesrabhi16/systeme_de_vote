@@ -31,7 +31,7 @@ bun run interop-fixture        # rewrite ../SVS-SERVER/app/tests/fixtures/ts_bal
 
 ## The look
 
-The colours, the radius and the shadows are tokens in `src/index.css` with a second set for the dark theme (`next-themes`, system first, a toggle in the header); the components use the tokens and never a colour of their own, so changing the look is changing the tokens. Inter (text) and Fraunces (titles) are self-hosted from `@fontsource-variable`. A state is always a word and an icon, never a colour alone (`VoteBadge`).
+The colours, the radius and the shadows are tokens in `src/index.css` with a second set for the dark theme (`next-themes`, system first, a toggle in the header). The components use the tokens and never a colour of their own, so changing the look is changing the tokens. Inter (text) and Fraunces (titles) are self-hosted from `@fontsource-variable`. A state is always a word and an icon, never a colour alone (`VoteBadge`).
 
 ## The ballot
 
@@ -42,4 +42,4 @@ The colours, the radius and the shadows are tokens in `src/index.css` with a sec
 ## Things to know
 
 - **The API is on the same origin as the page**, under `/api`: there is no base URL to configure, and the session cookie needs it.
-- `src/api/sdk` is not linted (it is generated); the rest of the code is, with `bun run lint`.
+- `src/api/sdk` is not linted (it is generated). The rest of the code is, with `bun run lint`.
