@@ -102,6 +102,9 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+type TooltipPayloadItem = RechartsPrimitive.TooltipPayloadEntry
+type TooltipPayload = ReadonlyArray<TooltipPayloadItem>
+
 function ChartTooltipContent({
   active,
   payload,
@@ -116,8 +119,23 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-  React.ComponentProps<"div"> & {
+}: React.ComponentProps<"div"> & {
+    active?: boolean
+    payload?: TooltipPayload
+    label?: React.ReactNode
+    labelFormatter?: (
+      label: React.ReactNode,
+      payload: TooltipPayload
+    ) => React.ReactNode
+    formatter?: (
+      value: RechartsPrimitive.TooltipValueType,
+      name: string | number,
+      item: TooltipPayloadItem,
+      index: number,
+      payload: TooltipPayload
+    ) => React.ReactNode
+    color?: string
+    labelClassName?: string
     hideLabel?: boolean
     hideIndicator?: boolean
     indicator?: "line" | "dot" | "dashed"
@@ -186,14 +204,14 @@ function ChartTooltipContent({
 
             return (
               <div
-                key={item.dataKey}
+                key={`${item.name ?? "item"}-${index}`}
                 className={cn(
                   "[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
                   indicator === "dot" && "items-center"
                 )}
               >
                 {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+                  formatter(item.value, item.name, item, index, payload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -256,8 +274,9 @@ function ChartLegendContent({
   payload,
   verticalAlign = "bottom",
   nameKey,
-}: React.ComponentProps<"div"> &
-  Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
+}: React.ComponentProps<"div"> & {
+    payload?: ReadonlyArray<RechartsPrimitive.LegendPayload>
+    verticalAlign?: "top" | "middle" | "bottom"
     hideIcon?: boolean
     nameKey?: string
   }) {
