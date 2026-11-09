@@ -382,6 +382,7 @@ const AdminPage = () => {
                               <Sector
                                 {...sector}
                                 innerRadius={outerRadius + 12}
+                                outerRadius={outerRadius + 17}
                               />
                             </g>
                           ) : (
